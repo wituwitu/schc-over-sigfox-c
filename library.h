@@ -1,0 +1,6 @@
+#ifndef SCHC_OVER_SIGFOX_C_LIBRARY_H
+#define SCHC_OVER_SIGFOX_C_LIBRARY_H
+
+void hello(void);
+
+#endif //SCHC_OVER_SIGFOX_C_LIBRARY_H
