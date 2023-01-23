@@ -12,22 +12,24 @@ int binToIntTest(void) {
 
 int intToBinTest(void) {
     int n = 210;
-    char expected[9] = "11010010";
-    char actual[9];
-    char* res = int_to_bin(n, 8);
-    strcpy(actual, res);
-    free(res);
-    return strcmp(actual, expected) == 0;
+    char* expected_eight = "11010010";
+    char actual_eight[9];
+    int_to_bin(actual_eight, n);
+    int eight_bit = strcmp(actual_eight, expected_eight) == 0;
+
+    char expected_sixt[17] = "0000000011010010";
+    char actual_sixt[17];
+    int_to_bin(actual_sixt, n);
+    int sixt_bit = strcmp(actual_sixt, expected_sixt) == 0;
+
+    printf("expected sixt: %s\n", expected_sixt);
+    printf("actual sixt: %s\n", actual_sixt);
+
+    return eight_bit && sixt_bit;
 }
 
-/*void bytesToBinTest(void) {
-    char bytes[] = "cafe";
-    int expected = 0b1100101011111110;
-    return bytes_to_bin(bytes);
-}*/
-
 int main() {
-    printf("%d\n", binToIntTest());
-    printf("%d\n", intToBinTest());
+    // printf("%d\n", binToIntTest());
+    // printf("%d\n", intToBinTest());
     return binToIntTest() && intToBinTest();
 }
