@@ -13,7 +13,7 @@ size_t repeat_char(char* dest, char c, int length) {
     return strlen(dest);
 }
 
-void strrev(char *start) {
+void strrev(char* start) {
     char temp, *end;
 
     if(start == NULL || !(*start) )
@@ -28,4 +28,11 @@ void strrev(char *start) {
         start++;
         end--;
     }
+}
+
+void zfill(char* dest, const char* src, unsigned int length) {
+    size_t len = strlen(src);
+    size_t zeros = (len > length) ? 0: length - len;
+    memset(dest, '0', zeros);
+    strncpy(dest + zeros, src, length);
 }

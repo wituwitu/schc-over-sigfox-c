@@ -29,3 +29,5 @@ size_t repeat_char(char* dest, char c, int length) ;
  *  start: pointer to the start of the string to reverse.
  */
 void strrev(char *start);
+
+void zfill(char* dest, const char* src, unsigned int length);
