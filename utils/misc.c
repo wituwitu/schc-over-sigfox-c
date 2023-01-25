@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "misc.h"
 
 size_t repeat_char(char* dest, char c, int length) {
@@ -49,17 +50,21 @@ int is_monochar(char s[], char c) {
     return 1;
 }
 
-void generate_packet(char dest[], int byte_size) {
+void generate_packet(char dest[], int length) {
     char s[] = "0";
     int i = 0;
     int j = 0;
-
-    for (; j < byte_size; j++) {
+    for (; j < length; j++) {
         dest[j] = *s;
         i = (i + 1) % 10;
         sprintf(s, "%d", i);
     }
-
     dest[j] = '\0';
+}
 
+int round_to_next_multiple(signed int n, signed int factor) {
+    double value = (double) n;
+    double result = floor(value / (-factor));
+
+    return (int) -result * factor;
 }

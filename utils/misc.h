@@ -60,4 +60,14 @@ void replace_char(char src[], int idx, char c);
  */
 int is_monochar(char s[], char c);
 
-void generate_packet(char dest[], int byte_size);
+/*
+ * Function:  generate_packet
+ * --------------------
+ * Fills a char[] buffer of the desired length with placeholder data.
+ *
+ *  dest: buffer where to store the information.
+ *  length: desired length of the information.
+ */
+void generate_packet(char dest[], int length);
+
+int round_to_next_multiple(signed int n, int factor);

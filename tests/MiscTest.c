@@ -104,7 +104,20 @@ int generate_packet_test(void) {
     int sec = strcmp(dest_sec, "01234567890123456789") == 0;
 
     return fir && sec;
-//    return fir && sec && thi && fou && fif;
+}
+
+int round_to_next_multiple_test(void) {
+    int fir = round_to_next_multiple(8, 7);
+    int sec = round_to_next_multiple(14, 7);
+    int thi = round_to_next_multiple(15, 7);
+    int fou = round_to_next_multiple(0, 7);
+    int fif = round_to_next_multiple(-20, 7);
+
+    return fir == 14
+    && sec == 14
+    && thi == 21
+    && fou == 0
+    && fif == -14;
 }
 
 int main() {
@@ -115,6 +128,7 @@ int main() {
     printf("%d replace_char_test\n", replace_char_test());
     printf("%d is_monochar_test\n", is_monochar_test());
     printf("%d generate_packet_test\n", generate_packet_test());
+    printf("%d round_to_next_multiple_test\n", round_to_next_multiple_test());
 
     return 0;
 }
