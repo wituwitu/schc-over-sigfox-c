@@ -63,8 +63,6 @@ void generate_packet(char dest[], int length) {
 }
 
 int round_to_next_multiple(signed int n, signed int factor) {
-    double value = (double) n;
-    double result = floor(value / (-factor));
-
+    double result = floor((double) n / (-factor));
     return (int) -result * factor;
 }
