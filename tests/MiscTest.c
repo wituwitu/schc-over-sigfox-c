@@ -13,7 +13,7 @@ int repeat_char_test(void) {
     int equal = strcmp(dest, expected) == 0;
     int size_check = size == 8;
     int equal_size = size == strlen(expected);
-    int ends_in_NUL = dest[9] == '\0';
+    int ends_in_NUL = dest[8] == '\0';
 
     return equal
     && size_check
@@ -34,7 +34,7 @@ int str_rev_test(void) {
     int size_check = size == 9;
     int equal_size = size == strlen(expected);
     int equal = strcmp(s, expected) == 0;
-    int ends_in_NUL = s[10] == '\0';
+    int ends_in_NUL = s[9] == '\0';
 
     return equal
     && size_check
