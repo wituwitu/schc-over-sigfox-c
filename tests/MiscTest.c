@@ -43,11 +43,11 @@ int str_rev_test(void) {
 }
 
 int zfill_test(void) {
-    char* src = "test";
+    char src[] = "test";
     char dest[10] = "";
     zfill(dest, src, 9);
 
-    char* expected = "00000test";
+    char expected[] = "00000test";
 
     int equal = strcmp(dest, expected) == 0;
     int size_check = strlen(dest) == 9;
@@ -56,7 +56,6 @@ int zfill_test(void) {
     return equal
     && size_check
     && ends_in_NUL;
-    // TODO: Make this not smash the stack
 }
 
 int main() {
