@@ -8,6 +8,5 @@
 #endif //SCHC_OVER_SIGFOX_C_CASTING_H
 
 int bin_to_int(char* bin);
-void int_to_bin(char* dest, unsigned int n, unsigned int size);
-char* bin_to_bytes(char* bin);
-// void bytes_to_bin(char* bytes);
+void int_to_bin(char* dest, int n, unsigned int length);
+void bytes_to_bin(char* dest, char* bytes, unsigned int length);
