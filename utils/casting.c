@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 #include "misc.h"
@@ -7,7 +6,7 @@ long bin_to_int(char* bits) {
     return strtol(bits, NULL, 2);
 }
 
-void int_to_bin(char* dest, int n, unsigned int length) {
+void int_to_bin(char* dest, signed char n, unsigned int length) {
     size_t int_sz = sizeof(int) * 8;
 
     char res[int_sz];
@@ -26,7 +25,6 @@ void int_to_bin(char* dest, int n, unsigned int length) {
     }
     dest[j] = '\0';
 }
-
 
 void bytes_to_bin(char* dest, char* bytes, unsigned int length) {
     int size = (int) strlen(bytes) * 8;
