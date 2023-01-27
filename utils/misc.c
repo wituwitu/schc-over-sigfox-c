@@ -18,7 +18,6 @@ void strrev(char* start) {
     char temp, *end;
 
     if (start == NULL || !(*start)) return;
-
     end = start + strlen(start) - 1;
 
     while (end > start) {

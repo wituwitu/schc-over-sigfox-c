@@ -38,3 +38,5 @@ void int_to_bin(char* dest, signed char n, unsigned int length);
  *  length: length of the buffer excluding the null terminator.
  */
 void bytes_to_bin(char* dest, char* bytes, unsigned int length);
+
+void bin_to_bytes(char* dest, char* bits, unsigned int length);

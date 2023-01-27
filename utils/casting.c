@@ -32,9 +32,8 @@ void bytes_to_bin(char* dest, char* bytes, unsigned int length) {
     char* p = bits;
 
     for (int i = 0; bytes[i] != 0; i++) {
-        int as_int = (int) bytes[i] + 0;
         char as_bin[8];
-        int_to_bin(as_bin, as_int, 8);
+        int_to_bin(as_bin, bytes[i], 8);
 
         for (int j = 0; j < 8; j++) {
             *p++ = as_bin[j];
@@ -43,4 +42,20 @@ void bytes_to_bin(char* dest, char* bytes, unsigned int length) {
 
     bits[size] = '\0';
     zfill(dest, bits, length - strlen(dest));
+}
+
+void bin_to_bytes(char* dest, char* bits, unsigned int length) {
+    int size = (int) strlen(bits) / 8;
+    char bytes[size + 1];
+    char *p = bits;
+    int i = 0;
+    for (; *p != '\0'; p += 8) {
+        char oct[8];
+        strncpy(oct, p, 8);
+        char byt = (char) bin_to_int(oct);
+        bytes[i++] = byt;
+    }
+    bytes[i] = '\0';
+
+    zfill(dest, bytes, length - strlen(dest));
 }

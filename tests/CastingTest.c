@@ -77,9 +77,21 @@ int bytes_to_bin_test(void) {
     return eight_bit && empty;
 }
 
+int bin_to_bytes_test(void) {
+    char* bits = "11010010";
+    char expected[] = "\xd2";
+    char actual[2] = "";
+    bin_to_bytes(actual, bits, 1);
+    int fir = strcmp(actual, expected) == 0;
+
+    return fir;
+
+}
+
 int main() {
     printf("%d bin_to_int_test\n", bin_to_int_test());
     printf("%d int_to_bin_test\n", int_to_bin_test());
     printf("%d bytes_to_bin_test\n", bytes_to_bin_test());
+    printf("%d bin_to_bytes_test\n", bin_to_bytes_test());
     return 0;
 }
