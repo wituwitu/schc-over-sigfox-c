@@ -7,7 +7,8 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         casting.c
-        misc.c)
+        misc.c
+        )
 
 add_library(utils STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

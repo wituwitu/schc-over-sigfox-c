@@ -2,8 +2,9 @@
 #include <string.h>
 #include <malloc.h>
 #include "casting.h"
+#include "misc.h"
 
-int binToIntTest(void) {
+int bin_to_int_test(void) {
     char bin[] = "11010010";
     int expected = 210;
     int actual = bin_to_int(bin);
@@ -24,31 +25,29 @@ int binToIntTest(void) {
     && equal_third;
 }
 
-/*
-int intToBinTest(void) {
+int int_to_bin_test(void) {
     int n = 210;
     char* expected_eight = "11010010";
-    char actual_eight[9];
+    char actual_eight[9] = "";
     int_to_bin(actual_eight, n, 8);
     int eight_bit = strcmp(actual_eight, expected_eight) == 0;
 
-    printf("expected eight: %s\n", expected_eight);
-    printf("actual eight: %s\n", actual_eight);
-
     char expected_sixt[17] = "0000000011010010";
-    char actual_sixt[17];
+    char actual_sixt[17] = "";
     int_to_bin(actual_sixt, n, 16);
     int sixt_bit = strcmp(actual_sixt, expected_sixt) == 0;
 
-    printf("expected sixt: %s\n", expected_sixt);
-    printf("actual sixt: %s\n", actual_sixt);
+    int n_sec = 75;
+    char* expected_sec = "000000000000000001001011";
+    char actual_sec[32] = "";
+    int_to_bin(actual_sec, n_sec, 24);
+    int twfo_bit = strcmp(actual_sec, expected_sec) == 0;
 
-    return eight_bit && sixt_bit;
+    return eight_bit && sixt_bit && twfo_bit;
 }
 
 int main() {
-    printf("%d\n", binToIntTest());
-    printf("%d\n", intToBinTest());
+    printf("%d bin_to_int_test\n", bin_to_int_test());
+    printf("%d int_to_bin_test\n", int_to_bin_test());
     return 0;
 }
-*7
