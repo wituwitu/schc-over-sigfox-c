@@ -8,7 +8,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
         casting.c
         misc.c
-        ../config/schc.c ../config/schc.h ../sockets/sigfox_http_socket.c ../sockets/sigfox_http_socket.h ../sockets/server.c ../sockets/client.c)
+        ../config/schc.c ../config/schc.h ../sockets/sigfox_http_socket.c ../sockets/sigfox_http_socket.h ../sockets/server.c ../sockets/client.c castingcpp.cpp)
 
 add_library(utils STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

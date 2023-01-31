@@ -14,7 +14,7 @@
  *
  *  bin: Binary string (composed of chars '0' and '1') to process.
  */
-int bin_to_int(char* bin);
+int bin_to_int(const char* bin);
 
 /*
  * Function:  int_to_bin

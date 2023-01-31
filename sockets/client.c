@@ -1,5 +1,9 @@
 #include <netinet/in.h>
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+#define PORT 8080
 
 int main(int argc, char const* argv[]) {
     int sock = 0, valread, client_fd;
@@ -8,7 +12,7 @@ int main(int argc, char const* argv[]) {
     char buffer[1024] = {0};
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\nSocket creation error\n");
-        return -1
+        return -1;
     }
 
     serv_addr.sin_family = AF_INET;
@@ -23,6 +27,12 @@ int main(int argc, char const* argv[]) {
         return -1;
     }
 
-    send(sock, hello, strlen(hello))
+    send(sock, hello, strlen(hello), 0);
+    printf("Hello message sent\n");
+    valread = read(sock, buffer, 1024);
+    printf("%s\n", buffer);
+
+    close(client_fd);
+    return 0;
 
 }
