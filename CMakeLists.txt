@@ -8,5 +8,7 @@ set(CMAKE_C_STANDARD 17)
 
 ###############################################################################
 # Subdirectories
-add_subdirectory(utils)
 add_subdirectory(tests)
+add_subdirectory(config)
+add_subdirectory(utils)
+add_subdirectory(sockets)
