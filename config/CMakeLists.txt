@@ -1,4 +1,4 @@
-project(utils)
+project(config)
 
 set(HEADER_FILES
         schc.h

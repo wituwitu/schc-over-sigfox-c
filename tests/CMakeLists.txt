@@ -4,10 +4,17 @@ add_executable(
 add_executable(
         MiscTest MiscTest.c
 )
-target_link_libraries(CastingTest utils)
-target_link_libraries(MiscTest utils)
+add_executable(
+        SocketServerTest SocketServerTest.c
+)
+add_executable(
+        SocketClientTest SocketClientTest.c
+)
+target_link_libraries(CastingTest utils casting)
+target_link_libraries(MiscTest utils casting)
+target_link_libraries(SocketServerTest sockets)
+target_link_libraries(SocketClientTest sockets)
 
 ###############################################################################
 # Unit tests
 enable_testing()
-add_test(NAME check_schc COMMAND check_schc)

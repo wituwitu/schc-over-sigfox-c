@@ -1,7 +1,3 @@
-//
-// Created by witu on 02-02-23.
-//
-
 #ifndef SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
 #define SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
 
@@ -25,13 +21,17 @@ typedef struct {
     char buffer[12];
 } SigfoxServer;
 
-void sgfx_client_setup(SigfoxClient client) ;
-void sgfx_client_send(SigfoxClient client, const void* buf);
-void sgfx_client_recv(SigfoxClient client, char buf[]);
-void sgfx_client_set_reception(SigfoxClient client, int flag);
-void sgfx_client_set_timeout(SigfoxClient client, float timeout);
+void sgfx_client_start(SigfoxClient* client);
+void sgfx_client_send(SigfoxClient* client, const void* buf);
+void sgfx_client_recv(SigfoxClient* client, char buf[]);
+void sgfx_client_set_reception(SigfoxClient* client, int flag);
+void sgfx_client_set_timeout(SigfoxClient* client, float timeout);
+void sgfx_client_close(SigfoxClient* client);
 
-void sgfx_server_setup(SigfoxServer server);
-void sgfx_server_send(SigfoxServer server, const void* buf);
-void sgfx_server_recv(SigfoxServer server, char buf[]);
-void sgfx_server_set_timeout(SigfoxServer server, float timeout);
+void sgfx_server_start(SigfoxServer* server);
+void sgfx_server_send(SigfoxServer* server, const void* buf);
+void sgfx_server_recv(SigfoxServer* server, char buf[]);
+void sgfx_server_set_timeout(SigfoxServer* server, float timeout);
+void sgfx_server_close(SigfoxServer* server);
+
+
