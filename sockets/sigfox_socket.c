@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 #include "sigfox_socket.h"
 
 void sgfx_client_start(SigfoxClient* client) {
@@ -105,6 +106,12 @@ void sgfx_server_start(SigfoxServer* server) {
     }
 
     server->sock_fd = sock_fd;
+
+    struct timeval tv;
+    tv.tv_sec = 60;
+    tv.tv_usec = 0;
+    setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*) &tv, sizeof tv);
+
     server->timeout = 60;
 
     serv_addr.sin_family = AF_INET;
@@ -150,7 +157,7 @@ void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
     int sec = (int) timeout;
     int usec = 1000 * (int) (timeout - (float) sec);
 
-    struct timeval timestr = {
+    struct timeval tv = {
             .tv_sec = sec,
             .tv_usec = usec
     };
@@ -159,8 +166,8 @@ void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
             server->sock_fd,
             SOL_SOCKET,
             SO_RCVTIMEO,
-            &timestr,
-            sizeof(timestr)
+            (struct timeval*) &tv,
+            sizeof(struct timeval)
             ) < 0) {
         perror("Set timeout failed\n");
         exit(EXIT_FAILURE);

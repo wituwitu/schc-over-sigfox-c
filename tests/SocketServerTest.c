@@ -26,6 +26,8 @@ int main() {
     assert(server.timeout == 100);
 
     printf("%lo\n", sgfx_server_recv(&server, buf));
+    printf("%lo\n", sgfx_server_recv(&server, buf));
+    printf("%lo\n", sgfx_server_recv(&server, buf));
 
     assert(sgfx_server_recv(&server, buf) < 1);
 
