@@ -12,7 +12,7 @@ int main() {
 
     char buf[UPLINK_MTU];
     assert(sgfx_server_recv(&server, buf) >= 0);
-    assert(strcmp(buf, "helloserver.") == 0);
+    assert(strcmp(buf, "helloserver") == 0);
 
     char ack[] = "hellocli";
 
@@ -26,8 +26,13 @@ int main() {
     assert(server.timeout == 100);
 
     printf("%lo\n", sgfx_server_recv(&server, buf));
+    printf("%s\n", buf);
     printf("%lo\n", sgfx_server_recv(&server, buf));
+    printf("%s\n", buf);
     printf("%lo\n", sgfx_server_recv(&server, buf));
+    printf("%s\n", buf);
+    printf("%lo\n", sgfx_server_recv(&server, buf));
+    printf("%s\n", buf);
 
     assert(sgfx_server_recv(&server, buf) < 1);
 

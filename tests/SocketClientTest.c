@@ -14,8 +14,9 @@ int main() {
     printf("buffer: %s\n", client.buffer);
 
     sgfx_client_set_reception(&client, 1);
+    sgfx_client_set_timeout(&client, 1);
 
-    char hello[] = "helloserver.";
+    char hello[] = "helloserver\0";
     printf("Sending: %s\n", hello);
     sgfx_client_send(&client, hello);
     printf("Sent\n");

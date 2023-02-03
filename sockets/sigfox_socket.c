@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include "sigfox_socket.h"
+#include <sys/select.h>
 
 void sgfx_client_start(SigfoxClient* client) {
     struct sockaddr_in serv_addr;
@@ -44,7 +45,7 @@ ssize_t sgfx_client_send(SigfoxClient* client, const void* buf) {
     ret = send(client->sock_fd, buf, UPLINK_MTU, 0);
 
     if (client->expects_ack == 1) {
-        ret = read(client->sock_fd, client->buffer, DOWNLINK_MTU);
+        ret = recv(client->sock_fd, client->buffer, DOWNLINK_MTU, 0);
     }
     return ret;
 }
@@ -107,12 +108,7 @@ void sgfx_server_start(SigfoxServer* server) {
 
     server->sock_fd = sock_fd;
 
-    struct timeval tv;
-    tv.tv_sec = 60;
-    tv.tv_usec = 0;
-    setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*) &tv, sizeof tv);
-
-    server->timeout = 60;
+    sgfx_server_set_timeout(server, 60);
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -149,7 +145,7 @@ ssize_t sgfx_server_send(SigfoxServer* server, const void* buf) {
 }
 
 ssize_t sgfx_server_recv(SigfoxServer* server, char buf[]) {
-    return read(server->client_fd, buf, UPLINK_MTU);
+    return recv(server->client_fd, buf, UPLINK_MTU, 0);
 }
 
 void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
