@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "sigfox_socket.h"
 
 int main() {
@@ -7,28 +8,29 @@ int main() {
 
     sgfx_server_start(&server);
 
-    int init = server.timeout == 60 && strlen(server.buffer) == 0;
-    printf("%d\n", (int) strlen(server.buffer));
+    int init = server.timeout == 60;
 
-    printf("sock_fd: %d\n", server.sock_fd);
-    printf("client_fd: %d\n", server.client_fd);
-    printf("timeout: %d\n", server.timeout);
-    printf("buffer: %s\n", server.buffer);
+    char buf[UPLINK_MTU];
+    assert(sgfx_server_recv(&server, buf) >= 0);
+    assert(strcmp(buf, "helloserver.") == 0);
 
-    char buf[12];
-
-    printf("receiving\n");
-    sgfx_server_recv(&server, buf);
-    printf("received: %s\n", buf);
-
-    char ack[] = "hellocl\n";
+    char ack[] = "hellocli";
 
     printf("sending: %s\n", ack);
-    sgfx_server_send(&server, ack);
+    assert(sgfx_server_send(&server, ack) >= 0);
 
     printf("sent\n");
+    printf("configuring timeout\n");
+
+    sgfx_server_set_timeout(&server, 100);
+    assert(server.timeout == 100);
+
+    printf("%lo\n", sgfx_server_recv(&server, buf));
+
+    assert(sgfx_server_recv(&server, buf) < 1);
 
     printf("closing\n");
     sgfx_server_close(&server);
 
+    return 0;
 }
