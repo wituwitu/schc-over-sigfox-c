@@ -21,23 +21,27 @@ int main() {
     sgfx_client_set_reception(&client, 1);
     assert(client.expects_ack == 1);
     char hello[] = "helloserver.";
-    printf("Sending: %s\n", hello);
     assert(sgfx_client_send(&client, hello) == 12);
-    printf("Sent\n");
     char buf[DOWNLINK_MTU];
-    printf("receiving\n");
-    printf("%ld\n", sgfx_client_recv(&client, buf));
-    printf("received: %s\n", buf);
+    assert(sgfx_client_recv(&client, buf) == 8);
+    assert(strcmp(buf, "hellocli") == 0);
 
+    // Trigger timeout at receiver
     sleep(2);
 
+    // Send smaller message without reception
     sgfx_client_set_reception(&client, 0);
-
+    assert(client.expects_ack == 0);
     char hello_small[] = "hello2";
-    printf("Sending: %s\n", hello_small);
-    sgfx_client_send(&client, hello_small);
-    printf("Sent\n");
+    assert(sgfx_client_send(&client, hello_small) == 6);
 
+    // Timeout
+    sgfx_client_set_reception(&client, 1);
+    sgfx_client_set_timeout(&client, 1);
+    assert(client.expects_ack == 1);
+    char hello_third[] = "third";
+    assert(sgfx_client_send(&client, hello_third) == -1);
+
+    // Close
     sgfx_client_close(&client);
-
 }

@@ -1,6 +1,11 @@
+/* Build SocketServerTest.c and SocketClientTest.c
+ * Then execute SocketServerTest and SocketClientTest
+ * in separate terminals */
+
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 #include "sigfox_socket.h"
 
 int main() {
@@ -18,8 +23,7 @@ int main() {
     assert(strcmp(buf, "helloserver.") == 0);
 
     // Sending a reply
-    char* ack = "hellocli";
-    printf("sending: %s\n", ack);
+    char ack[] = "hellocli";
     assert(sgfx_server_send(&server, ack) >= 0);
 
     // Configuring timeout
@@ -31,9 +35,16 @@ int main() {
     assert(strlen(buf) == 0);
 
     // Reading after timeout without answering
-    assert(sgfx_server_recv(&server, buf) == 12);
+    assert(sgfx_server_recv(&server, buf) == 6);
     assert(strlen(buf) == 6);
     assert(strcmp(buf, "hello2") == 0);
+
+    // Triggering timeout at sender
+    assert(sgfx_server_recv(&server, buf) == 5);
+    assert(strlen(buf) == 5);
+    assert(strcmp(buf, "third") == 0);
+
+    sleep(2);
 
     sgfx_server_close(&server);
 

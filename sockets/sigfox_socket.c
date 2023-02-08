@@ -40,14 +40,15 @@ void sgfx_client_start(SigfoxClient* client) {
     sgfx_client_set_timeout(client, 60);
 }
 
-ssize_t sgfx_client_send(SigfoxClient* client, const void* buf) {
+ssize_t sgfx_client_send(SigfoxClient* client, const char sendbuf[]) {
     ssize_t sendval, readval = 0;
 
     client->seqnum++;
-    sendval = send(client->sock_fd, buf, MIN((int) strlen(buf), UPLINK_MTU), 0);
+    sendval = send(client->sock_fd, sendbuf, MIN((int) strlen(sendbuf), UPLINK_MTU), 0);
 
     if (client->expects_ack == 1) {
         readval = read(client->sock_fd, client->buffer, DOWNLINK_MTU);
+        client->buffer[DOWNLINK_MTU] = '\0';
     }
 
     if (sendval == -1 || readval == -1) return -1;
@@ -55,12 +56,10 @@ ssize_t sgfx_client_send(SigfoxClient* client, const void* buf) {
     return sendval;
 }
 
-ssize_t sgfx_client_recv(SigfoxClient* client, char buf[]) {
-    strncpy(buf, client->buffer, sizeof(client->buffer));
+ssize_t sgfx_client_recv(SigfoxClient* client, char recvbuf[]) {
+    strncpy(recvbuf, client->buffer, sizeof(client->buffer));
     strncpy(client->buffer, "", DOWNLINK_MTU);
-    printf("%ld\n", strlen(buf));
-    printf("%ld\n", (ssize_t) strlen(buf));
-    return (ssize_t) strlen(buf);
+    return (ssize_t) strlen(recvbuf);
 }
 
 void sgfx_client_set_reception(SigfoxClient* client, int flag) {
@@ -72,7 +71,7 @@ void sgfx_client_set_timeout(SigfoxClient* client, float timeout) {
     int sec = (int) timeout;
     int usec = 1000 * (int) (timeout - (float) sec);
 
-    struct timeval timestr = {
+    struct timeval tv = {
             .tv_sec = sec,
             .tv_usec = usec
     };
@@ -81,12 +80,14 @@ void sgfx_client_set_timeout(SigfoxClient* client, float timeout) {
             client->sock_fd,
             SOL_SOCKET,
             SO_RCVTIMEO,
-            &timestr,
-            sizeof(timestr)
+            (struct timeval*) &tv,
+            sizeof(struct timeval)
             ) < 0) {
         perror("Set timeout failed\n");
         exit(EXIT_FAILURE);
     }
+
+    client->timeout = timeout;
 }
 
 void sgfx_client_close(SigfoxClient* client) {
@@ -135,8 +136,6 @@ void sgfx_server_start(SigfoxServer* server) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Ola\n");
-
     if ((server->client_fd = accept(
             server->sock_fd,
             (struct sockaddr*) &serv_addr,
@@ -150,7 +149,7 @@ void sgfx_server_start(SigfoxServer* server) {
     server->timeout = 60;
 }
 
-ssize_t sgfx_server_send(SigfoxServer* server, const void* buf) {
+ssize_t sgfx_server_send(SigfoxServer* server, const char buf[]) {
     return send(server->client_fd, buf, DOWNLINK_MTU, 0);
 }
 
