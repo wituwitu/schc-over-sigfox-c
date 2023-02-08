@@ -39,4 +39,13 @@ void int_to_bin(char* dest, signed char n, unsigned int length);
  */
 void bytes_to_bin(char* dest, char* bytes, unsigned int length);
 
-void bin_to_bytes(char* dest, char* bits, unsigned int length);
+/*
+ * Function:  bin_to_bytes
+ * --------------------
+ * Obtains the char array representation of a binary string.
+ *
+ *  dest: buffer where to store the result.
+ *  bits: binary string to process.
+ *  length: length of the buffer excluding the null terminator.
+ */
+void bin_to_bytes(char *dest, const char *bits, unsigned int length);

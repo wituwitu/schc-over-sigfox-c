@@ -1,3 +1,7 @@
+/* Build SocketServerTest.c and SocketClientTest.c
+ * Then execute SocketServerTest and SocketClientTest
+ * in separate terminals */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>

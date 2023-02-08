@@ -43,9 +43,9 @@ int main() {
     assert(sgfx_server_recv(&server, buf) == 5);
     assert(strlen(buf) == 5);
     assert(strcmp(buf, "third") == 0);
-
     sleep(2);
 
+    // Close
     sgfx_server_close(&server);
 
     return 0;
