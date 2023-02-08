@@ -8,6 +8,7 @@
 
 int main(int argc, char const* argv[])
 {
+    printf("Start\n");
     int server_fd, new_socket, valread;
     struct sockaddr_in address;
     int opt = 1;
@@ -50,10 +51,25 @@ int main(int argc, char const* argv[])
         perror("accept");
         exit(EXIT_FAILURE);
     }
+    printf("Accepted\n");
+
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
+    printf("Reading\n");
     valread = read(new_socket, buffer, 1024);
+    printf("%d\n", valread);
     printf("%s\n", buffer);
     send(new_socket, hello, strlen(hello), 0);
     printf("Hello message sent\n");
+
+
+    printf("Reading (2)\n");
+    valread = read(new_socket, buffer, 1024);
+    printf("%d\n", valread);
+    printf("%s\n", buffer);
  
     // closing the connected socket
     close(new_socket);

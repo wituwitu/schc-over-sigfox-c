@@ -13,7 +13,7 @@ typedef struct {
     int expects_ack;
     int seqnum;
     float timeout;
-    char buffer[UPLINK_MTU];
+    char buffer[DOWNLINK_MTU];
 } SigfoxClient;
 
 typedef struct {

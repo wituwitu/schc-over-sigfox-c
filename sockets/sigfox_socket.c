@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <sys/param.h>
 #include "sigfox_socket.h"
 
 void sgfx_client_start(SigfoxClient* client) {
@@ -20,7 +21,7 @@ void sgfx_client_start(SigfoxClient* client) {
     client->sock_fd = sock_fd;
     client->expects_ack = 0;
     client->timeout = 60;
-    client->seqnum = 420;
+    client->seqnum = 0;
     strncpy(client->buffer, "", DOWNLINK_MTU);
 
     serv_addr.sin_family = AF_INET;
@@ -35,22 +36,30 @@ void sgfx_client_start(SigfoxClient* client) {
         perror("Connection failed\n");
         exit(EXIT_FAILURE);
     }
+
+    sgfx_client_set_timeout(client, 60);
 }
 
 ssize_t sgfx_client_send(SigfoxClient* client, const void* buf) {
-    ssize_t ret;
+    ssize_t sendval, readval = 0;
 
     client->seqnum++;
-    ret = send(client->sock_fd, buf, UPLINK_MTU, 0);
+    sendval = send(client->sock_fd, buf, MIN((int) strlen(buf), UPLINK_MTU), 0);
 
     if (client->expects_ack == 1) {
-        ret = read(client->sock_fd, client->buffer, DOWNLINK_MTU);
+        readval = read(client->sock_fd, client->buffer, DOWNLINK_MTU);
     }
-    return ret;
+
+    if (sendval == -1 || readval == -1) return -1;
+
+    return sendval;
 }
 
 ssize_t sgfx_client_recv(SigfoxClient* client, char buf[]) {
-    strcpy(buf, client->buffer);
+    strncpy(buf, client->buffer, sizeof(client->buffer));
+    strncpy(client->buffer, "", DOWNLINK_MTU);
+    printf("%ld\n", strlen(buf));
+    printf("%ld\n", (ssize_t) strlen(buf));
     return (ssize_t) strlen(buf);
 }
 
@@ -81,6 +90,7 @@ void sgfx_client_set_timeout(SigfoxClient* client, float timeout) {
 }
 
 void sgfx_client_close(SigfoxClient* client) {
+    close(client->sock_fd);
     close(client->server_fd);
 }
 
@@ -106,13 +116,6 @@ void sgfx_server_start(SigfoxServer* server) {
     }
 
     server->sock_fd = sock_fd;
-
-    struct timeval tv;
-    tv.tv_sec = 60;
-    tv.tv_usec = 0;
-    setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*) &tv, sizeof tv);
-
-    server->timeout = 60;
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -142,6 +145,9 @@ void sgfx_server_start(SigfoxServer* server) {
         perror("Accept failed");
         exit(EXIT_FAILURE);
     }
+
+    sgfx_server_set_timeout(server, 60);
+    server->timeout = 60;
 }
 
 ssize_t sgfx_server_send(SigfoxServer* server, const void* buf) {
@@ -149,6 +155,7 @@ ssize_t sgfx_server_send(SigfoxServer* server, const void* buf) {
 }
 
 ssize_t sgfx_server_recv(SigfoxServer* server, char buf[]) {
+    memset(buf, '\0', UPLINK_MTU);
     return read(server->client_fd, buf, UPLINK_MTU);
 }
 
@@ -163,7 +170,7 @@ void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
     };
 
     if (setsockopt(
-            server->sock_fd,
+            server->client_fd,
             SOL_SOCKET,
             SO_RCVTIMEO,
             (struct timeval*) &tv,
