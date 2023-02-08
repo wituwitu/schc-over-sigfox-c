@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 #include "casting.h"
 #include "misc.h"
 
@@ -8,17 +9,14 @@ int repeat_char_test(void) {
     char dest[9] = "";
     size_t size = repeat_char(dest, c, 8);
 
-    char* expected = "11111111";
+    char *expected = "11111111";
 
-    int equal = strcmp(dest, expected) == 0;
-    int size_check = size == 8;
-    int equal_size = size == strlen(expected);
-    int ends_in_NUL = dest[8] == '\0';
+    assert(strcmp(dest, expected) == 0);
+    assert(size == 8);
+    assert(size == strlen(expected));
+    assert(dest[8] == '\0');
 
-    return equal
-    && size_check
-    && equal_size
-    && ends_in_NUL;
+    return 0;
 }
 
 int str_rev_test(void) {
@@ -28,18 +26,15 @@ int str_rev_test(void) {
     strncpy(original, s, length);
     strrev(s);
 
-    char* expected = "lkjhgfdsa";
+    char *expected = "lkjhgfdsa";
 
     size_t size = strlen(s);
-    int size_check = size == 9;
-    int equal_size = size == strlen(expected);
-    int equal = strcmp(s, expected) == 0;
-    int ends_in_NUL = s[9] == '\0';
+    assert(size == 9);
+    assert(size == strlen(expected));
+    assert(strcmp(s, expected) == 0);
+    assert(s[9] == '\0');
 
-    return equal
-    && size_check
-    && equal_size
-    && ends_in_NUL;
+    return 0;
 }
 
 int zfill_test(void) {
@@ -49,43 +44,40 @@ int zfill_test(void) {
 
     char expected[] = "00000test";
 
-    int equal = strcmp(dest, expected) == 0;
-    int size_check = strlen(dest) == 9;
-    int ends_in_NUL = dest[9] == '\0';
+    assert(strcmp(dest, expected) == 0);
+    assert(strlen(dest) == 9);
+    assert(dest[9] == '\0');
 
-    return equal
-    && size_check
-    && ends_in_NUL;
+    return 0;
 }
 
 int replace_char_test(void) {
     char s[] = "1001111";
     replace_char(s, 2, '1');
     char expected_fir[] = "1011111";
-    int equal_fir = strcmp(s, expected_fir) == 0;
+    assert(strcmp(s, expected_fir) == 0);
 
     char t[] = "1001111";
     replace_char(t, 10, '1');
     char expected_sec[] = "1001111";
-    int equal_sec = strcmp(t, expected_sec) == 0;
+    assert(strcmp(t, expected_sec) == 0);
 
-    return equal_fir
-    && equal_sec;
+    return 0;
 }
 
 int is_monochar_test(void) {
     char s[] = "11111111";
-    int fir = is_monochar(s, '1') == 1;
-    int sec = is_monochar(s, '0') == 0;
+    assert(is_monochar(s, '1') == 1);
+    assert(is_monochar(s, '0') == 0);
 
     char t[] = "10010110";
-    int thi = is_monochar(t, '1') == 0;
-    int fou = is_monochar(t, '0') == 0;
+    assert(is_monochar(t, '1') == 0);
+    assert(is_monochar(t, '0') == 0);
 
     char u[] = "";
-    int fif = is_monochar(u, '1') == 0;
+    assert(is_monochar(u, '1') == 0);
 
-    return fir && sec && thi && fou && fif;
+    return 0;
 }
 
 int generate_packet_test(void) {
@@ -94,30 +86,26 @@ int generate_packet_test(void) {
 
     generate_packet(dest_fir, byte_size_fir);
 
-    int fir = strcmp(dest_fir, "0123456789") == 0;
+    assert(strcmp(dest_fir, "0123456789") == 0);
 
     int byte_size_sec = 20;
     char dest_sec[byte_size_sec + 1];
 
     generate_packet(dest_sec, byte_size_sec);
 
-    int sec = strcmp(dest_sec, "01234567890123456789") == 0;
+    assert(strcmp(dest_sec, "01234567890123456789") == 0);
 
-    return fir && sec;
+    return 0;
 }
 
 int round_to_next_multiple_test(void) {
-    int fir = round_to_next_multiple(8, 7);
-    int sec = round_to_next_multiple(14, 7);
-    int thi = round_to_next_multiple(15, 7);
-    int fou = round_to_next_multiple(0, 7);
-    int fif = round_to_next_multiple(-20, 7);
+    assert(round_to_next_multiple(8, 7) == 14);
+    assert(round_to_next_multiple(14, 7) == 14);
+    assert(round_to_next_multiple(15, 7) == 21);
+    assert(round_to_next_multiple(0, 7) == 0);
+    assert(round_to_next_multiple(-20, 7) == -14);
 
-    return fir == 14
-    && sec == 14
-    && thi == 21
-    && fou == 0
-    && fif == -14;
+    return 0;
 }
 
 int main() {
