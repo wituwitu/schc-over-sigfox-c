@@ -8,13 +8,13 @@
 #include <math.h>
 #include "misc.h"
 
-size_t repeat_char(char* dest, char c, int length) {
+size_t repeat_char(char *dest, char c, int length) {
     for (int i = 0; i < length; i++) dest[i] = c;
     dest[length + 1] = '\0';
     return strlen(dest);
 }
 
-void strrev(char* start) {
+void strrev(char *start) {
     char temp, *end;
 
     if (start == NULL || !(*start)) return;
@@ -29,7 +29,7 @@ void strrev(char* start) {
     }
 }
 
-void zfill(char dest[], char* src, unsigned int length) {
+void zfill(char dest[], char *src, unsigned int length) {
     size_t len = strlen(src);
     size_t zeros = (len > length) ? 0: length - len;
     memset(dest, '0', zeros);

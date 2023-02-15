@@ -13,4 +13,3 @@ target_include_directories(entities PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(entities config)
 target_link_libraries(entities utils)
-target_link_libraries(entities m)

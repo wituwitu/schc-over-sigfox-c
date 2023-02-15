@@ -65,6 +65,6 @@ int test_parse_rule_from_bytes() {
 int main() {
     printf("%d test_init_rule\n", test_init_rule());
     printf("%d test_parse_rule_from_bytes\n", test_parse_rule_from_bytes());
-    return 0;
 
+    return 0;
 }

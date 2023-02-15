@@ -8,7 +8,7 @@
 #include <sys/param.h>
 #include "sigfox_socket.h"
 
-void sgfx_client_start(SigfoxClient* client) {
+void sgfx_client_start(SigfoxClient *client) {
     int sock_fd;
 
     if ((sock_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -29,7 +29,7 @@ void sgfx_client_start(SigfoxClient* client) {
     sgfx_client_set_timeout(client, 60);
 }
 
-ssize_t sgfx_client_send(SigfoxClient* client, const char sendbuf[]) {
+ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[]) {
     ssize_t sendval, readval = 0;
 
     client->seqnum++;
@@ -60,17 +60,17 @@ ssize_t sgfx_client_send(SigfoxClient* client, const char sendbuf[]) {
     return sendval;
 }
 
-ssize_t sgfx_client_recv(SigfoxClient* client, char recvbuf[]) {
+ssize_t sgfx_client_recv(SigfoxClient *client, char recvbuf[]) {
     strncpy(recvbuf, client->buffer, sizeof(client->buffer));
     strncpy(client->buffer, "", DOWNLINK_MTU);
     return (ssize_t) strlen(recvbuf);
 }
 
-void sgfx_client_set_reception(SigfoxClient* client, const int flag) {
+void sgfx_client_set_reception(SigfoxClient *client, const int flag) {
     client->expects_ack = flag;
 }
 
-void sgfx_client_set_timeout(SigfoxClient* client, const float timeout) {
+void sgfx_client_set_timeout(SigfoxClient *client, const float timeout) {
     int sec = (int) timeout;
     int usec = 1000 * (int) (timeout - (float) sec);
 
@@ -93,11 +93,11 @@ void sgfx_client_set_timeout(SigfoxClient* client, const float timeout) {
     client->timeout = timeout;
 }
 
-void sgfx_client_close(SigfoxClient* client) {
+void sgfx_client_close(SigfoxClient *client) {
     close(client->sock_fd);
 }
 
-void sgfx_server_start(SigfoxServer* server) {
+void sgfx_server_start(SigfoxServer *server) {
     struct sockaddr_in serv_addr;
     size_t addrlen = sizeof(serv_addr);
     int sock_fd, opt = 1;
@@ -137,7 +137,7 @@ void sgfx_server_start(SigfoxServer* server) {
     server->timeout = 60;
 }
 
-ssize_t sgfx_server_send(SigfoxServer* server, const char buf[]) {
+ssize_t sgfx_server_send(SigfoxServer *server, const char buf[]) {
     return sendto(
             server->sock_fd,
             buf,
@@ -148,7 +148,7 @@ ssize_t sgfx_server_send(SigfoxServer* server, const char buf[]) {
             );
 }
 
-ssize_t sgfx_server_recv(SigfoxServer* server, char buf[]) {
+ssize_t sgfx_server_recv(SigfoxServer *server, char buf[]) {
     memset(buf, '\0', UPLINK_MTU);
     socklen_t len = sizeof(server->cli_addr);
     return recvfrom(
@@ -161,7 +161,7 @@ ssize_t sgfx_server_recv(SigfoxServer* server, char buf[]) {
             );
 }
 
-void sgfx_server_set_timeout(SigfoxServer* server, const float timeout) {
+void sgfx_server_set_timeout(SigfoxServer *server, const float timeout) {
     int sec = (int) timeout;
     int usec = 1000 * (int) (timeout - (float) sec);
 
@@ -184,6 +184,6 @@ void sgfx_server_set_timeout(SigfoxServer* server, const float timeout) {
     server->timeout = timeout;
 }
 
-void sgfx_server_close(SigfoxServer* server) {
+void sgfx_server_close(SigfoxServer *server) {
     shutdown(server->sock_fd, SHUT_RDWR);
 }

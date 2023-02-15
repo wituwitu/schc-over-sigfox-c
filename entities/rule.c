@@ -2,7 +2,6 @@
 #include "casting.h"
 #include "misc.h"
 #include "schc.h"
-#include <math.h>
 
 void init_rule(Rule *rule, const char rule_id_binary[]) {
     int id, rule_id_size, t, m, n, window_size, u,
@@ -57,7 +56,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             );
 
     ack_header_length = rule_id_size + m + 1;
-    max_window_number = (int) pow(2, m);
+    max_window_number = 1<<m;
     max_fragment_number = max_window_number * window_size;
 
     rule->id = id;

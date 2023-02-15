@@ -18,7 +18,7 @@
  *
  *  returns: the size of the buffer.
  */
-size_t repeat_char(char* dest, char c, int length) ;
+size_t repeat_char(char *dest, char c, int length) ;
 
 /*
  * Function:  strrev
@@ -26,7 +26,7 @@ size_t repeat_char(char* dest, char c, int length) ;
  * Reverses a mutable string (char[]) in place.
  *  start: pointer to the start of the string to reverse.
  */
-void strrev(char* start);
+void strrev(char *start);
 
 /*
  * Function:  zfill
@@ -37,7 +37,7 @@ void strrev(char* start);
  *  src: pointer to the start of the string to process.
  *  length: desired length of the result string.
  */
-void zfill(char dest[], char* src, unsigned int length);
+void zfill(char dest[], char *src, unsigned int length);
 
 /*
  * Function:  replace_char

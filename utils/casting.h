@@ -14,7 +14,7 @@
  *
  *  bin: Binary string (composed of chars '0' and '1') to process.
  */
-int bin_to_int(const char* bin);
+int bin_to_int(const char *bin);
 
 /*
  * Function:  char_to_bin
@@ -26,7 +26,7 @@ int bin_to_int(const char* bin);
  *  n: integer to process.
  *  length: size of the buffer excluding the null terminator.
  */
-void char_to_bin(char* dest, signed char n, unsigned int length);
+void char_to_bin(char *dest, signed char n, unsigned int length);
 
 /*
  * Function:  bytes_to_bin
@@ -37,7 +37,7 @@ void char_to_bin(char* dest, signed char n, unsigned int length);
  *  bytes: array of chars to process.
  *  length: length of the buffer excluding the null terminator.
  */
-void bytes_to_bin(char* dest, const char* bytes, unsigned int length);
+void bytes_to_bin(char *dest, const char *bytes, unsigned int length);
 
 /*
  * Function:  bin_to_bytes
