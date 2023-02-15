@@ -12,4 +12,4 @@ set(SOURCE_FILES
 
 add_library(utils STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(utils PRIVATE m)
+target_link_libraries(utils m)

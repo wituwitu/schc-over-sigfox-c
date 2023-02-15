@@ -16,6 +16,8 @@ typedef struct {
     int header_length;
     int all1_header_length;
     int ack_header_length;
+    int max_window_number;
+    int max_fragment_number;
 } Rule;
 
 /*

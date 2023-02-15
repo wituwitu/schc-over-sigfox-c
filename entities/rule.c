@@ -1,11 +1,13 @@
 #include "rule.h"
+#include "casting.h"
 #include "misc.h"
 #include "schc.h"
-#include "casting.h"
+#include <math.h>
 
 void init_rule(Rule *rule, const char rule_id_binary[]) {
     int id, rule_id_size, t, m, n, window_size, u,
-    header_length, all1_header_length, ack_header_length;
+      header_length, all1_header_length, ack_header_length,
+      max_window_number, max_fragment_number;
 
     memset(rule, 0, sizeof(*rule));
 
@@ -55,6 +57,8 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             );
 
     ack_header_length = rule_id_size + m + 1;
+    max_window_number = (int) pow(2, m);
+    max_fragment_number = max_window_number * window_size;
 
     rule->id = id;
     rule->rule_id_size = rule_id_size;
@@ -66,6 +70,8 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     rule->header_length = header_length;
     rule->all1_header_length = all1_header_length;
     rule->ack_header_length = ack_header_length;
+    rule->max_window_number = max_window_number;
+    rule->max_fragment_number = max_fragment_number;
 }
 
 void parse_rule_from_bytes(Rule *rule, const char byt[]) {

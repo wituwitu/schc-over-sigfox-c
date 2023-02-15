@@ -15,6 +15,8 @@ int test_init_rule() {
     assert(rule_single_byte.header_length == 8);
     assert(rule_single_byte.all1_header_length == 16);
     assert(rule_single_byte.ack_header_length == 6);
+    assert(rule_single_byte.max_window_number == 4);
+    assert(rule_single_byte.max_fragment_number == 28);
 
     Rule rule_two_byte_op_1;
     init_rule(&rule_two_byte_op_1, "111010");
@@ -28,6 +30,8 @@ int test_init_rule() {
     assert(rule_two_byte_op_1.header_length == 16);
     assert(rule_two_byte_op_1.all1_header_length == 16);
     assert(rule_two_byte_op_1.ack_header_length == 9);
+    assert(rule_two_byte_op_1.max_window_number == 4);
+    assert(rule_two_byte_op_1.max_fragment_number == 48);
 
     Rule rule_two_byte_op_2;
     init_rule(&rule_two_byte_op_2, "11111110");
@@ -41,6 +45,8 @@ int test_init_rule() {
     assert(rule_two_byte_op_2.header_length == 16);
     assert(rule_two_byte_op_2.all1_header_length == 24);
     assert(rule_two_byte_op_2.ack_header_length == 12);
+    assert(rule_two_byte_op_2.max_window_number == 8);
+    assert(rule_two_byte_op_2.max_fragment_number == 248);
 
     return 0;
 }
