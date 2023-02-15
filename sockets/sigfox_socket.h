@@ -1,3 +1,5 @@
+#include <netinet/in.h>
+
 #ifndef SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
 #define SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
 
@@ -9,17 +11,17 @@
 
 typedef struct {
     int sock_fd;
-    int server_fd;
     int expects_ack;
     int seqnum;
     float timeout;
     char buffer[DOWNLINK_MTU + 1];
+    struct sockaddr_in serv_addr;
 } SigfoxClient;
 
 typedef struct {
     int sock_fd;
-    int client_fd;
     float timeout;
+    struct sockaddr_in cli_addr;
 } SigfoxServer;
 
 /*

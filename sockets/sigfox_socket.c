@@ -5,15 +5,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/socket.h>
-#include <fcntl.h>
 #include <sys/param.h>
 #include "sigfox_socket.h"
 
 void sgfx_client_start(SigfoxClient* client) {
-    struct sockaddr_in serv_addr;
     int sock_fd;
 
-    if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((sock_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Socket creation failed\n");
         exit(EXIT_FAILURE);
     }
@@ -24,18 +22,9 @@ void sgfx_client_start(SigfoxClient* client) {
     client->seqnum = 0;
     strncpy(client->buffer, "", DOWNLINK_MTU);
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
-
-    if ((client->server_fd = connect(
-            client->sock_fd,
-            (struct sockaddr*) &serv_addr,
-            sizeof(serv_addr)
-            )) < 0) {
-        perror("Connection failed\n");
-        exit(EXIT_FAILURE);
-    }
+    client->serv_addr.sin_family = AF_INET;
+    client->serv_addr.sin_port = htons(PORT);
+    inet_pton(AF_INET, "127.0.0.1", &(client->serv_addr).sin_addr);
 
     sgfx_client_set_timeout(client, 60);
 }
@@ -44,10 +33,25 @@ ssize_t sgfx_client_send(SigfoxClient* client, const char sendbuf[]) {
     ssize_t sendval, readval = 0;
 
     client->seqnum++;
-    sendval = send(client->sock_fd, sendbuf, MIN((int) strlen(sendbuf), UPLINK_MTU), 0);
+    sendval = sendto(
+            client->sock_fd,
+            sendbuf,
+            MIN((int) strlen(sendbuf), UPLINK_MTU),
+            0,
+            (const struct sockaddr *) &(client->serv_addr),
+            sizeof(client->serv_addr)
+            );
 
     if (client->expects_ack == 1) {
-        readval = read(client->sock_fd, client->buffer, DOWNLINK_MTU);
+        socklen_t len;
+        readval = recvfrom(
+                client->sock_fd,
+                client->buffer,
+                DOWNLINK_MTU,
+                0,
+                (struct sockaddr *) &(client->serv_addr),
+                &len
+                );
         client->buffer[DOWNLINK_MTU] = '\0';
     }
 
@@ -92,7 +96,6 @@ void sgfx_client_set_timeout(SigfoxClient* client, float timeout) {
 
 void sgfx_client_close(SigfoxClient* client) {
     close(client->sock_fd);
-    close(client->server_fd);
 }
 
 void sgfx_server_start(SigfoxServer* server) {
@@ -100,7 +103,7 @@ void sgfx_server_start(SigfoxServer* server) {
     size_t addrlen = sizeof(serv_addr);
     int sock_fd, opt = 1;
 
-    if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((sock_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Socket creation failed\n");
         exit(EXIT_FAILURE);
     }
@@ -131,31 +134,32 @@ void sgfx_server_start(SigfoxServer* server) {
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server->sock_fd, 5) < 0) {
-        perror("Listen faied");
-        exit(EXIT_FAILURE);
-    }
-
-    if ((server->client_fd = accept(
-            server->sock_fd,
-            (struct sockaddr*) &serv_addr,
-            (socklen_t*) &addrlen
-            )) < 0) {
-        perror("Accept failed");
-        exit(EXIT_FAILURE);
-    }
-
     sgfx_server_set_timeout(server, 60);
     server->timeout = 60;
 }
 
 ssize_t sgfx_server_send(SigfoxServer* server, const char buf[]) {
-    return send(server->client_fd, buf, DOWNLINK_MTU, 0);
+    return sendto(
+            server->sock_fd,
+            buf,
+            DOWNLINK_MTU,
+            0,
+            (const struct sockaddr *) &(server->cli_addr),
+            sizeof(server->cli_addr)
+            );
 }
 
 ssize_t sgfx_server_recv(SigfoxServer* server, char buf[]) {
     memset(buf, '\0', UPLINK_MTU);
-    return read(server->client_fd, buf, UPLINK_MTU);
+    socklen_t len = sizeof(server->cli_addr);
+    return recvfrom(
+            server->sock_fd,
+            buf,
+            UPLINK_MTU,
+            0,
+            (struct sockaddr *) &(server->cli_addr),
+            &len
+            );
 }
 
 void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
@@ -169,7 +173,7 @@ void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
     };
 
     if (setsockopt(
-            server->client_fd,
+            server->sock_fd,
             SOL_SOCKET,
             SO_RCVTIMEO,
             (struct timeval*) &tv,
@@ -183,6 +187,5 @@ void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
 }
 
 void sgfx_server_close(SigfoxServer* server) {
-    close(server->client_fd);
     shutdown(server->sock_fd, SHUT_RDWR);
 }
