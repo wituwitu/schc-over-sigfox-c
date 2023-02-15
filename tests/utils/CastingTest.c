@@ -23,53 +23,58 @@ int bin_to_int_test(void) {
     return 0;
 }
 
-int int_to_bin_test(void) {
-    int n = 120;
+int char_to_bin_test(void) {
+    char n = 120;
     char *expected_eight = "01111000";
     char actual_eight[9] = "";
-    int_to_bin(actual_eight, n, 8);
+    char_to_bin(actual_eight, n, 8);
     assert(strcmp(actual_eight, expected_eight) == 0);
 
     char expected_sixt[17] = "0000000001111000";
     char actual_sixt[17] = "";
-    int_to_bin(actual_sixt, n, 16);
+    char_to_bin(actual_sixt, n, 16);
     assert(strcmp(actual_sixt, expected_sixt) == 0);
 
-    int n_sec = 75;
+    char n_sec = 75;
     char *expected_sec = "000000000000000001001011";
     char actual_sec[33] = "";
-    int_to_bin(actual_sec, n_sec, 24);
+    char_to_bin(actual_sec, n_sec, 24);
     assert(strcmp(actual_sec, expected_sec) == 0);
 
-    int neg = -46;
+    char neg = -46;
     char *expected_neg = "11010010";
     char actual_neg[9] = "";
-    int_to_bin(actual_neg, neg, 8);
+    char_to_bin(actual_neg, neg, 8);
     assert(strcmp(actual_neg, expected_neg) == 0);
 
-    int neg_sec = -120;
+    char neg_sec = -120;
     char *expected_neg_sec = "10001000";
     char actual_neg_sec[9] = "";
-    int_to_bin(actual_neg_sec, neg_sec, 8);
+    char_to_bin(actual_neg_sec, neg_sec, 8);
     assert(strcmp(actual_neg_sec, expected_neg_sec) == 0);
 
     return 0;
 }
 
 int bytes_to_bin_test(void) {
-    char *by = "\xd2";
+    char by[] = "\xd2";
     char expected[] = "11010010";
     char actual[9] = "";
-
     bytes_to_bin(actual, by, 8);
     assert(strcmp(actual, expected) == 0);
 
-    char *by_sec = "test";
+    char by_sec[] = "test";
     char expected_sec[] = "01110100011001010111001101110100";
     char actual_sec[33] = "";
-
     bytes_to_bin(actual_sec, by_sec, 32);
     assert(strcmp(actual_sec, expected_sec) == 0);
+
+    char by_hex[] = "\x15\x88\x88\x88";
+    char expected_hex[] = "00010101100010001000100010001000";
+    char actual_hex[33] = "";
+    bytes_to_bin(actual_hex, by_hex, 32);
+    assert(strcmp(actual_hex, expected_hex) == 0);
+
 
     return 0;
 }
@@ -86,7 +91,7 @@ int bin_to_bytes_test(void) {
 
 int main() {
     printf("%d bin_to_int_test\n", bin_to_int_test());
-    printf("%d int_to_bin_test\n", int_to_bin_test());
+    printf("%d int_to_bin_test\n", char_to_bin_test());
     printf("%d bytes_to_bin_test\n", bytes_to_bin_test());
     printf("%d bin_to_bytes_test\n", bin_to_bytes_test());
     return 0;

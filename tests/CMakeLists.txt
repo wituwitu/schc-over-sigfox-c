@@ -1,19 +1,23 @@
 add_executable(
-        CastingTest CastingTest.c
+        CastingTest utils/CastingTest.c
 )
 add_executable(
-        MiscTest MiscTest.c
+        MiscTest utils/MiscTest.c
 )
 add_executable(
-        SocketServerTest SocketServerTest.c
+        SocketServerTest sockets/SocketServerTest.c
 )
 add_executable(
-        SocketClientTest SocketClientTest.c
+        SocketClientTest sockets/SocketClientTest.c
+)
+add_executable(
+        RuleTest entities/RuleTest.c
 )
 target_link_libraries(CastingTest utils)
 target_link_libraries(MiscTest utils)
 target_link_libraries(SocketServerTest sockets)
 target_link_libraries(SocketClientTest sockets)
+target_link_libraries(RuleTest entities)
 
 ###############################################################################
 # Unit tests

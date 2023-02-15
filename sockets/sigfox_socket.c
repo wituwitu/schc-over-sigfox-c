@@ -66,12 +66,11 @@ ssize_t sgfx_client_recv(SigfoxClient* client, char recvbuf[]) {
     return (ssize_t) strlen(recvbuf);
 }
 
-void sgfx_client_set_reception(SigfoxClient* client, int flag) {
+void sgfx_client_set_reception(SigfoxClient* client, const int flag) {
     client->expects_ack = flag;
 }
 
-void sgfx_client_set_timeout(SigfoxClient* client, float timeout) {
-
+void sgfx_client_set_timeout(SigfoxClient* client, const float timeout) {
     int sec = (int) timeout;
     int usec = 1000 * (int) (timeout - (float) sec);
 
@@ -162,8 +161,7 @@ ssize_t sgfx_server_recv(SigfoxServer* server, char buf[]) {
             );
 }
 
-void sgfx_server_set_timeout(SigfoxServer* server, float timeout) {
-
+void sgfx_server_set_timeout(SigfoxServer* server, const float timeout) {
     int sec = (int) timeout;
     int usec = 1000 * (int) (timeout - (float) sec);
 

@@ -12,7 +12,7 @@ extern int RETRANSMISSION_TIMEOUT;
 extern int SIGFOX_DL_TIMEOUT;
 extern int INACTIVITY_TIMEOUT;
 extern int MAX_ACK_REQUESTS;
-extern int L2_WORD_SIZE;
+extern const int L2_WORD_SIZE;
 extern int DELAY_BETWEEN_FRAGMENTS;
 
 // Sender config
