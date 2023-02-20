@@ -3,7 +3,7 @@ add_executable(
 )
 add_executable(
         MiscTest utils/MiscTest.c
-)
+        )
 add_executable(
         SocketServerTest sockets/SocketServerTest.c
 )
@@ -13,11 +13,16 @@ add_executable(
 add_executable(
         RuleTest entities/RuleTest.c
 )
+add_executable(
+        FragmentTest messages/FragmentTest.c
+)
+
 target_link_libraries(CastingTest utils)
 target_link_libraries(MiscTest utils)
 target_link_libraries(SocketServerTest sockets)
 target_link_libraries(SocketClientTest sockets)
 target_link_libraries(RuleTest entities)
+target_link_libraries(FragmentTest messages)
 
 ###############################################################################
 # Unit tests

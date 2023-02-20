@@ -6,8 +6,6 @@
 #endif //SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
 
 #define PORT 5000
-#define UPLINK_MTU 12
-#define DOWNLINK_MTU 8
 
 typedef struct {
     int sock_fd;

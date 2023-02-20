@@ -7,6 +7,8 @@ long bin_to_int(const char *bits) {
 }
 
 void char_to_bin(char *dest, signed char n, unsigned int length) {
+    memset(dest, '\0', length);
+
     size_t int_sz = sizeof(int) * 8;
 
     char res[int_sz];
@@ -27,6 +29,8 @@ void char_to_bin(char *dest, signed char n, unsigned int length) {
 }
 
 void bytes_to_bin(char *dest, const char *bytes, unsigned int length) {
+    memset(dest, '\0', length);
+
     int size = (int) strlen(bytes) * 8;
     char bits[size + 1];
     char *p = bits;
@@ -45,6 +49,8 @@ void bytes_to_bin(char *dest, const char *bytes, unsigned int length) {
 }
 
 void bin_to_bytes(char *dest, const char *bits, unsigned int length) {
+    memset(dest, '\0', length);
+
     int size = (int) strlen(bits) / 8;
     char bytes[size + 1];
     char *p = bits;

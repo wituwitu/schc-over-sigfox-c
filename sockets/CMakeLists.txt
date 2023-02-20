@@ -10,3 +10,5 @@ set(SOURCE_FILES
 
 add_library(sockets STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(sockets PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(sockets config)

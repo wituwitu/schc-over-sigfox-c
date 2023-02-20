@@ -1,0 +1,207 @@
+#include "fragment.h"
+#include "casting.h"
+#include <assert.h>
+#include <stdio.h>
+
+int test_fragment_to_bin() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  char as_bin[UPLINK_MTU_BITS];
+  fragment_to_bin(&fragment, as_bin);
+
+  assert(strcmp(as_bin, "00010101100010001000100010001000") == 0);
+  assert(strlen(as_bin) == strlen(fragment.message) * 8);
+  return 0;
+}
+
+int test_init_rule_from_fragment() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  char as_bin[UPLINK_MTU_BITS];
+  fragment_to_bin(&fragment, as_bin);
+  init_rule_from_fragment(&rule, &fragment);
+  assert(rule.id == 0);
+}
+
+int test_get_fragment_rule_id() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+
+  char rule_id[rule.rule_id_size + 1];
+  get_fragment_rule_id(&rule, &fragment, rule_id);
+  assert(strcmp(rule_id, "000") == 0);
+
+  return 0;
+}
+
+int test_get_fragment_dtag() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+
+  char dtag[rule.t + 1];
+  get_fragment_dtag(&rule, &fragment, dtag);
+  assert(strcmp(dtag, "") == 0);
+
+  return 0;
+}
+
+int test_get_fragment_w(){
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+
+  char w[rule.m + 1];
+  get_fragment_w(&rule, &fragment, w);
+  assert(strcmp(w, "10") == 0);
+
+  return 0;
+}
+
+int test_get_fragment_fcn() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+
+  char fcn[rule.n + 1];
+  get_fragment_fcn(&rule, &fragment, fcn);
+  assert(strcmp(fcn, "101") == 0);
+
+  return 0;
+}
+
+int test_is_fragment_all_0() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(!is_fragment_all_0(&rule, &fragment));
+
+  char all_0_as_bytes[5];
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  Fragment all_0;
+  strncpy(all_0.message, all_0_as_bytes, 4);
+  assert(is_fragment_all_0(&rule, &all_0));
+
+  char all_1_as_bytes[5];
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  Fragment all_1;
+  strncpy(all_1.message, all_1_as_bytes, 4);
+  assert(!is_fragment_all_0(&rule, &all_1));
+
+  return 0;
+}
+
+int test_is_fragment_all_1() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(!is_fragment_all_1(&rule, &fragment));
+
+  char all_0_as_bytes[5];
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  Fragment all_0;
+  strncpy(all_0.message, all_0_as_bytes, 4);
+  assert(!is_fragment_all_1(&rule, &all_0));
+
+  char all_1_as_bytes[5];
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  Fragment all_1;
+  strncpy(all_1.message, all_1_as_bytes, 4);
+  assert(is_fragment_all_1(&rule, &all_1));
+
+  char only_header_as_bytes[5];
+  bin_to_bytes(only_header_as_bytes, "0001011110000000", 2);
+  Fragment only_header;
+  strncpy(only_header.message, only_header_as_bytes, 2);
+  assert(is_fragment_all_1(&rule, &only_header));
+
+  char only_header_as_bytes_invalid[5];
+  bin_to_bytes(only_header_as_bytes_invalid, "0001010110000000", 2);
+  Fragment only_header_invalid;
+  strncpy(only_header_invalid.message, only_header_as_bytes_invalid, 2);
+  assert(!is_fragment_all_1(&rule, &only_header_invalid));
+
+  return 0;
+}
+
+int test_get_fragment_rcs() {
+
+  char message[5];
+  bin_to_bytes(message, "00010111100000000100010001000100", 4);
+  Fragment fragment;
+  strncpy(fragment.message, message, 4);
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(is_fragment_all_1(&rule, &fragment));
+  char rcs[rule.u + 1];
+  get_fragment_rcs(&rule, &fragment, rcs);
+  assert(strcmp(rcs, "100") == 0);
+
+  char message_all0[5];
+  bin_to_bytes(message_all0, "00010000100000000100010001000100", 4);
+  Fragment all_0;
+  strncpy(all_0.message, message_all0, 4);
+  char rcs_second[rule.u + 1];
+  memset(rcs_second, '\0', rule.u + 1);
+  get_fragment_rcs(&rule, &all_0, rcs_second);
+  assert(rcs_second[0] == '\0');
+
+  return 0;
+}
+
+int test_get_fragment_header_size() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(get_fragment_header_size(&rule, &fragment) == 8);
+
+  char all_1_as_bytes[5];
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  Fragment all_1;
+  strncpy(all_1.message, all_1_as_bytes, 4);
+  assert(get_fragment_header_size(&rule, &all_1) == 16);
+  return 0;
+}
+
+int test_get_fragment_header() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  int header_size = get_fragment_header_size(&rule, &fragment);
+  char header[header_size + 1];
+  get_fragment_header(&rule, &fragment, header);
+  assert(strcmp(header, "00010101") == 0);
+
+  Fragment all_1 = {"\027\200DD"};
+  int all_1_header_size = get_fragment_header_size(&rule, &all_1);
+  char all_1_header[all_1_header_size + 1];
+  get_fragment_header(&rule, &all_1, all_1_header);
+  assert(strcmp(all_1_header, "0001011110000000") == 0);
+
+  return 0;
+}
+
+int test_get_fragment_payload();
+// TODO: test normal fragment, all-1 fragment, with and without payload
+
+int test_fragment_expects_ack();
+// TODO: test normal fragment, all-0 fragment, all-1 fragment, with and without payload
+
+int test_is_fragment_sender_abort();
+// TODO: test normal fragment, all-0 fragment, all-1 fragment, with and without payload
+
+int main() {
+    printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
+    printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
+    printf("%d test_get_fragment_rule_id\n", test_get_fragment_rule_id());
+    printf("%d test_get_fragment_dtag\n", test_get_fragment_dtag());
+    printf("%d test_get_fragment_w\n", test_get_fragment_w());
+    printf("%d test_get_fragment_fcn\n", test_get_fragment_fcn());
+    printf("%d test_is_fragment_all_0\n", test_is_fragment_all_0());
+    printf("%d test_is_fragment_all_1\n", test_is_fragment_all_1());
+    printf("%d test_get_fragment_rcs\n", test_get_fragment_rcs());
+    printf("%d test_get_fragment_header_size\n", test_get_fragment_header_size());
+    printf("%d test_get_fragment_header\n", test_get_fragment_header());
+
+    return 0;
+}

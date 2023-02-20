@@ -1,12 +1,13 @@
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <sys/param.h>
 #include "sigfox_socket.h"
+#include "schc.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/param.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 void sgfx_client_start(SigfoxClient *client) {
     int sock_fd;
@@ -20,7 +21,7 @@ void sgfx_client_start(SigfoxClient *client) {
     client->expects_ack = 0;
     client->timeout = 60;
     client->seqnum = 0;
-    strncpy(client->buffer, "", DOWNLINK_MTU);
+    strncpy(client->buffer, "", DOWNLINK_MTU_BYTES);
 
     client->serv_addr.sin_family = AF_INET;
     client->serv_addr.sin_port = htons(PORT);
@@ -36,7 +37,7 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[]) {
     sendval = sendto(
             client->sock_fd,
             sendbuf,
-            MIN((int) strlen(sendbuf), UPLINK_MTU),
+            MIN((int) strlen(sendbuf), UPLINK_MTU_BYTES),
             0,
             (const struct sockaddr *) &(client->serv_addr),
             sizeof(client->serv_addr)
@@ -46,13 +47,12 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[]) {
         socklen_t len;
         readval = recvfrom(
                 client->sock_fd,
-                client->buffer,
-                DOWNLINK_MTU,
+                client->buffer, DOWNLINK_MTU_BYTES,
                 0,
                 (struct sockaddr *) &(client->serv_addr),
                 &len
                 );
-        client->buffer[DOWNLINK_MTU] = '\0';
+        client->buffer[DOWNLINK_MTU_BYTES] = '\0';
     }
 
     if (sendval == -1 || readval == -1) return -1;
@@ -62,7 +62,7 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[]) {
 
 ssize_t sgfx_client_recv(SigfoxClient *client, char recvbuf[]) {
     strncpy(recvbuf, client->buffer, sizeof(client->buffer));
-    strncpy(client->buffer, "", DOWNLINK_MTU);
+    strncpy(client->buffer, "", DOWNLINK_MTU_BYTES);
     return (ssize_t) strlen(recvbuf);
 }
 
@@ -127,7 +127,7 @@ void sgfx_server_start(SigfoxServer *server) {
     if (bind(
             server->sock_fd,
             (struct sockaddr*) &serv_addr,
-            sizeof(serv_addr)
+            addrlen
             ) < 0) {
         perror("Bind failed");
         exit(EXIT_FAILURE);
@@ -140,8 +140,7 @@ void sgfx_server_start(SigfoxServer *server) {
 ssize_t sgfx_server_send(SigfoxServer *server, const char buf[]) {
     return sendto(
             server->sock_fd,
-            buf,
-            DOWNLINK_MTU,
+            buf, DOWNLINK_MTU_BYTES,
             0,
             (const struct sockaddr *) &(server->cli_addr),
             sizeof(server->cli_addr)
@@ -149,12 +148,11 @@ ssize_t sgfx_server_send(SigfoxServer *server, const char buf[]) {
 }
 
 ssize_t sgfx_server_recv(SigfoxServer *server, char buf[]) {
-    memset(buf, '\0', UPLINK_MTU);
+    memset(buf, '\0', UPLINK_MTU_BYTES);
     socklen_t len = sizeof(server->cli_addr);
     return recvfrom(
             server->sock_fd,
-            buf,
-            UPLINK_MTU,
+            buf, UPLINK_MTU_BYTES,
             0,
             (struct sockaddr *) &(server->cli_addr),
             &len

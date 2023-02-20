@@ -11,7 +11,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     memset(rule, 0, sizeof(*rule));
 
     char single_byte_header[4];
-    memcpy(single_byte_header, rule_id_binary, 3);
+    strncpy(single_byte_header, rule_id_binary, 3);
     single_byte_header[3] = '\0';
 
     if (strcmp(single_byte_header, "111") != 0) {
@@ -24,7 +24,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
         u = 3;
     } else {
         char double_byte_header[7] = {};
-        memcpy(double_byte_header, rule_id_binary, 6);
+        strncpy(double_byte_header, rule_id_binary, 6);
         double_byte_header[6] = '\0';
         if (strcmp(double_byte_header, "111111") != 0) {
             id = bin_to_int(double_byte_header);
@@ -80,7 +80,7 @@ void parse_rule_from_bytes(Rule *rule, const char byt[]) {
     bytes_to_bin(as_bin, byt, bin_length);
 
     char first_byte[9];
-    memcpy(first_byte, as_bin, 8);
+    strncpy(first_byte, as_bin, 8);
     first_byte[8] = '\0';
 
     init_rule(rule, first_byte);
