@@ -16,6 +16,9 @@ add_executable(
 add_executable(
         FragmentTest messages/FragmentTest.c
 )
+add_executable(
+        CompoundACKTest messages/CompoundACKTest.c
+)
 
 target_link_libraries(CastingTest utils)
 target_link_libraries(MiscTest utils)
@@ -23,6 +26,7 @@ target_link_libraries(SocketServerTest sockets)
 target_link_libraries(SocketClientTest sockets)
 target_link_libraries(RuleTest entities)
 target_link_libraries(FragmentTest messages)
+target_link_libraries(CompoundACKTest messages)
 
 ###############################################################################
 # Unit tests

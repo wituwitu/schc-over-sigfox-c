@@ -2,10 +2,13 @@ project(messages)
 
 set(HEADER_FILES
         fragment.h
+        ack.h
         )
 
 set(SOURCE_FILES
-        fragment.c )
+        fragment.c
+        ack.c
+        )
 
 add_library(messages STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_include_directories(messages PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
