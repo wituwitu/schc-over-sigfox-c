@@ -125,7 +125,6 @@ int test_is_fragment_all_1() {
 }
 
 int test_get_fragment_rcs() {
-
   char message[5];
   bin_to_bytes(message, "00010111100000000100010001000100", 4);
   Fragment fragment;
@@ -163,6 +162,20 @@ int test_get_fragment_header_size() {
   return 0;
 }
 
+int test_get_fragment_max_payload_size() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(get_fragment_max_payload_size(&rule, &fragment) == 88);
+
+  char all_1_as_bytes[5];
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  Fragment all_1;
+  strncpy(all_1.message, all_1_as_bytes, 4);
+  assert(get_fragment_max_payload_size(&rule, &all_1) == 80);
+  return 0;
+}
+
 int test_get_fragment_header() {
   Fragment fragment = {"\x15\x88\x88\x88"};
   Rule rule;
@@ -181,16 +194,76 @@ int test_get_fragment_header() {
   return 0;
 }
 
-int test_get_fragment_payload();
-// TODO: test normal fragment, all-1 fragment, with and without payload
+int test_get_fragment_payload() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  int payload_size = get_fragment_max_payload_size(&rule, &fragment);
+  char payload[payload_size + 1];
+  get_fragment_payload(&rule, &fragment, payload);
+  assert(strcmp(payload, "100010001000100010001000") == 0);
 
-int test_fragment_expects_ack();
-// TODO: test normal fragment, all-0 fragment, all-1 fragment, with and without payload
+  Fragment all_1 = {"\027\200DD"};
+  int all_1_payload_size = get_fragment_max_payload_size(&rule, &all_1);
+  char all_1_payload[all_1_payload_size + 1];
+  get_fragment_payload(&rule, &all_1, all_1_payload);
+  assert(strcmp(all_1_payload, "0100010001000100") == 0);
 
-int test_is_fragment_sender_abort();
-// TODO: test normal fragment, all-0 fragment, all-1 fragment, with and without payload
+  Fragment all_1_no_payload = {"\027\200"};
+  char all_1_no_payload_payload[all_1_payload_size + 1];
+  get_fragment_payload(&rule, &all_1_no_payload, all_1_no_payload_payload);
+  assert(strcmp(all_1_no_payload_payload, "") == 0);
 
-int main() {
+  return 0;
+}
+
+int test_fragment_expects_ack() {
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(!fragment_expects_ack(&rule, &fragment));
+
+  char all_0_as_bytes[5];
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  Fragment all_0;
+  strncpy(all_0.message, all_0_as_bytes, 4);
+  assert(fragment_expects_ack(&rule, &all_0));
+
+  Fragment all_1 = {"\027\200DD"};
+  assert(fragment_expects_ack(&rule, &all_1));
+
+  Fragment all_1_no_payload = {"\027\200"};
+  assert(fragment_expects_ack(&rule, &all_1_no_payload));
+
+  return 0;
+}
+
+int test_is_fragment_sender_abort() {
+  char sender_abort_as_bytes[2];
+  bin_to_bytes(sender_abort_as_bytes, "00011111", 1);
+  Fragment sender_abort;
+  strncpy(sender_abort.message, sender_abort_as_bytes, 1);
+  Rule rule;
+  init_rule_from_fragment(&rule, &sender_abort);
+  assert(is_fragment_sender_abort(&rule, &sender_abort));
+
+  Fragment fragment = {"\x15\x88\x88\x88"};
+  assert(!is_fragment_sender_abort(&rule, &fragment));
+
+  char all_0_as_bytes[5];
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  Fragment all_0;
+  strncpy(all_0.message, all_0_as_bytes, 4);
+  assert(!is_fragment_sender_abort(&rule, &all_0));
+
+  Fragment all_1 = {"\027\200DD"};
+  assert(!is_fragment_sender_abort(&rule, &all_1));
+
+  Fragment all_1_no_payload = {"\027\200"};
+  assert(!is_fragment_sender_abort(&rule, &all_1_no_payload));
+}
+
+  int main() {
     printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
     printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
     printf("%d test_get_fragment_rule_id\n", test_get_fragment_rule_id());
@@ -201,7 +274,11 @@ int main() {
     printf("%d test_is_fragment_all_1\n", test_is_fragment_all_1());
     printf("%d test_get_fragment_rcs\n", test_get_fragment_rcs());
     printf("%d test_get_fragment_header_size\n", test_get_fragment_header_size());
+    printf("%d test_get_fragment_max_payload_size\n", test_get_fragment_max_payload_size());
     printf("%d test_get_fragment_header\n", test_get_fragment_header());
+    printf("%d test_get_fragment_payload\n", test_get_fragment_payload());
+    printf("%d test_fragment_expects_ack\n", test_fragment_expects_ack());
+    printf("%d test_is_fragment_sender_abort\n", test_is_fragment_sender_abort());
 
     return 0;
 }

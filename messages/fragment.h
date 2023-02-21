@@ -33,6 +33,8 @@ void get_fragment_rcs(Rule *rule, Fragment *fragment, char dest[]);
 
 int get_fragment_header_size(Rule *rule, Fragment *fragment);
 
+int get_fragment_max_payload_size(Rule *rule, Fragment *fragment);
+
 void get_fragment_header(Rule *rule, Fragment *fragment, char dest[]);
 
 void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]);

@@ -98,6 +98,10 @@ int get_fragment_header_size(Rule *rule, Fragment *fragment) {
              : rule->header_length;
 }
 
+int get_fragment_max_payload_size(Rule *rule, Fragment *fragment) {
+  return UPLINK_MTU_BITS - get_fragment_header_size(rule, fragment);
+}
+
 void get_fragment_header(Rule *rule, Fragment *fragment, char dest[]) {
   int header_size = get_fragment_header_size(rule, fragment);
   char fragment_as_bin[UPLINK_MTU_BITS];
