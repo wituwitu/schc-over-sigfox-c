@@ -4,11 +4,12 @@
 
 #include "ack.h"
 #include "casting.h"
+#include <stdio.h>
 
 void ack_to_bin(CompoundACK *ack, char dest[]) {
   memset(dest, '\0', DOWNLINK_MTU_BITS);
   char* message = ack->message;
-  bytes_to_bin(dest, message, strlen(message) * 8);
+  bytes_to_bin(dest, message, sizeof(message));
 }
 
 void init_rule_from_ack(Rule *dest, CompoundACK *ack) {
@@ -42,4 +43,12 @@ void get_ack_w(Rule *rule, CompoundACK *ack, char dest[]) {
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + w_index, w_size);
   dest[w_size] = '\0';
+}
+
+void get_ack_c(Rule *rule, CompoundACK *ack, char dest[]) {
+  int c_index = rule->rule_id_size + rule->t + rule->m;
+  char ack_as_bin[UPLINK_MTU_BITS];
+  ack_to_bin(ack, ack_as_bin);
+  strncpy(dest, ack_as_bin + c_index, 1);
+  dest[1] = '\0';
 }

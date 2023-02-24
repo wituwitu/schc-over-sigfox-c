@@ -2,11 +2,12 @@
  * Then execute SocketServerTest and SocketClientTest
  * in separate terminals */
 
+#include "casting.h"
+#include "sigfox_socket.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <unistd.h>
-#include "sigfox_socket.h"
 
 int main() {
     SigfoxServer server;
@@ -17,7 +18,7 @@ int main() {
     assert(server.timeout == 60);
 
     // Receiving a message
-    char buf[UPLINK_MTU];
+    char buf[UPLINK_MTU_BYTES];
     assert(sgfx_server_recv(&server, buf) == 12);
     printf("Received: %s\n", buf);
     assert(strcmp(buf, "helloserver.") == 0);
@@ -46,6 +47,16 @@ int main() {
     assert(strlen(buf) == 5);
     assert(strcmp(buf, "third") == 0);
     sleep(2);
+
+    // Receiving and sending messages with null bytes
+    sgfx_server_set_timeout(&server, 60);
+    assert(sgfx_server_recv(&server, buf) == 5);
+    char as_bin[40];
+    bytes_to_bin(as_bin, buf, 5);
+    printf("Received (bin): %s\n", as_bin);
+    assert(strcmp(as_bin, "0001010110001000000000001000100010001000") == 0);
+    char w_null_ack[] = "A\x00B\x00\x00\x00\x00\x00";
+    assert(sgfx_server_send(&server, w_null_ack) >= 0);
 
     // Close
     sgfx_server_close(&server);

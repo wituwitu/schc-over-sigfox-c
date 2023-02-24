@@ -10,12 +10,12 @@
 #endif // SCHC_OVER_SIGFOX_C_ACK_H
 
 typedef struct {
-  char message[UPLINK_MTU_BYTES];
+  char message[DOWNLINK_MTU_BYTES];
 } CompoundACK;
 
 void ack_to_bin(CompoundACK *ack, char dest[]);
 
-void init_rule_from_ACK(Rule *dest, CompoundACK *ack);
+void init_rule_from_ack(Rule *dest, CompoundACK *ack);
 
 void get_ack_rule_id(Rule *rule, CompoundACK *ack, char dest[]);
 

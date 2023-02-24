@@ -8,8 +8,7 @@
 
 void fragment_to_bin(Fragment *fragment, char dest[]) {
   memset(dest, '\0', UPLINK_MTU_BITS);
-  char* message = fragment->message;
-  bytes_to_bin(dest, message, strlen(message) * 8);
+  bytes_to_bin(dest, fragment->message, fragment->byte_size);
 }
 
 void init_rule_from_fragment(Rule *dest, Fragment *fragment) {

@@ -31,7 +31,7 @@ void strrev(char *start) {
 
 void zfill(char dest[], char *src, unsigned int length) {
     size_t len = strlen(src);
-    size_t zeros = (len > length) ? 0: length - len;
+    size_t zeros = (len > length) ? 0 : length - len;
     memset(dest, '0', zeros);
     strncpy(dest + zeros, src, length);
 }

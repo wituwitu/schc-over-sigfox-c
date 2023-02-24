@@ -39,4 +39,4 @@ void init_rule(Rule *rule, const char rule_id_binary[]);
  *  rule: pointer to the Rule struct.
  *  byte: char array to use in Rule identification.
  */
-void parse_rule_from_bytes(Rule *rule, const char byt[]);
+void parse_rule_from_bytes(Rule *rule, const char *byt);

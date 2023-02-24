@@ -24,7 +24,7 @@ int bin_to_int(const char *bin);
  *
  *  dest: buffer where to store the result.
  *  n: integer to process.
- *  length: size of the buffer excluding the null terminator.
+ *  length: byte_size of the buffer excluding the null terminator.
  */
 void char_to_bin(char *dest, signed char n, unsigned int length);
 
@@ -35,9 +35,9 @@ void char_to_bin(char *dest, signed char n, unsigned int length);
  *
  *  dest: buffer where to store the result.
  *  bytes: array of chars to process.
- *  length: length of the buffer excluding the null terminator.
+ *  src_size: length of the source excluding the null terminator.
  */
-void bytes_to_bin(char *dest, const char *bytes, unsigned int length);
+void bytes_to_bin(char *dest, const char *src, unsigned int src_size);
 
 /*
  * Function:  bin_to_bytes

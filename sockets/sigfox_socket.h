@@ -1,4 +1,5 @@
 #include <netinet/in.h>
+#include "schc.h"
 
 #ifndef SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
 #define SCHC_OVER_SIGFOX_C_SIGFOX_SOCKET_H
@@ -12,7 +13,7 @@ typedef struct {
     int expects_ack;
     int seqnum;
     float timeout;
-    char buffer[DOWNLINK_MTU + 1];
+    char buffer[DOWNLINK_MTU_BYTES + 1];
     struct sockaddr_in serv_addr;
 } SigfoxClient;
 
@@ -44,8 +45,9 @@ void sgfx_client_start(SigfoxClient *client);
  *
  *  client: SigfoxClient struct address containing socket data.
  *  buf: Array of chars to send.
+ *  n: Number of bytes to send
  */
-ssize_t sgfx_client_send(SigfoxClient *client, const char buf[]);
+ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[], int n);
 
 /*
  * Function:  sgfx_client_recv

@@ -11,6 +11,7 @@
 
 typedef struct {
   char message[UPLINK_MTU_BYTES];
+  int byte_size;
 } Fragment;
 
 void fragment_to_bin(Fragment *fragment, char dest[]);

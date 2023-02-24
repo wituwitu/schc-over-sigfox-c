@@ -4,17 +4,18 @@
 #include <stdio.h>
 
 int test_fragment_to_bin() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   char as_bin[UPLINK_MTU_BITS];
   fragment_to_bin(&fragment, as_bin);
 
+  printf("%s\n", as_bin);
   assert(strcmp(as_bin, "00010101100010001000100010001000") == 0);
   assert(strlen(as_bin) == strlen(fragment.message) * 8);
   return 0;
 }
 
 int test_init_rule_from_fragment() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   char as_bin[UPLINK_MTU_BITS];
   fragment_to_bin(&fragment, as_bin);
@@ -23,7 +24,7 @@ int test_init_rule_from_fragment() {
 }
 
 int test_get_fragment_rule_id() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
 
@@ -35,7 +36,7 @@ int test_get_fragment_rule_id() {
 }
 
 int test_get_fragment_dtag() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
 
@@ -47,7 +48,7 @@ int test_get_fragment_dtag() {
 }
 
 int test_get_fragment_w(){
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
 
@@ -59,7 +60,7 @@ int test_get_fragment_w(){
 }
 
 int test_get_fragment_fcn() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
 
@@ -71,7 +72,7 @@ int test_get_fragment_fcn() {
 }
 
 int test_is_fragment_all_0() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   assert(!is_fragment_all_0(&rule, &fragment));
@@ -80,19 +81,21 @@ int test_is_fragment_all_0() {
   bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
+  all_0.byte_size = 4;
   assert(is_fragment_all_0(&rule, &all_0));
 
   char all_1_as_bytes[5];
   bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
+  all_1.byte_size = 4;
   assert(!is_fragment_all_0(&rule, &all_1));
 
   return 0;
 }
 
 int test_is_fragment_all_1() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   assert(!is_fragment_all_1(&rule, &fragment));
@@ -101,24 +104,28 @@ int test_is_fragment_all_1() {
   bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
+  all_0.byte_size = 4;
   assert(!is_fragment_all_1(&rule, &all_0));
 
   char all_1_as_bytes[5];
   bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
+  all_1.byte_size = 4;
   assert(is_fragment_all_1(&rule, &all_1));
 
   char only_header_as_bytes[5];
   bin_to_bytes(only_header_as_bytes, "0001011110000000", 2);
   Fragment only_header;
   strncpy(only_header.message, only_header_as_bytes, 2);
+  only_header.byte_size = 2;
   assert(is_fragment_all_1(&rule, &only_header));
 
   char only_header_as_bytes_invalid[5];
   bin_to_bytes(only_header_as_bytes_invalid, "0001010110000000", 2);
   Fragment only_header_invalid;
   strncpy(only_header_invalid.message, only_header_as_bytes_invalid, 2);
+  only_header_invalid.byte_size = 2;
   assert(!is_fragment_all_1(&rule, &only_header_invalid));
 
   return 0;
@@ -129,6 +136,7 @@ int test_get_fragment_rcs() {
   bin_to_bytes(message, "00010111100000000100010001000100", 4);
   Fragment fragment;
   strncpy(fragment.message, message, 4);
+  fragment.byte_size = 4;
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   assert(is_fragment_all_1(&rule, &fragment));
@@ -140,6 +148,7 @@ int test_get_fragment_rcs() {
   bin_to_bytes(message_all0, "00010000100000000100010001000100", 4);
   Fragment all_0;
   strncpy(all_0.message, message_all0, 4);
+  all_0.byte_size = 4;
   char rcs_second[rule.u + 1];
   memset(rcs_second, '\0', rule.u + 1);
   get_fragment_rcs(&rule, &all_0, rcs_second);
@@ -149,7 +158,7 @@ int test_get_fragment_rcs() {
 }
 
 int test_get_fragment_header_size() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   assert(get_fragment_header_size(&rule, &fragment) == 8);
@@ -158,12 +167,13 @@ int test_get_fragment_header_size() {
   bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
+  all_1.byte_size = 4;
   assert(get_fragment_header_size(&rule, &all_1) == 16);
   return 0;
 }
 
 int test_get_fragment_max_payload_size() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   assert(get_fragment_max_payload_size(&rule, &fragment) == 88);
@@ -172,12 +182,13 @@ int test_get_fragment_max_payload_size() {
   bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
+  all_1.byte_size = 4;
   assert(get_fragment_max_payload_size(&rule, &all_1) == 80);
   return 0;
 }
 
 int test_get_fragment_header() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   int header_size = get_fragment_header_size(&rule, &fragment);
@@ -185,7 +196,7 @@ int test_get_fragment_header() {
   get_fragment_header(&rule, &fragment, header);
   assert(strcmp(header, "00010101") == 0);
 
-  Fragment all_1 = {"\027\200DD"};
+  Fragment all_1 = {"\027\200DD", 4};
   int all_1_header_size = get_fragment_header_size(&rule, &all_1);
   char all_1_header[all_1_header_size + 1];
   get_fragment_header(&rule, &all_1, all_1_header);
@@ -195,7 +206,7 @@ int test_get_fragment_header() {
 }
 
 int test_get_fragment_payload() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   int payload_size = get_fragment_max_payload_size(&rule, &fragment);
@@ -203,13 +214,13 @@ int test_get_fragment_payload() {
   get_fragment_payload(&rule, &fragment, payload);
   assert(strcmp(payload, "100010001000100010001000") == 0);
 
-  Fragment all_1 = {"\027\200DD"};
+  Fragment all_1 = {"\027\200DD", 4};
   int all_1_payload_size = get_fragment_max_payload_size(&rule, &all_1);
   char all_1_payload[all_1_payload_size + 1];
   get_fragment_payload(&rule, &all_1, all_1_payload);
   assert(strcmp(all_1_payload, "0100010001000100") == 0);
 
-  Fragment all_1_no_payload = {"\027\200"};
+  Fragment all_1_no_payload = {"\027\200", 2};
   char all_1_no_payload_payload[all_1_payload_size + 1];
   get_fragment_payload(&rule, &all_1_no_payload, all_1_no_payload_payload);
   assert(strcmp(all_1_no_payload_payload, "") == 0);
@@ -218,7 +229,7 @@ int test_get_fragment_payload() {
 }
 
 int test_fragment_expects_ack() {
-  Fragment fragment = {"\x15\x88\x88\x88"};
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
   init_rule_from_fragment(&rule, &fragment);
   assert(!fragment_expects_ack(&rule, &fragment));
@@ -227,12 +238,13 @@ int test_fragment_expects_ack() {
   bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
+  all_0.byte_size = 4;
   assert(fragment_expects_ack(&rule, &all_0));
 
-  Fragment all_1 = {"\027\200DD"};
+  Fragment all_1 = {"\027\200DD", 4};
   assert(fragment_expects_ack(&rule, &all_1));
 
-  Fragment all_1_no_payload = {"\027\200"};
+  Fragment all_1_no_payload = {"\027\200", 2};
   assert(fragment_expects_ack(&rule, &all_1_no_payload));
 
   return 0;
@@ -243,6 +255,7 @@ int test_is_fragment_sender_abort() {
   bin_to_bytes(sender_abort_as_bytes, "00011111", 1);
   Fragment sender_abort;
   strncpy(sender_abort.message, sender_abort_as_bytes, 1);
+  sender_abort.byte_size = 1;
   Rule rule;
   init_rule_from_fragment(&rule, &sender_abort);
   assert(is_fragment_sender_abort(&rule, &sender_abort));
@@ -254,16 +267,17 @@ int test_is_fragment_sender_abort() {
   bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
+  all_0.byte_size = 4;
   assert(!is_fragment_sender_abort(&rule, &all_0));
 
-  Fragment all_1 = {"\027\200DD"};
+  Fragment all_1 = {"\027\200DD", 4};
   assert(!is_fragment_sender_abort(&rule, &all_1));
 
-  Fragment all_1_no_payload = {"\027\200"};
+  Fragment all_1_no_payload = {"\027\200", 2};
   assert(!is_fragment_sender_abort(&rule, &all_1_no_payload));
 }
 
-  int main() {
+int main() {
     printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
     printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
     printf("%d test_get_fragment_rule_id\n", test_get_fragment_rule_id());

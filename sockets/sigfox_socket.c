@@ -30,29 +30,32 @@ void sgfx_client_start(SigfoxClient *client) {
     sgfx_client_set_timeout(client, 60);
 }
 
-ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[]) {
+ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[], int n) {
     ssize_t sendval, readval = 0;
 
     client->seqnum++;
     sendval = sendto(
             client->sock_fd,
             sendbuf,
-            MIN((int) strlen(sendbuf), UPLINK_MTU_BYTES),
+            MIN(n, UPLINK_MTU_BYTES),
             0,
             (const struct sockaddr *) &(client->serv_addr),
             sizeof(client->serv_addr)
             );
 
     if (client->expects_ack == 1) {
-        socklen_t len;
+        // TODO: read null characters as well
+        // maybe loop through recvfrom until reaching DOWNLINK_MTU_BYTES?
+        memset(client->buffer, '\0', DOWNLINK_MTU_BYTES + 1);
+        socklen_t len = sizeof(client->serv_addr);
         readval = recvfrom(
                 client->sock_fd,
-                client->buffer, DOWNLINK_MTU_BYTES,
+                client->buffer,
+                DOWNLINK_MTU_BYTES,
                 0,
                 (struct sockaddr *) &(client->serv_addr),
                 &len
                 );
-        client->buffer[DOWNLINK_MTU_BYTES] = '\0';
     }
 
     if (sendval == -1 || readval == -1) return -1;
@@ -61,9 +64,11 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[]) {
 }
 
 ssize_t sgfx_client_recv(SigfoxClient *client, char recvbuf[]) {
-    strncpy(recvbuf, client->buffer, sizeof(client->buffer));
-    strncpy(client->buffer, "", DOWNLINK_MTU_BYTES);
-    return (ssize_t) strlen(recvbuf);
+    memcpy(recvbuf, client->buffer, DOWNLINK_MTU_BYTES + 1);
+    printf("%s\n", client->buffer);
+    printf("%s\n", recvbuf);
+    memset(client->buffer, '\0', DOWNLINK_MTU_BYTES + 1);
+    return DOWNLINK_MTU_BYTES;
 }
 
 void sgfx_client_set_reception(SigfoxClient *client, const int flag) {
@@ -140,7 +145,8 @@ void sgfx_server_start(SigfoxServer *server) {
 ssize_t sgfx_server_send(SigfoxServer *server, const char buf[]) {
     return sendto(
             server->sock_fd,
-            buf, DOWNLINK_MTU_BYTES,
+            buf,
+            DOWNLINK_MTU_BYTES,
             0,
             (const struct sockaddr *) &(server->cli_addr),
             sizeof(server->cli_addr)
@@ -148,11 +154,12 @@ ssize_t sgfx_server_send(SigfoxServer *server, const char buf[]) {
 }
 
 ssize_t sgfx_server_recv(SigfoxServer *server, char buf[]) {
-    memset(buf, '\0', UPLINK_MTU_BYTES);
+    memset(buf, '\0', UPLINK_MTU_BYTES + 1);
     socklen_t len = sizeof(server->cli_addr);
     return recvfrom(
             server->sock_fd,
-            buf, UPLINK_MTU_BYTES,
+            buf,
+            UPLINK_MTU_BYTES,
             0,
             (struct sockaddr *) &(server->cli_addr),
             &len

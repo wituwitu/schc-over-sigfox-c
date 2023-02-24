@@ -16,7 +16,7 @@
  *  c: the character to be repeated.
  *  length: the number of times to repeat the character.
  *
- *  returns: the size of the buffer.
+ *  returns: the byte_size of the buffer.
  */
 size_t repeat_char(char *dest, char c, int length) ;
 

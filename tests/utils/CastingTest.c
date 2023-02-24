@@ -60,19 +60,19 @@ int bytes_to_bin_test(void) {
     char by[] = "\xd2";
     char expected[] = "11010010";
     char actual[9] = "";
-    bytes_to_bin(actual, by, 8);
+    bytes_to_bin(actual, by, 1);
     assert(strcmp(actual, expected) == 0);
 
     char by_sec[] = "test";
     char expected_sec[] = "01110100011001010111001101110100";
     char actual_sec[33] = "";
-    bytes_to_bin(actual_sec, by_sec, 32);
+    bytes_to_bin(actual_sec, by_sec, 4);
     assert(strcmp(actual_sec, expected_sec) == 0);
 
     char by_hex[] = "\x15\x88\x88\x88";
     char expected_hex[] = "00010101100010001000100010001000";
     char actual_hex[33] = "";
-    bytes_to_bin(actual_hex, by_hex, 32);
+    bytes_to_bin(actual_hex, by_hex, 4);
     assert(strcmp(actual_hex, expected_hex) == 0);
 
 

@@ -73,11 +73,11 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     rule->max_fragment_number = max_fragment_number;
 }
 
-void parse_rule_from_bytes(Rule *rule, const char byt[]) {
+void parse_rule_from_bytes(Rule *rule, const char *byt) {
     size_t bin_length = strlen(byt) * 8;
     char as_bin[bin_length + 1];
     memset(as_bin, 0, bin_length + 1);
-    bytes_to_bin(as_bin, byt, bin_length);
+    bytes_to_bin(as_bin, byt, sizeof(byt));
 
     char first_byte[9];
     strncpy(first_byte, as_bin, 8);
