@@ -48,4 +48,4 @@ void bytes_to_bin(char *dest, const char *src, unsigned int src_size);
  *  bits: binary string to process.
  *  length: length of the buffer excluding the null terminator.
  */
-void bin_to_bytes(char *dest, const char *bits, unsigned int length);
+void bin_to_bytes(char *dest, char *src, unsigned int src_size);

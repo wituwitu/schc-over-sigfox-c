@@ -4,6 +4,7 @@
 
 #include "ack.h"
 #include "casting.h"
+#include "misc.h"
 #include <stdio.h>
 
 void ack_to_bin(CompoundACK *ack, char dest[]) {
@@ -47,8 +48,86 @@ void get_ack_w(Rule *rule, CompoundACK *ack, char dest[]) {
 
 void get_ack_c(Rule *rule, CompoundACK *ack, char dest[]) {
   int c_index = rule->rule_id_size + rule->t + rule->m;
-  char ack_as_bin[UPLINK_MTU_BITS];
+  char ack_as_bin[DOWNLINK_MTU_BITS];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + c_index, 1);
   dest[1] = '\0';
+}
+
+int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
+  char w[rule->m + 1], c[2];
+  get_ack_w(rule, ack, w);
+  get_ack_c(rule, ack, c);
+
+  if (is_monochar(w, '1') && strcmp(c, "1") == 0) {
+    char as_bin[DOWNLINK_MTU_BITS];
+    ack_to_bin(ack, as_bin);
+
+    int header_length = rule->ack_header_length;
+    char *padding_i = as_bin + header_length;
+    char *padding_f = strrchr(as_bin, '1') + 1;
+    if (padding_f <= padding_i) return 0;
+
+    int padding_size = (int) (padding_f - padding_i);
+    char padding[padding_size + 1];
+    strncpy(padding, as_bin + header_length, padding_size);
+    padding[padding_size] = '\0';
+
+    int padding_start_size = padding_size - L2_WORD_SIZE;
+    char padding_start[padding_start_size + 1];
+    char padding_end[L2_WORD_SIZE + 1];
+    strncpy(padding_start, padding, padding_start_size);
+    strncpy(padding_end, padding + padding_start_size, L2_WORD_SIZE);
+    padding_start[padding_start_size] = '\0';
+    padding_end[L2_WORD_SIZE] = '\0';
+
+    if (is_monochar(padding_end, '1') && strlen(padding_end) == L2_WORD_SIZE) {
+      if (strcmp(padding_start, "") != 0 && header_length % L2_WORD_SIZE != 0) {
+        return is_monochar(padding_start, '1') && (header_length + padding_start_size) % L2_WORD_SIZE == 0;
+      }
+      return header_length % L2_WORD_SIZE == 0;
+    }
+  }
+  return 0;
+}
+
+int is_ack_compound(Rule *rule, CompoundACK *ack) {
+  char as_bin[DOWNLINK_MTU_BITS];
+  ack_to_bin(ack, as_bin);
+  char *padding = as_bin + rule->ack_header_length;
+
+  return !is_ack_receiver_abort(rule, ack) && !is_monochar(padding, '0');
+}
+
+int is_ack_complete(Rule *rule, CompoundACK *ack){
+  char c[2];
+  get_ack_c(rule, ack, c);
+
+  return !is_ack_receiver_abort(rule, ack) && strcmp(c, "1") == 0;
+}
+
+int get_ack_nb_tuples(Rule *rule, CompoundACK *ack) {
+  char as_bin[DOWNLINK_MTU_BITS];
+  ack_to_bin(ack, as_bin);
+  char window[rule->m + 1];
+  char first_window[rule->m + 1];
+  memset(window, '\0', rule->m + 1);
+  memset(first_window, '0', rule->m);
+  first_window[rule->m] = '\0';
+  int tuple_size = rule->ack_header_length + rule->window_size;
+  char *p = as_bin + tuple_size;
+
+  int nb_tuples = 1;
+  strncpy(window, p, rule->m);
+  while (strcmp(window, first_window) != 0 && p < (as_bin + DOWNLINK_MTU_BITS - tuple_size)) {
+    nb_tuples++;
+    p += rule->m + rule->window_size;
+    strncpy(window, p, rule->m);
+  }
+
+  return nb_tuples;
+}
+
+void get_ack_tuples(Rule *rule, CompoundACK *ack, char **windows, char **bitmaps){
+
 }

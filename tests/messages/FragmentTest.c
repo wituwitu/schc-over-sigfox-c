@@ -8,7 +8,6 @@ int test_fragment_to_bin() {
   char as_bin[UPLINK_MTU_BITS];
   fragment_to_bin(&fragment, as_bin);
 
-  printf("%s\n", as_bin);
   assert(strcmp(as_bin, "00010101100010001000100010001000") == 0);
   assert(strlen(as_bin) == strlen(fragment.message) * 8);
   return 0;
@@ -78,14 +77,14 @@ int test_is_fragment_all_0() {
   assert(!is_fragment_all_0(&rule, &fragment));
 
   char all_0_as_bytes[5];
-  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 32);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
   all_0.byte_size = 4;
   assert(is_fragment_all_0(&rule, &all_0));
 
   char all_1_as_bytes[5];
-  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 32);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
   all_1.byte_size = 4;
@@ -101,28 +100,28 @@ int test_is_fragment_all_1() {
   assert(!is_fragment_all_1(&rule, &fragment));
 
   char all_0_as_bytes[5];
-  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 32);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
   all_0.byte_size = 4;
   assert(!is_fragment_all_1(&rule, &all_0));
 
   char all_1_as_bytes[5];
-  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 32);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
   all_1.byte_size = 4;
   assert(is_fragment_all_1(&rule, &all_1));
 
   char only_header_as_bytes[5];
-  bin_to_bytes(only_header_as_bytes, "0001011110000000", 2);
+  bin_to_bytes(only_header_as_bytes, "0001011110000000", 16);
   Fragment only_header;
   strncpy(only_header.message, only_header_as_bytes, 2);
   only_header.byte_size = 2;
   assert(is_fragment_all_1(&rule, &only_header));
 
   char only_header_as_bytes_invalid[5];
-  bin_to_bytes(only_header_as_bytes_invalid, "0001010110000000", 2);
+  bin_to_bytes(only_header_as_bytes_invalid, "0001010110000000", 16);
   Fragment only_header_invalid;
   strncpy(only_header_invalid.message, only_header_as_bytes_invalid, 2);
   only_header_invalid.byte_size = 2;
@@ -133,7 +132,7 @@ int test_is_fragment_all_1() {
 
 int test_get_fragment_rcs() {
   char message[5];
-  bin_to_bytes(message, "00010111100000000100010001000100", 4);
+  bin_to_bytes(message, "00010111100000000100010001000100", 32);
   Fragment fragment;
   strncpy(fragment.message, message, 4);
   fragment.byte_size = 4;
@@ -145,7 +144,7 @@ int test_get_fragment_rcs() {
   assert(strcmp(rcs, "100") == 0);
 
   char message_all0[5];
-  bin_to_bytes(message_all0, "00010000100000000100010001000100", 4);
+  bin_to_bytes(message_all0, "00010000100000000100010001000100", 32);
   Fragment all_0;
   strncpy(all_0.message, message_all0, 4);
   all_0.byte_size = 4;
@@ -164,7 +163,7 @@ int test_get_fragment_header_size() {
   assert(get_fragment_header_size(&rule, &fragment) == 8);
 
   char all_1_as_bytes[5];
-  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 32);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
   all_1.byte_size = 4;
@@ -179,7 +178,7 @@ int test_get_fragment_max_payload_size() {
   assert(get_fragment_max_payload_size(&rule, &fragment) == 88);
 
   char all_1_as_bytes[5];
-  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 4);
+  bin_to_bytes(all_1_as_bytes, "00010111100000000100010001000100", 32);
   Fragment all_1;
   strncpy(all_1.message, all_1_as_bytes, 4);
   all_1.byte_size = 4;
@@ -235,7 +234,7 @@ int test_fragment_expects_ack() {
   assert(!fragment_expects_ack(&rule, &fragment));
 
   char all_0_as_bytes[5];
-  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 32);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
   all_0.byte_size = 4;
@@ -252,7 +251,7 @@ int test_fragment_expects_ack() {
 
 int test_is_fragment_sender_abort() {
   char sender_abort_as_bytes[2];
-  bin_to_bytes(sender_abort_as_bytes, "00011111", 1);
+  bin_to_bytes(sender_abort_as_bytes, "00011111", 8);
   Fragment sender_abort;
   strncpy(sender_abort.message, sender_abort_as_bytes, 1);
   sender_abort.byte_size = 1;
@@ -264,7 +263,7 @@ int test_is_fragment_sender_abort() {
   assert(!is_fragment_sender_abort(&rule, &fragment));
 
   char all_0_as_bytes[5];
-  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 4);
+  bin_to_bytes(all_0_as_bytes, "00010000100000000100010001000100", 32);
   Fragment all_0;
   strncpy(all_0.message, all_0_as_bytes, 4);
   all_0.byte_size = 4;

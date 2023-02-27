@@ -25,20 +25,12 @@ void get_ack_w(Rule *rule, CompoundACK *ack, char dest[]);
 
 void get_ack_c(Rule *rule, CompoundACK *ack, char dest[]);
 
-void get_ack_bitmap(Rule *rule, CompoundACK *ack, char dest[]);
+int get_ack_nb_tuples(Rule *rule, CompoundACK *ack);
 
 void get_ack_tuples(Rule *rule, CompoundACK *ack, char **windows, char **bitmaps);
 
 int is_ack_compound(Rule *rule, CompoundACK *ack);
 
 int is_ack_complete(Rule *rule, CompoundACK *ack);
-
-int get_ack_header_size(Rule *rule, CompoundACK *ack);
-
-int get_ack_payload_size(Rule *rule, CompoundACK *ack);
-
-void get_ack_header(Rule *rule, CompoundACK *ack, char dest[]);
-
-void get_ack_payload(Rule *rule, CompoundACK *ack, char dest[]);
 
 int is_ack_receiver_abort(Rule *rule, CompoundACK *ack);

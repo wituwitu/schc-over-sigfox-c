@@ -83,7 +83,7 @@ int bin_to_bytes_test(void) {
     char *bits = "11010010";
     char expected[] = "\xd2";
     char actual[2] = "";
-    bin_to_bytes(actual, bits, 1);
+    bin_to_bytes(actual, bits, 8);
     assert(strcmp(actual, expected) == 0);
 
     return 0;

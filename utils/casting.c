@@ -30,11 +30,10 @@ void char_to_bin(char *dest, signed char n, unsigned int length) {
 
 void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
     unsigned int dest_size = src_size * 8;
-    memset(dest, '\0', dest_size + 1);
-
     char bits[dest_size + 1];
     char *p = bits;
 
+    memset(dest, '\0', dest_size + 1);
     memset(bits, '\0', dest_size + 1);
 
     for (int i = 0; i != src_size; i++) {
@@ -50,12 +49,10 @@ void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
     memcpy(dest, bits, dest_size);
 }
 
-void bin_to_bytes(char *dest, const char *bits, unsigned int length) {
-    memset(dest, '\0', length);
-
-    int size = (int) strlen(bits) / 8;
-    char bytes[size + 1];
-    char *p = bits;
+void bin_to_bytes(char *dest, char *src, unsigned int src_size) {
+    unsigned int dest_size = src_size / 8;
+    char bytes[dest_size + 1];
+    char *p = src;
     int i = 0;
     for (; *p != '\0'; p += 8) {
         char oct[8];
@@ -64,6 +61,5 @@ void bin_to_bytes(char *dest, const char *bits, unsigned int length) {
         bytes[i++] = byt;
     }
     bytes[i] = '\0';
-
-    memcpy(dest, bytes, length - strlen(dest));
+    memcpy(dest, bytes, dest_size);
 }
