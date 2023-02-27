@@ -65,8 +65,6 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[], int n) {
 
 ssize_t sgfx_client_recv(SigfoxClient *client, char recvbuf[]) {
     memcpy(recvbuf, client->buffer, DOWNLINK_MTU_BYTES + 1);
-    printf("%s\n", client->buffer);
-    printf("%s\n", recvbuf);
     memset(client->buffer, '\0', DOWNLINK_MTU_BYTES + 1);
     return DOWNLINK_MTU_BYTES;
 }
@@ -142,10 +140,10 @@ void sgfx_server_start(SigfoxServer *server) {
     server->timeout = 60;
 }
 
-ssize_t sgfx_server_send(SigfoxServer *server, const char buf[]) {
+ssize_t sgfx_server_send(SigfoxServer *server, const char sendbuf[]) {
     return sendto(
             server->sock_fd,
-            buf,
+            sendbuf,
             DOWNLINK_MTU_BYTES,
             0,
             (const struct sockaddr *) &(server->cli_addr),

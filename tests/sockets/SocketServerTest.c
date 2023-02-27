@@ -55,7 +55,7 @@ int main() {
     bytes_to_bin(as_bin, buf, 5);
     printf("Received (bin): %s\n", as_bin);
     assert(strcmp(as_bin, "0001010110001000000000001000100010001000") == 0);
-    char w_null_ack[] = "A\x00B\x00\x00\x00\x00\x00";
+    char w_null_ack[] = "\xFF\x00\xFF\x00\x00\x00\x00\x00";
     assert(sgfx_server_send(&server, w_null_ack) >= 0);
 
     // Close

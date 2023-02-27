@@ -52,13 +52,13 @@ int main() {
     sgfx_client_set_timeout(&client, 60);
     char w_null_bytes[] = "\x15\x88\x00\x88\x88";
     assert(sgfx_client_send(&client, w_null_bytes, 5) == 5);
-    printf("%lo\n", sgfx_client_recv(&client, buf));
     assert(sgfx_client_recv(&client, buf) == 8);
-    printf("Received: %s\n", buf);
-    assert(strcmp(buf, "A\x00B\x00\x00\x00\x00\x00") == 0);
-    char as_bin[40];
-    bytes_to_bin(as_bin, buf, 5);
+    char as_bin[64];
+    bytes_to_bin(as_bin, buf, 8);
     printf("Received (bin): %s\n", as_bin);
+    assert(strcmp(buf, "\xFF\x00\xFF\x00\x00\x00\x00\x00") == 0);
+    assert(strcmp(as_bin, "11111111000000001111111100000000"
+                          "00000000000000000000000000000000") == 0);
 
     // Close
     sgfx_client_close(&client);
