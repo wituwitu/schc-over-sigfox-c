@@ -139,3 +139,35 @@ void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]) {
   strncpy(dest, fragment_as_bin + header_size, payload_size);
   dest[payload_size] = '\0';
 }
+
+void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
+  char rule_id[rule->rule_id_size + 1];
+  char dtag[rule->t + 1];
+  char w[rule->m + 1];
+  char fcn[rule->n + 1];
+
+  get_fragment_rule_id(rule, src, rule_id);
+  get_fragment_dtag(rule, src, dtag);
+  memset(w, '1', rule->m);
+  memset(fcn, '1', rule->n);
+
+  int dtag_idx = rule->rule_id_size;
+  int w_idx = dtag_idx + rule->t;
+  int fcn_idx = w_idx + rule->m;
+  int sa_size = round_to_next_multiple(fcn_idx + rule->n, L2_WORD_SIZE);
+  int byte_size = sa_size / 8;
+
+  char sa_bin[sa_size + 1];
+  memset(sa_bin, '0', sa_size);
+  sa_bin[sa_size] = '\0';
+
+  strncpy(sa_bin, rule_id, rule->rule_id_size);
+  strncpy(sa_bin + dtag_idx, dtag, rule->t);
+  strncpy(sa_bin + w_idx, w, rule->m);
+  strncpy(sa_bin + fcn_idx, fcn, rule->n);
+
+  memset(dest, '\0', sizeof(Fragment));
+  memset(dest->message, '0', byte_size);
+  bin_to_bytes(dest->message, sa_bin, sa_size);
+  dest->byte_size = byte_size;
+}

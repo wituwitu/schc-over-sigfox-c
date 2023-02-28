@@ -1,5 +1,6 @@
 #include "fragment.h"
 #include "casting.h"
+#include "misc.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -280,22 +281,48 @@ int test_is_fragment_sender_abort() {
   return 0;
 }
 
+int test_generate_sender_abort() {
+
+  // Normal fragment
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  assert(!is_fragment_sender_abort(&rule, &fragment));
+
+  // Sender abort
+  Fragment sender_abort;
+  generate_sender_abort(&rule, &fragment, &sender_abort);
+  char w[rule.m];
+  char fcn[rule.n];
+  get_fragment_w(&rule, &sender_abort, w);
+  get_fragment_fcn(&rule, &sender_abort, fcn);
+
+  assert(is_fragment_sender_abort(&rule, &sender_abort));
+  assert(is_monochar(w, '1') && strlen(w) == rule.m);
+  assert(is_monochar(fcn, '1') && strlen(fcn) == rule.n);
+  assert(!is_fragment_all_1(&rule, &sender_abort));
+
+  return 0;
+}
+
 int main() {
-    printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
-    printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
-    printf("%d test_get_fragment_rule_id\n", test_get_fragment_rule_id());
-    printf("%d test_get_fragment_dtag\n", test_get_fragment_dtag());
-    printf("%d test_get_fragment_w\n", test_get_fragment_w());
-    printf("%d test_get_fragment_fcn\n", test_get_fragment_fcn());
-    printf("%d test_is_fragment_all_0\n", test_is_fragment_all_0());
-    printf("%d test_is_fragment_all_1\n", test_is_fragment_all_1());
-    printf("%d test_get_fragment_rcs\n", test_get_fragment_rcs());
+  printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
+  printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
+  printf("%d test_get_fragment_rule_id\n", test_get_fragment_rule_id());
+  printf("%d test_get_fragment_dtag\n", test_get_fragment_dtag());
+  printf("%d test_get_fragment_w\n", test_get_fragment_w());
+  printf("%d test_get_fragment_fcn\n", test_get_fragment_fcn());
+  printf("%d test_is_fragment_all_0\n", test_is_fragment_all_0());
+  printf("%d test_is_fragment_all_1\n", test_is_fragment_all_1());
+  printf("%d test_get_fragment_rcs\n", test_get_fragment_rcs());
     printf("%d test_get_fragment_header_size\n", test_get_fragment_header_size());
     printf("%d test_get_fragment_max_payload_size\n", test_get_fragment_max_payload_size());
     printf("%d test_get_fragment_header\n", test_get_fragment_header());
     printf("%d test_get_fragment_payload\n", test_get_fragment_payload());
     printf("%d test_fragment_expects_ack\n", test_fragment_expects_ack());
-    printf("%d test_is_fragment_sender_abort\n", test_is_fragment_sender_abort());
+    printf("%d test_is_fragment_sender_abort\n",
+           test_is_fragment_sender_abort());
+    printf("%d test_generate_sender_abort\n", test_generate_sender_abort());
 
     return 0;
 }

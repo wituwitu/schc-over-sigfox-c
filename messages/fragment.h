@@ -171,3 +171,13 @@ void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]);
  *  fragment: the Fragment to be processed.
  */
 int is_fragment_sender_abort(Rule *rule, Fragment *fragment);
+
+/*
+ * Function:  generate_sender_abort
+ * --------------------
+ * Generates a Sender-Abort using the information of a Rule and a Fragment.
+ *
+ *  rule: the Rule struct used to process the Fragment.
+ *  fragment: the Fragment to be processed.
+ */
+void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest);
