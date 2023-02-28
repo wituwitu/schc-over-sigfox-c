@@ -1,9 +1,4 @@
-//
-// Created by witu on 23-01-23.
-//
-
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include "misc.h"
@@ -29,27 +24,27 @@ void strrev(char *start) {
     }
 }
 
-void zfill(char dest[], char *src, unsigned int length) {
+void zfill(char *dest, char *src, unsigned int length) {
     size_t len = strlen(src);
     size_t zeros = (len > length) ? 0 : length - len;
     memset(dest, '0', zeros);
     strncpy(dest + zeros, src, length);
 }
 
-void replace_char(char src[], int idx, char c) {
-    src[idx] = c;
-}
+void replace_char(char *src, int idx, char c) { src[idx] = c; }
 
-int is_monochar(char s[], char c) {
-    if (s[0] == '\0') return 0;
+int is_monochar(char *s, char c) {
+    if (s[0] == '\0')
+        return 0;
     size_t len = strlen(s);
     for (int i = 0; i < len; i++) {
-        if (s[i] != c) return 0;
+        if (s[i] != c)
+          return 0;
     }
     return 1;
 }
 
-void generate_packet(char dest[], int length) {
+void generate_packet(char *dest, int length) {
     char s[] = "0";
     int i = 0;
     int j = 0;

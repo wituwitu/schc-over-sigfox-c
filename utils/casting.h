@@ -1,7 +1,3 @@
-//
-// Created by witu on 18-01-23.
-//
-
 #ifndef SCHC_OVER_SIGFOX_C_CASTING_H
 #define SCHC_OVER_SIGFOX_C_CASTING_H
 
@@ -23,10 +19,9 @@ int bin_to_int(const char *bin);
  * (signed char).
  *
  *  dest: buffer where to store the result.
- *  n: integer to process.
- *  length: byte_size of the buffer excluding the null terminator.
+ *  src: integer to process.
  */
-void char_to_bin(char *dest, signed char n, unsigned int length);
+void char_to_bin(char dest[9], signed char src);
 
 /*
  * Function:  bytes_to_bin
@@ -46,6 +41,6 @@ void bytes_to_bin(char *dest, const char *src, unsigned int src_size);
  *
  *  dest: buffer where to store the result.
  *  bits: binary string to process.
- *  length: length of the buffer excluding the null terminator.
+ *  src_size: length of the source excluding the null terminator.
  */
 void bin_to_bytes(char *dest, char *src, unsigned int src_size);

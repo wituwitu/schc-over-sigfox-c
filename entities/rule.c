@@ -2,13 +2,14 @@
 #include "casting.h"
 #include "misc.h"
 #include "schc.h"
+#include <stdio.h>
 
 void init_rule(Rule *rule, const char rule_id_binary[]) {
     int id, rule_id_size, t, m, n, window_size, u,
       header_length, all1_header_length, ack_header_length,
       max_window_number, max_fragment_number;
 
-    memset(rule, 0, sizeof(*rule));
+    memset(rule, 0, sizeof(Rule));
 
     char single_byte_header[4];
     strncpy(single_byte_header, rule_id_binary, 3);
@@ -76,9 +77,8 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
 void parse_rule_from_bytes(Rule *rule, const char *byt) {
     size_t bin_length = strlen(byt) * 8;
     char as_bin[bin_length + 1];
-    memset(as_bin, 0, bin_length + 1);
-    bytes_to_bin(as_bin, byt, sizeof(byt));
-
+    memset(as_bin, '\0', bin_length + 1);
+    bytes_to_bin(as_bin, byt, strlen(byt));
     char first_byte[9];
     strncpy(first_byte, as_bin, 8);
     first_byte[8] = '\0';

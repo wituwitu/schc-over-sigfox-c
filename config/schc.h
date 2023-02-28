@@ -1,7 +1,3 @@
-//
-// Created by witu on 1/30/23.
-//
-
 #ifndef SCHC_OVER_SIGFOX_C_SCHC_H
 #define SCHC_OVER_SIGFOX_C_SCHC_H
 

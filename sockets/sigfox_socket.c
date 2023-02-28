@@ -44,8 +44,6 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[], int n) {
             );
 
     if (client->expects_ack == 1) {
-        // TODO: read null characters as well
-        // maybe loop through recvfrom until reaching DOWNLINK_MTU_BYTES?
         memset(client->buffer, '\0', DOWNLINK_MTU_BYTES + 1);
         socklen_t len = sizeof(client->serv_addr);
         readval = recvfrom(

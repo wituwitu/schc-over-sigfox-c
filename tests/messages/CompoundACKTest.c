@@ -5,7 +5,7 @@
 #include <stdio.h>
 int test_ack_to_bin() {
   CompoundACK ack = {"\x13\xc8\x00\x00\x00\x00\x00\x00"};
-  char as_bin[UPLINK_MTU_BITS];
+  char as_bin[UPLINK_MTU_BITS + 1];
   ack_to_bin(&ack, as_bin);
 
   assert(strcmp(as_bin, "0001001111001000000000000000000000000000000000000000000000000000") == 0);
@@ -16,10 +16,12 @@ int test_ack_to_bin() {
 int test_init_rule_from_ack() {
   CompoundACK ack = {"\x13\xc8\x00\x00\x00\x00\x00\x00"};
   Rule rule;
-  char as_bin[UPLINK_MTU_BITS];
+  char as_bin[UPLINK_MTU_BITS + 1];
   ack_to_bin(&ack, as_bin);
   init_rule_from_ack(&rule, &ack);
   assert(rule.id == 0);
+
+  return 0;
 }
 
 int test_get_ack_rule_id() {
@@ -69,7 +71,8 @@ int test_get_ack_c() {
 }
 
 int test_is_ack_receiver_abort() {
-  char ra_bin[64] = "0001111111111111000000000000000000000000000000000000000000000000";
+  char ra_bin[] =
+      "0001111111111111000000000000000000000000000000000000000000000000";
   char ra_bytes[8];
   bin_to_bytes(ra_bytes, ra_bin, 64);
   CompoundACK receiver_abort;
@@ -78,7 +81,8 @@ int test_is_ack_receiver_abort() {
   init_rule_from_ack(&rule, &receiver_abort);
   assert(is_ack_receiver_abort(&rule, &receiver_abort));
 
-  char ack_bin[64] = "0001110000000000000000000000000000000000000000000000000000000000";
+  char ack_bin[] =
+      "0001110000000000000000000000000000000000000000000000000000000000";
   char ack_bytes[8];
   bin_to_bytes(ack_bytes, ack_bin, 64);
   CompoundACK ack;
@@ -89,7 +93,8 @@ int test_is_ack_receiver_abort() {
 }
 
 int test_is_ack_compound() {
-  char cack_bin[64] = "0000001110001101110011111111001000000000000000000000000000000000";
+  char cack_bin[] =
+      "0000001110001101110011111111001000000000000000000000000000000000";
   char cack_bytes[8];
   bin_to_bytes(cack_bytes, cack_bin, 64);
   CompoundACK cack;
@@ -98,7 +103,8 @@ int test_is_ack_compound() {
   init_rule_from_ack(&rule, &cack);
   assert(is_ack_compound(&rule, &cack));
 
-  char ra_bin[64] = "0001111111111111000000000000000000000000000000000000000000000000";
+  char ra_bin[] =
+      "0001111111111111000000000000000000000000000000000000000000000000";
   char ra_bytes[8];
   bin_to_bytes(ra_bytes, ra_bin, 64);
   CompoundACK receiver_abort;
@@ -110,7 +116,8 @@ int test_is_ack_compound() {
 }
 
 int test_is_ack_complete() {
-  char ack_bin[64] = "0001110000000000000000000000000000000000000000000000000000000000";
+  char ack_bin[] =
+      "0001110000000000000000000000000000000000000000000000000000000000";
   char ack_bytes[8] = "";
   bin_to_bytes(ack_bytes, ack_bin, 64);
   CompoundACK ack;
@@ -123,7 +130,8 @@ int test_is_ack_complete() {
 }
 
 int test_get_ack_nb_tuples() {
-  char ack_bin[64] = "0000001110001101110011111111001000000000000000000000000000000000";
+  char ack_bin[] =
+      "0000001110001101110011111111001000000000000000000000000000000000";
   char ack_bytes[8] = "";
   bin_to_bytes(ack_bytes, ack_bin, 64);
   CompoundACK ack;
@@ -132,7 +140,8 @@ int test_get_ack_nb_tuples() {
   init_rule_from_ack(&rule, &ack);
   assert(get_ack_nb_tuples(&rule, &ack) == 3);
 
-  char one_bin[64] = "0001110000000000000000000000000000000000000000000000000000000000";
+  char one_bin[] =
+      "0001110000000000000000000000000000000000000000000000000000000000";
   char one_bytes[8] = "";
   bin_to_bytes(one_bytes, one_bin, 64);
   CompoundACK one;
@@ -144,7 +153,10 @@ int test_get_ack_nb_tuples() {
 
 
 int test_get_ack_tuples() {
-  char ack_bin[64] = "0000001110001101110011111111001000000000000000000000000000000000";
+
+  // Tuples of compound ACK
+  char ack_bin[] =
+      "0000001110001101110011111111001000000000000000000000000000000000";
   char ack_bytes[8] = "";
   bin_to_bytes(ack_bytes, ack_bin, 64);
   CompoundACK ack;
@@ -153,20 +165,44 @@ int test_get_ack_tuples() {
   init_rule_from_ack(&rule, &ack);
 
   int nb_tuples = get_ack_nb_tuples(&rule, &ack);
-  char windows[nb_tuples][rule.m];
-  char bitmaps[nb_tuples][rule.window_size];
+  char windows[nb_tuples][rule.m + 1];
+  char bitmaps[nb_tuples][rule.window_size + 1];
 
-  //get_ack_tuples(&rule, &ack, windows, bitmaps);
+  get_ack_tuples(&rule, &ack, nb_tuples, windows, bitmaps);
 
   char windows_expected[3][3] = {"00", "10", "11"};
   char bitmaps_expected[3][8] = {"1110001", "1110011", "1111001"};
 
-  //assert(windows == windows_expected);
-  //assert(bitmaps == bitmaps_expected);
+  for (int i = 0; i < nb_tuples; i++) {
+    assert(strcmp(windows[i], windows_expected[i]) == 0);
+    assert(strcmp(bitmaps[i], bitmaps_expected[i]) == 0);
+  }
+
+  // Tuples of complete ACK
+  char complete_ack_bin[] =
+      "0001110000000000000000000000000000000000000000000000000000000000";
+  char complete_ack_bytes[8] = "";
+  bin_to_bytes(complete_ack_bytes, complete_ack_bin, 64);
+  CompoundACK complete_ack;
+  strncpy(complete_ack.message, complete_ack_bytes, 8);
+
+  int complete_nb_tuples = get_ack_nb_tuples(&rule, &complete_ack);
+  char complete_windows[complete_nb_tuples][rule.m + 1];
+  char complete_bitmaps[complete_nb_tuples][rule.window_size + 1];
+
+  get_ack_tuples(&rule, &complete_ack, complete_nb_tuples, complete_windows,
+                 complete_bitmaps);
+
+  char complete_windows_expected[1][3] = {"11"};
+  char complete_bitmaps_expected[1][8] = {"0000000"};
+
+  for (int i = 0; i < complete_nb_tuples; i++) {
+    assert(strcmp(complete_windows[i], complete_windows_expected[i]) == 0);
+    assert(strcmp(complete_bitmaps[i], complete_bitmaps_expected[i]) == 0);
+  }
 
   return 0;
 }
-
 
 int main() {
     printf("%d test_ack_to_bin\n", test_ack_to_bin());
@@ -179,7 +215,7 @@ int main() {
     printf("%d test_is_ack_compound\n", test_is_ack_compound());
     printf("%d test_is_ack_complete\n", test_is_ack_complete());
     printf("%d test_get_ack_nb_tuples\n", test_get_ack_nb_tuples());
-    // printf("%d test_get_ack_tuples\n", test_get_ack_tuples());
+    printf("%d test_get_ack_tuples\n", test_get_ack_tuples());
 
     return 0;
 }

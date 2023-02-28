@@ -27,30 +27,34 @@ int char_to_bin_test(void) {
     char n = 120;
     char *expected_eight = "01111000";
     char actual_eight[9] = "";
-    char_to_bin(actual_eight, n, 8);
+    char_to_bin(actual_eight, n);
     assert(strcmp(actual_eight, expected_eight) == 0);
 
     char expected_sixt[17] = "0000000001111000";
     char actual_sixt[17] = "";
-    char_to_bin(actual_sixt, n, 16);
+    char byt_sixt[9] = "";
+    char_to_bin(byt_sixt, n);
+    zfill(actual_sixt, byt_sixt, 16);
     assert(strcmp(actual_sixt, expected_sixt) == 0);
 
     char n_sec = 75;
     char *expected_sec = "000000000000000001001011";
-    char actual_sec[33] = "";
-    char_to_bin(actual_sec, n_sec, 24);
+    char actual_sec[25] = "";
+    char byt_sec[9] = "";
+    char_to_bin(byt_sec, n_sec);
+    zfill(actual_sec, byt_sec, 24);
     assert(strcmp(actual_sec, expected_sec) == 0);
 
     char neg = -46;
     char *expected_neg = "11010010";
     char actual_neg[9] = "";
-    char_to_bin(actual_neg, neg, 8);
+    char_to_bin(actual_neg, neg);
     assert(strcmp(actual_neg, expected_neg) == 0);
 
     char neg_sec = -120;
     char *expected_neg_sec = "10001000";
     char actual_neg_sec[9] = "";
-    char_to_bin(actual_neg_sec, neg_sec, 8);
+    char_to_bin(actual_neg_sec, neg_sec);
     assert(strcmp(actual_neg_sec, expected_neg_sec) == 0);
 
     return 0;

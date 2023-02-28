@@ -1,7 +1,3 @@
-//
-// Created by witu on 23-01-23.
-//
-
 #ifndef SCHC_OVER_SIGFOX_C_MISC_H
 #define SCHC_OVER_SIGFOX_C_MISC_H
 
@@ -37,7 +33,7 @@ void strrev(char *start);
  *  src: pointer to the start of the string to process.
  *  length: desired length of the result string.
  */
-void zfill(char dest[], char *src, unsigned int length);
+void zfill(char *dest, char *src, unsigned int length);
 
 /*
  * Function:  replace_char
@@ -48,7 +44,7 @@ void zfill(char dest[], char *src, unsigned int length);
  *  idx: index of the character to be replaced.
  *  c: character to replace.
  */
-void replace_char(char src[], int idx, char c);
+void replace_char(char *src, int idx, char c);
 
 /*
  * Function:  is_monochar
@@ -58,7 +54,7 @@ void replace_char(char src[], int idx, char c);
  *  s: string to check.
  *  c: character to look for.
  */
-int is_monochar(char s[], char c);
+int is_monochar(char *s, char c);
 
 /*
  * Function:  generate_packet
@@ -68,6 +64,14 @@ int is_monochar(char s[], char c);
  *  dest: buffer where to store the information.
  *  length: desired length of the information.
  */
-void generate_packet(char dest[], int length);
+void generate_packet(char *dest, int length);
 
+/*
+ * Function:  round_to_next_multiple
+ * --------------------
+ * Rounds an integer up to the next multiple of a certain factor.
+ *
+ *  n: integer to be rounded.
+ *  factor: factor up to which n will be rounded.
+ */
 int round_to_next_multiple(signed int n, int factor);

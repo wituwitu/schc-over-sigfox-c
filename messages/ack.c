@@ -1,15 +1,10 @@
-//
-// Created by witu on 2/21/23.
-//
-
 #include "ack.h"
 #include "casting.h"
 #include "misc.h"
-#include <stdio.h>
 
-void ack_to_bin(CompoundACK *ack, char dest[]) {
-  memset(dest, '\0', DOWNLINK_MTU_BITS);
-  char* message = ack->message;
+void ack_to_bin(CompoundACK *ack, char dest[DOWNLINK_MTU_BITS + 1]) {
+  memset(dest, '\0', DOWNLINK_MTU_BITS + 1);
+  char *message = ack->message;
   bytes_to_bin(dest, message, sizeof(message));
 }
 
@@ -19,7 +14,8 @@ void init_rule_from_ack(Rule *dest, CompoundACK *ack) {
   init_rule(dest, as_bin);
 }
 
-void get_ack_rule_id(Rule *rule, CompoundACK *ack, char dest[]) {
+void get_ack_rule_id(Rule *rule, CompoundACK *ack,
+                     char dest[rule->rule_id_size + 1]) {
   int rule_id_index = 0;
   int rule_id_size = rule->rule_id_size;
   char ack_as_bin[DOWNLINK_MTU_BITS];
@@ -28,7 +24,7 @@ void get_ack_rule_id(Rule *rule, CompoundACK *ack, char dest[]) {
   dest[rule_id_size] = '\0';
 }
 
-void get_ack_dtag(Rule *rule, CompoundACK *ack, char dest[]) {
+void get_ack_dtag(Rule *rule, CompoundACK *ack, char dest[rule->t + 1]) {
   int dtag_index = rule->rule_id_size;
   int dtag_size = rule->t;
   char ack_as_bin[DOWNLINK_MTU_BITS];
@@ -37,7 +33,7 @@ void get_ack_dtag(Rule *rule, CompoundACK *ack, char dest[]) {
   dest[dtag_size] = '\0';
 }
 
-void get_ack_w(Rule *rule, CompoundACK *ack, char dest[]) {
+void get_ack_w(Rule *rule, CompoundACK *ack, char dest[rule->m + 1]) {
   int w_index = rule->rule_id_size + rule->t;
   int w_size = rule->m;
   char ack_as_bin[UPLINK_MTU_BITS];
@@ -46,12 +42,70 @@ void get_ack_w(Rule *rule, CompoundACK *ack, char dest[]) {
   dest[w_size] = '\0';
 }
 
-void get_ack_c(Rule *rule, CompoundACK *ack, char dest[]) {
+void get_ack_c(Rule *rule, CompoundACK *ack, char dest[2]) {
   int c_index = rule->rule_id_size + rule->t + rule->m;
   char ack_as_bin[DOWNLINK_MTU_BITS];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + c_index, 1);
   dest[1] = '\0';
+}
+
+void get_ack_bitmap(Rule *rule, CompoundACK *ack,
+                    char dest[rule->window_size + 1]) {
+  int bitmap_index = rule->rule_id_size + rule->t + rule->m + 1;
+  char ack_as_bin[DOWNLINK_MTU_BITS];
+  ack_to_bin(ack, ack_as_bin);
+  strncpy(dest, ack_as_bin + bitmap_index, rule->window_size);
+  dest[rule->window_size] = '\0';
+}
+
+int get_ack_nb_tuples(Rule *rule, CompoundACK *ack) {
+  char as_bin[DOWNLINK_MTU_BITS];
+  ack_to_bin(ack, as_bin);
+  char window[rule->m + 1];
+  char first_window[rule->m + 1];
+  memset(window, '\0', rule->m + 1);
+  memset(first_window, '0', rule->m);
+  first_window[rule->m] = '\0';
+  int tuple_index = rule->ack_header_length + rule->window_size;
+  char *p = as_bin + tuple_index;
+
+  int nb_tuples = 1;
+  strncpy(window, p, rule->m);
+  while (strcmp(window, first_window) != 0 &&
+         p < (as_bin + DOWNLINK_MTU_BITS - tuple_index)) {
+    nb_tuples++;
+    p += rule->m + rule->window_size;
+    strncpy(window, p, rule->m);
+  }
+
+  return nb_tuples;
+}
+
+void get_ack_tuples(Rule *rule, CompoundACK *ack, int nb_tuples,
+                    char windows[nb_tuples][rule->m + 1],
+                    char bitmaps[nb_tuples][rule->window_size + 1]) {
+
+  char as_bin[DOWNLINK_MTU_BITS];
+  ack_to_bin(ack, as_bin);
+
+  char window[rule->m + 1];
+  char bitmap[rule->window_size + 1];
+  get_ack_w(rule, ack, window);
+  get_ack_bitmap(rule, ack, bitmap);
+  strncpy(windows[0], window, rule->m + 1);
+  strncpy(bitmaps[0], bitmap, rule->window_size + 1);
+
+  int tuple_index = rule->ack_header_length + rule->window_size;
+  char *p = as_bin + tuple_index;
+
+  for (int i = 1; i <= nb_tuples; i++) {
+    strncpy(windows[i], p, rule->m);
+    strncpy(bitmaps[i], p + rule->m, rule->window_size);
+    windows[i][rule->m] = '\0';
+    bitmaps[i][rule->window_size] = '\0';
+    p += rule->m + rule->window_size;
+  }
 }
 
 int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
@@ -104,30 +158,4 @@ int is_ack_complete(Rule *rule, CompoundACK *ack){
   get_ack_c(rule, ack, c);
 
   return !is_ack_receiver_abort(rule, ack) && strcmp(c, "1") == 0;
-}
-
-int get_ack_nb_tuples(Rule *rule, CompoundACK *ack) {
-  char as_bin[DOWNLINK_MTU_BITS];
-  ack_to_bin(ack, as_bin);
-  char window[rule->m + 1];
-  char first_window[rule->m + 1];
-  memset(window, '\0', rule->m + 1);
-  memset(first_window, '0', rule->m);
-  first_window[rule->m] = '\0';
-  int tuple_size = rule->ack_header_length + rule->window_size;
-  char *p = as_bin + tuple_size;
-
-  int nb_tuples = 1;
-  strncpy(window, p, rule->m);
-  while (strcmp(window, first_window) != 0 && p < (as_bin + DOWNLINK_MTU_BITS - tuple_size)) {
-    nb_tuples++;
-    p += rule->m + rule->window_size;
-    strncpy(window, p, rule->m);
-  }
-
-  return nb_tuples;
-}
-
-void get_ack_tuples(Rule *rule, CompoundACK *ack, char **windows, char **bitmaps){
-
 }

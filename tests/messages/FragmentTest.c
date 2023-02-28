@@ -5,7 +5,7 @@
 
 int test_fragment_to_bin() {
   Fragment fragment = {"\x15\x88\x88\x88", 4};
-  char as_bin[UPLINK_MTU_BITS];
+  char as_bin[UPLINK_MTU_BITS + 1];
   fragment_to_bin(&fragment, as_bin);
 
   assert(strcmp(as_bin, "00010101100010001000100010001000") == 0);
@@ -16,10 +16,12 @@ int test_fragment_to_bin() {
 int test_init_rule_from_fragment() {
   Fragment fragment = {"\x15\x88\x88\x88", 4};
   Rule rule;
-  char as_bin[UPLINK_MTU_BITS];
+  char as_bin[UPLINK_MTU_BITS + 1];
   fragment_to_bin(&fragment, as_bin);
   init_rule_from_fragment(&rule, &fragment);
   assert(rule.id == 0);
+
+  return 0;
 }
 
 int test_get_fragment_rule_id() {
@@ -274,6 +276,8 @@ int test_is_fragment_sender_abort() {
 
   Fragment all_1_no_payload = {"\027\200", 2};
   assert(!is_fragment_sender_abort(&rule, &all_1_no_payload));
+
+  return 0;
 }
 
 int main() {

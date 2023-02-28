@@ -6,26 +6,25 @@ long bin_to_int(const char *bits) {
     return strtol(bits, NULL, 2);
 }
 
-void char_to_bin(char *dest, signed char n, unsigned int length) {
-    memset(dest, '\0', length);
+void char_to_bin(char dest[9], signed char src) {
+  memset(dest, '\0', 9);
 
-    size_t int_sz = sizeof(int) * 8;
+  size_t int_sz = sizeof(int) * 8;
 
-    char res[int_sz];
-    int shift = (int) int_sz - 1;
+  char res[int_sz];
+  int shift = (int)int_sz - 1;
 
-    int i = 0;
-    for (; shift >= 0; shift--) {
-        int k = n >> shift;
-        res[i++] = k & 1 ? '1' : '0';
-    }
+  int i = 0;
+  for (; shift >= 0; shift--) {
+    int k = src >> shift;
+    res[i++] = k & 1 ? '1' : '0';
+  }
 
-    unsigned int trim = int_sz - length;
-    int j = 0;
-    for (; j < length; j++) {
-        dest[j] = res[trim + j];
-    }
-    dest[j] = '\0';
+  unsigned int trim = int_sz - 8;
+
+  for (int j = 0; j < 8; j++) {
+    dest[j] = res[trim + j];
+  }
 }
 
 void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
@@ -38,7 +37,7 @@ void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
 
     for (int i = 0; i != src_size; i++) {
         char as_bin[8];
-        char_to_bin(as_bin, src[i], 8);
+        char_to_bin(as_bin, src[i]);
 
         for (int j = 0; j < 8; j++) {
             *p++ = as_bin[j];
