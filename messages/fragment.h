@@ -182,3 +182,6 @@ int is_fragment_sender_abort(Rule *rule, Fragment *fragment);
  *  dest: Fragment where to store the Sender-Abort information.
  */
 void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest);
+
+void generate_fragment(Fragment *dest, const char payload[], int frag_number,
+                       int all_1);

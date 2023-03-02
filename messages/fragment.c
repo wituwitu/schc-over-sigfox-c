@@ -173,3 +173,6 @@ void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
   bin_to_bytes(dest->message, sa_bin, sa_size);
   dest->byte_size = byte_size;
 }
+
+void generate_fragment(Fragment *dest, const char payload[], int frag_number,
+                       int all_1) {}
