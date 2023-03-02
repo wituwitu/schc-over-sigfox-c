@@ -155,6 +155,7 @@ int test_get_fragment_rcs() {
   memset(rcs_second, '\0', rule.u + 1);
   get_fragment_rcs(&rule, &all_0, rcs_second);
   assert(rcs_second[0] == '\0');
+  assert(strcmp(rcs_second, "") == 0);
 
   return 0;
 }
@@ -294,13 +295,16 @@ int test_generate_sender_abort() {
   generate_sender_abort(&rule, &fragment, &sender_abort);
   char w[rule.m + 1];
   char fcn[rule.n + 1];
+  char rcs[rule.u + 1];
   get_fragment_w(&rule, &sender_abort, w);
   get_fragment_fcn(&rule, &sender_abort, fcn);
+  get_fragment_rcs(&rule, &sender_abort, rcs);
 
   assert(is_fragment_sender_abort(&rule, &sender_abort));
   assert(is_monochar(w, '1') && strlen(w) == rule.m);
   assert(is_monochar(fcn, '1') && strlen(fcn) == rule.n);
-  assert(!is_fragment_all_1(&rule, &sender_abort));
+  assert(strcmp(rcs, "") == 0);
+  assert(!fragment_expects_ack(&rule, &sender_abort));
 
   return 0;
 }
@@ -315,14 +319,14 @@ int main() {
   printf("%d test_is_fragment_all_0\n", test_is_fragment_all_0());
   printf("%d test_is_fragment_all_1\n", test_is_fragment_all_1());
   printf("%d test_get_fragment_rcs\n", test_get_fragment_rcs());
-    printf("%d test_get_fragment_header_size\n", test_get_fragment_header_size());
-    printf("%d test_get_fragment_max_payload_size\n", test_get_fragment_max_payload_size());
-    printf("%d test_get_fragment_header\n", test_get_fragment_header());
-    printf("%d test_get_fragment_payload\n", test_get_fragment_payload());
-    printf("%d test_fragment_expects_ack\n", test_fragment_expects_ack());
-    printf("%d test_is_fragment_sender_abort\n",
-           test_is_fragment_sender_abort());
-    printf("%d test_generate_sender_abort\n", test_generate_sender_abort());
+  printf("%d test_get_fragment_header_size\n", test_get_fragment_header_size());
+  printf("%d test_get_fragment_max_payload_size\n",
+         test_get_fragment_max_payload_size());
+  printf("%d test_get_fragment_header\n", test_get_fragment_header());
+  printf("%d test_get_fragment_payload\n", test_get_fragment_payload());
+  printf("%d test_fragment_expects_ack\n", test_fragment_expects_ack());
+  printf("%d test_is_fragment_sender_abort\n", test_is_fragment_sender_abort());
+  printf("%d test_generate_sender_abort\n", test_generate_sender_abort());
 
-    return 0;
+  return 0;
 }

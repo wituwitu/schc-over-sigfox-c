@@ -99,8 +99,10 @@ int is_fragment_sender_abort(Rule *rule, Fragment *fragment) {
 }
 
 void get_fragment_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]) {
-  if (!is_fragment_all_1(rule, fragment))
+  if (!is_fragment_all_1(rule, fragment)) {
+    memset(dest, '\0', rule->u + 1);
     return;
+  }
 
   int rcs_index = rule->rule_id_size + rule->t + rule->m + rule->n;
   int rcs_size = rule->u;
