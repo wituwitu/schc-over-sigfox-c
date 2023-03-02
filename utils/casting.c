@@ -46,14 +46,16 @@ void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
 
 void bin_to_bytes(char *dest, char *src, unsigned int src_size) {
     unsigned int dest_size = src_size / 8;
+    memset(dest, '\0', dest_size + 1);
     char bytes[dest_size + 1];
     char *p = src;
     int i = 0;
-    for (; *p != '\0'; p += 8) {
+    while (*p != '\0') {
         char oct[8];
         strncpy(oct, p, 8);
         char byt = (char) bin_to_int(oct);
         bytes[i++] = byt;
+        p += 8;
     }
     bytes[i] = '\0';
     memcpy(dest, bytes, dest_size);

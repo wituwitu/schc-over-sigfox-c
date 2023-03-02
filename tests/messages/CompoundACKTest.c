@@ -4,13 +4,15 @@
 #include <assert.h>
 #include <stdio.h>
 int test_ack_to_bin() {
-  CompoundACK ack = {"\x13\xc8\x00\x00\x00\x00\x00\x00"};
-  char as_bin[UPLINK_MTU_BITS + 1];
-  ack_to_bin(&ack, as_bin);
+    CompoundACK ack = {"\x13\xc8\x00\x00\x00\x00\x00\x00"};
+    char as_bin[DOWNLINK_MTU_BITS + 1];
+    ack_to_bin(&ack, as_bin);
 
-  assert(strcmp(as_bin, "0001001111001000000000000000000000000000000000000000000000000000") == 0);
-  assert(strlen(as_bin) == sizeof(ack.message) * 8);
-  return 0;
+    assert(strcmp(as_bin,
+                  "0001001111001000000000000000000000000000000000000000000000000000") ==
+           0);
+    assert(strlen(as_bin) == DOWNLINK_MTU_BYTES * 8);
+    return 0;
 }
 
 int test_init_rule_from_ack() {
@@ -116,12 +118,12 @@ int test_is_ack_compound() {
 }
 
 int test_is_ack_complete() {
-  char ack_bin[] =
-      "0001110000000000000000000000000000000000000000000000000000000000";
-  char ack_bytes[8] = "";
+    char ack_bin[] =
+            "0001110000000000000000000000000000000000000000000000000000000000";
+    char ack_bytes[9] = "";
   bin_to_bytes(ack_bytes, ack_bin, 64);
   CompoundACK ack;
-  strncpy(ack.message, ack_bytes, 8);
+    memcpy(ack.message, ack_bytes, 9);
   Rule rule;
   init_rule_from_ack(&rule, &ack);
   assert(is_ack_complete(&rule, &ack));
@@ -247,15 +249,15 @@ int test_generate_receiver_abort() {
 }
 
 int main() {
-  printf("%d test_ack_to_bin\n", test_ack_to_bin());
-  printf("%d test_init_rule_from_ack\n", test_init_rule_from_ack());
-  printf("%d test_get_ack_rule_id\n", test_get_ack_rule_id());
-  printf("%d test_get_ack_dtag\n", test_get_ack_dtag());
-  printf("%d test_get_ack_w\n", test_get_ack_w());
-  printf("%d test_get_ack_c\n", test_get_ack_c());
-  printf("%d test_is_ack_receiver_abort\n", test_is_ack_receiver_abort());
-  printf("%d test_is_ack_compound\n", test_is_ack_compound());
-  printf("%d test_is_ack_complete\n", test_is_ack_complete());
+    printf("%d test_ack_to_bin\n", test_ack_to_bin());
+    printf("%d test_init_rule_from_ack\n", test_init_rule_from_ack());
+    printf("%d test_get_ack_rule_id\n", test_get_ack_rule_id());
+    printf("%d test_get_ack_dtag\n", test_get_ack_dtag());
+    printf("%d test_get_ack_w\n", test_get_ack_w());
+    printf("%d test_get_ack_c\n", test_get_ack_c());
+    printf("%d test_is_ack_receiver_abort\n", test_is_ack_receiver_abort());
+    printf("%d test_is_ack_compound\n", test_is_ack_compound());
+    printf("%d test_is_ack_complete\n", test_is_ack_complete());
     printf("%d test_get_ack_nb_tuples\n", test_get_ack_nb_tuples());
     printf("%d test_get_ack_tuples\n", test_get_ack_tuples());
     printf("%d test_generate_receiver_abort\n", test_generate_receiver_abort());
