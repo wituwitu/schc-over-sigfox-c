@@ -309,6 +309,95 @@ int test_generate_sender_abort() {
   return 0;
 }
 
+int test_generate_fragment() {
+
+  // Regular fragment
+  int nb_frag = 0;
+  Fragment frg;
+  Rule rule;
+  init_rule(&rule, "000");
+  char payload[] = "\xde\xad\xca\xfe";
+  assert(generate_fragment(&rule, &frg, payload, 4, nb_frag, 0) == 0);
+
+  char frg_rule_id[rule.rule_id_size + 1];
+  char frg_dtag[rule.t + 1];
+  char frg_w[rule.m + 1];
+  char frg_fcn[rule.n + 1];
+  char frg_rcs[rule.u + 1];
+
+  get_fragment_rule_id(&rule, &frg, frg_rule_id);
+  get_fragment_dtag(&rule, &frg, frg_dtag);
+  get_fragment_w(&rule, &frg, frg_w);
+  get_fragment_fcn(&rule, &frg, frg_fcn);
+  get_fragment_rcs(&rule, &frg, frg_rcs);
+
+  assert(strcmp(frg_rule_id, "000") == 0);
+  assert(strcmp(frg_dtag, "") == 0);
+  assert(strcmp(frg_w, "00") == 0);
+  assert(strcmp(frg_fcn, "110") == 0);
+  assert(strcmp(frg_rcs, "") == 0);
+
+  // All-0
+  int nb_frag_all0 = 6;
+  Fragment all0;
+  assert(generate_fragment(&rule, &all0, payload, 4, nb_frag_all0, 0) == 0);
+
+  char all0_rule_id[rule.rule_id_size + 1];
+  char all0_dtag[rule.t + 1];
+  char all0_w[rule.m + 1];
+  char all0_fcn[rule.n + 1];
+  char all0_rcs[rule.u + 1];
+
+  get_fragment_rule_id(&rule, &all0, all0_rule_id);
+  get_fragment_dtag(&rule, &all0, all0_dtag);
+  get_fragment_w(&rule, &all0, all0_w);
+  get_fragment_fcn(&rule, &all0, all0_fcn);
+  get_fragment_rcs(&rule, &all0, all0_rcs);
+
+  assert(strcmp(all0_rule_id, "000") == 0);
+  assert(strcmp(all0_dtag, "") == 0);
+  assert(strcmp(all0_w, "00") == 0);
+  assert(strcmp(all0_fcn, "000") == 0);
+  assert(strcmp(all0_rcs, "") == 0);
+  assert(is_fragment_all_0(&rule, &all0));
+
+  // All-1
+  int nb_frag_all1 = 8;
+  Fragment all1;
+  assert(generate_fragment(&rule, &all1, payload, 4, nb_frag_all1, 1) == 0);
+
+  char all1_rule_id[rule.rule_id_size + 1];
+  char all1_dtag[rule.t + 1];
+  char all1_w[rule.m + 1];
+  char all1_fcn[rule.n + 1];
+  char all1_rcs[rule.u + 1];
+
+  get_fragment_rule_id(&rule, &all1, all1_rule_id);
+  get_fragment_dtag(&rule, &all1, all1_dtag);
+  get_fragment_w(&rule, &all1, all1_w);
+  get_fragment_fcn(&rule, &all1, all1_fcn);
+  get_fragment_rcs(&rule, &all1, all1_rcs);
+
+  assert(strcmp(all1_rule_id, "000") == 0);
+  assert(strcmp(all1_dtag, "") == 0);
+  assert(strcmp(all1_w, "01") == 0);
+  assert(strcmp(all1_fcn, "111") == 0);
+  assert(strcmp(all1_rcs, "010") == 0);
+  assert(is_fragment_all_1(&rule, &all1));
+
+  // All-1 with payload of length multiple of eleven
+  char eleven[12];
+  memset(eleven, '\x11', 11);
+  eleven[11] = '\0';
+
+  int nb_frag_invalid = 8;
+  Fragment invalid;
+  assert(generate_fragment(&rule, &invalid, eleven, 11, nb_frag_invalid, 1) ==
+         -1);
+
+  return 0;
+}
+
 int main() {
   printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
   printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
@@ -327,6 +416,7 @@ int main() {
   printf("%d test_fragment_expects_ack\n", test_fragment_expects_ack());
   printf("%d test_is_fragment_sender_abort\n", test_is_fragment_sender_abort());
   printf("%d test_generate_sender_abort\n", test_generate_sender_abort());
+  printf("%d test_generate_fragment\n", test_generate_fragment());
 
   return 0;
 }

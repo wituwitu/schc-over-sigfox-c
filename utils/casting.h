@@ -13,15 +13,15 @@
 int bin_to_int(const char *bin);
 
 /*
- * Function:  char_to_bin
+ * Function:  int_to_bin
  * --------------------
- * Obtains the binary string representation of an integer between -127 and 126
- * (signed char).
+ * Obtains the binary string representation of an integer.
  *
  *  dest: buffer where to store the result.
  *  src: integer to process.
+ *  dest_size: size of the buffer.
  */
-void char_to_bin(char dest[9], signed char src);
+void int_to_bin(char dest[9], signed int src, int dest_size);
 
 /*
  * Function:  bytes_to_bin

@@ -183,5 +183,18 @@ int is_fragment_sender_abort(Rule *rule, Fragment *fragment);
  */
 void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest);
 
-void generate_fragment(Fragment *dest, const char payload[], int frag_number,
-                       int all_1);
+/*
+ * Function:  generate_fragment
+ * --------------------
+ * Generates a SCHC Fragment and stores it in a Fragment struct. Returns -1 on
+ * errors.
+ *
+ *  rule: the Rule struct used to create the Fragment.
+ *  dest: struct where to store the Fragment.
+ *  payload: byte array that contains the fragment payload.
+ *  payload_byte_length: the length in bytes of the payload.
+ *  nb_frag: the global index of the Fragment.
+ *  all_1: whether the Fragment to be generated is an All-1.
+ */
+int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
+                      int payload_byte_length, int nb_frag, int all_1);

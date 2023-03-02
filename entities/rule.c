@@ -71,6 +71,17 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     rule->ack_header_length = ack_header_length;
     rule->max_window_number = max_window_number;
     rule->max_fragment_number = max_fragment_number;
+    rule->frg_indices.rule_id_idx = 0;
+    rule->frg_indices.dtag_idx = rule_id_size;
+    rule->frg_indices.w_idx = rule_id_size + t;
+    rule->frg_indices.fcn_idx = rule_id_size + t + m;
+    rule->frg_indices.rcs_idx = rule_id_size + t + m + n;
+    rule->ack_indices.rule_id_idx = 0;
+    rule->ack_indices.dtag_idx = rule_id_size;
+    rule->ack_indices.w_idx = rule_id_size + t;
+    rule->ack_indices.c_idx = rule_id_size + t + m;
+    rule->ack_indices.bitmap_idx = rule_id_size + t + m + 1;
+    rule->ack_indices.tuple_idx = rule_id_size + t + m + 1 + window_size;
 }
 
 void parse_rule_from_bytes(Rule *rule, const char *byt) {

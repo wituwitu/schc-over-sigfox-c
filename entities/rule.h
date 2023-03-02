@@ -11,13 +11,29 @@ typedef struct {
     int t;
     int m;
     int n;
-    int window_size;
     int u;
+    int window_size;
     int header_length;
     int all1_header_length;
     int ack_header_length;
     int max_window_number;
     int max_fragment_number;
+    struct {
+      int rule_id_idx;
+      int dtag_idx;
+      int w_idx;
+      int fcn_idx;
+      int rcs_idx;
+      int payload_idx;
+    } frg_indices;
+    struct {
+      int rule_id_idx;
+      int dtag_idx;
+      int w_idx;
+      int c_idx;
+      int bitmap_idx;
+      int tuple_idx;
+    } ack_indices;
 } Rule;
 
 /*

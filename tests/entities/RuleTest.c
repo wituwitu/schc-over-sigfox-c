@@ -17,6 +17,15 @@ int test_init_rule() {
     assert(rule_single_byte.ack_header_length == 6);
     assert(rule_single_byte.max_window_number == 4);
     assert(rule_single_byte.max_fragment_number == 28);
+    assert(rule_single_byte.frg_indices.rule_id_idx == 0);
+    assert(rule_single_byte.frg_indices.dtag_idx == 3);
+    assert(rule_single_byte.frg_indices.w_idx == 3);
+    assert(rule_single_byte.frg_indices.fcn_idx == 5);
+    assert(rule_single_byte.frg_indices.rcs_idx == 8);
+    assert(rule_single_byte.ack_indices.rule_id_idx == 0);
+    assert(rule_single_byte.ack_indices.dtag_idx == 3);
+    assert(rule_single_byte.ack_indices.w_idx == 3);
+    assert(rule_single_byte.ack_indices.c_idx == 5);
 
     Rule rule_two_byte_op_1;
     init_rule(&rule_two_byte_op_1, "111010");
@@ -32,6 +41,15 @@ int test_init_rule() {
     assert(rule_two_byte_op_1.ack_header_length == 9);
     assert(rule_two_byte_op_1.max_window_number == 4);
     assert(rule_two_byte_op_1.max_fragment_number == 48);
+    assert(rule_two_byte_op_1.frg_indices.rule_id_idx == 0);
+    assert(rule_two_byte_op_1.frg_indices.dtag_idx == 6);
+    assert(rule_two_byte_op_1.frg_indices.w_idx == 6);
+    assert(rule_two_byte_op_1.frg_indices.fcn_idx == 8);
+    assert(rule_two_byte_op_1.frg_indices.rcs_idx == 12);
+    assert(rule_two_byte_op_1.ack_indices.rule_id_idx == 0);
+    assert(rule_two_byte_op_1.ack_indices.dtag_idx == 6);
+    assert(rule_two_byte_op_1.ack_indices.w_idx == 6);
+    assert(rule_two_byte_op_1.ack_indices.c_idx == 8);
 
     Rule rule_two_byte_op_2;
     init_rule(&rule_two_byte_op_2, "11111110");
@@ -47,10 +65,18 @@ int test_init_rule() {
     assert(rule_two_byte_op_2.ack_header_length == 12);
     assert(rule_two_byte_op_2.max_window_number == 8);
     assert(rule_two_byte_op_2.max_fragment_number == 248);
+    assert(rule_two_byte_op_2.frg_indices.rule_id_idx == 0);
+    assert(rule_two_byte_op_2.frg_indices.dtag_idx == 8);
+    assert(rule_two_byte_op_2.frg_indices.w_idx == 8);
+    assert(rule_two_byte_op_2.frg_indices.fcn_idx == 11);
+    assert(rule_two_byte_op_2.frg_indices.rcs_idx == 16);
+    assert(rule_two_byte_op_2.ack_indices.rule_id_idx == 0);
+    assert(rule_two_byte_op_2.ack_indices.dtag_idx == 8);
+    assert(rule_two_byte_op_2.ack_indices.w_idx == 8);
+    assert(rule_two_byte_op_2.ack_indices.c_idx == 11);
 
     return 0;
 }
-
 
 int test_parse_rule_from_bytes() {
     char byt[] = "\x15\x88\x88\x88";
