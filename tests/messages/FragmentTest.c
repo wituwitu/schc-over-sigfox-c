@@ -292,8 +292,8 @@ int test_generate_sender_abort() {
   // Sender abort
   Fragment sender_abort;
   generate_sender_abort(&rule, &fragment, &sender_abort);
-  char w[rule.m];
-  char fcn[rule.n];
+  char w[rule.m + 1];
+  char fcn[rule.n + 1];
   get_fragment_w(&rule, &sender_abort, w);
   get_fragment_fcn(&rule, &sender_abort, fcn);
 

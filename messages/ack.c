@@ -9,7 +9,7 @@ void ack_to_bin(CompoundACK *ack, char dest[DOWNLINK_MTU_BITS + 1]) {
 }
 
 void init_rule_from_ack(Rule *dest, CompoundACK *ack) {
-  char as_bin[DOWNLINK_MTU_BITS];
+  char as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, as_bin);
   init_rule(dest, as_bin);
 }
@@ -18,7 +18,7 @@ void get_ack_rule_id(Rule *rule, CompoundACK *ack,
                      char dest[rule->rule_id_size + 1]) {
   int rule_id_index = 0;
   int rule_id_size = rule->rule_id_size;
-  char ack_as_bin[DOWNLINK_MTU_BITS];
+  char ack_as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + rule_id_index, rule_id_size);
   dest[rule_id_size] = '\0';
@@ -27,7 +27,7 @@ void get_ack_rule_id(Rule *rule, CompoundACK *ack,
 void get_ack_dtag(Rule *rule, CompoundACK *ack, char dest[rule->t + 1]) {
   int dtag_index = rule->rule_id_size;
   int dtag_size = rule->t;
-  char ack_as_bin[DOWNLINK_MTU_BITS];
+  char ack_as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + dtag_index, dtag_size);
   dest[dtag_size] = '\0';
@@ -36,7 +36,7 @@ void get_ack_dtag(Rule *rule, CompoundACK *ack, char dest[rule->t + 1]) {
 void get_ack_w(Rule *rule, CompoundACK *ack, char dest[rule->m + 1]) {
   int w_index = rule->rule_id_size + rule->t;
   int w_size = rule->m;
-  char ack_as_bin[UPLINK_MTU_BITS];
+  char ack_as_bin[UPLINK_MTU_BITS + 1];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + w_index, w_size);
   dest[w_size] = '\0';
@@ -44,7 +44,7 @@ void get_ack_w(Rule *rule, CompoundACK *ack, char dest[rule->m + 1]) {
 
 void get_ack_c(Rule *rule, CompoundACK *ack, char dest[2]) {
   int c_index = rule->rule_id_size + rule->t + rule->m;
-  char ack_as_bin[DOWNLINK_MTU_BITS];
+  char ack_as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + c_index, 1);
   dest[1] = '\0';
@@ -53,14 +53,14 @@ void get_ack_c(Rule *rule, CompoundACK *ack, char dest[2]) {
 void get_ack_bitmap(Rule *rule, CompoundACK *ack,
                     char dest[rule->window_size + 1]) {
   int bitmap_index = rule->rule_id_size + rule->t + rule->m + 1;
-  char ack_as_bin[DOWNLINK_MTU_BITS];
+  char ack_as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, ack_as_bin);
   strncpy(dest, ack_as_bin + bitmap_index, rule->window_size);
   dest[rule->window_size] = '\0';
 }
 
 int get_ack_nb_tuples(Rule *rule, CompoundACK *ack) {
-  char as_bin[DOWNLINK_MTU_BITS];
+  char as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, as_bin);
   char window[rule->m + 1];
   char first_window[rule->m + 1];
@@ -86,7 +86,7 @@ void get_ack_tuples(Rule *rule, CompoundACK *ack, int nb_tuples,
                     char windows[nb_tuples][rule->m + 1],
                     char bitmaps[nb_tuples][rule->window_size + 1]) {
 
-  char as_bin[DOWNLINK_MTU_BITS];
+  char as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, as_bin);
 
   char window[rule->m + 1];
@@ -114,7 +114,7 @@ int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
   get_ack_c(rule, ack, c);
 
   if (is_monochar(w, '1') && strcmp(c, "1") == 0) {
-    char as_bin[DOWNLINK_MTU_BITS];
+    char as_bin[DOWNLINK_MTU_BITS + 1];
     ack_to_bin(ack, as_bin);
 
     int header_length = rule->ack_header_length;
@@ -146,16 +146,56 @@ int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
 }
 
 int is_ack_compound(Rule *rule, CompoundACK *ack) {
-  char as_bin[DOWNLINK_MTU_BITS];
+  char as_bin[DOWNLINK_MTU_BITS + 1];
   ack_to_bin(ack, as_bin);
   char *padding = as_bin + rule->ack_header_length;
 
   return !is_ack_receiver_abort(rule, ack) && !is_monochar(padding, '0');
 }
 
-int is_ack_complete(Rule *rule, CompoundACK *ack){
+int is_ack_complete(Rule *rule, CompoundACK *ack) {
   char c[2];
   get_ack_c(rule, ack, c);
 
   return !is_ack_receiver_abort(rule, ack) && strcmp(c, "1") == 0;
+}
+
+void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest) {
+  char rule_id[rule->rule_id_size + 1];
+  char dtag[rule->t + 1];
+  char w[rule->m + 1];
+  char c[] = "1";
+
+  get_fragment_rule_id(rule, src, rule_id);
+  get_fragment_dtag(rule, src, dtag);
+  memset(w, '1', rule->m);
+
+  int dtag_idx = rule->rule_id_size;
+  int w_idx = dtag_idx + rule->t;
+  int c_idx = w_idx + rule->m;
+  int padding_idx = c_idx + 1;
+
+  int header_length = rule->ack_header_length;
+  int header_remainder = header_length % L2_WORD_SIZE;
+
+  int padding_size = header_remainder == 0
+                         ? L2_WORD_SIZE
+                         : 2 * L2_WORD_SIZE - header_remainder;
+
+  char padding[padding_size + 1];
+  memset(padding, '1', padding_size);
+  padding[padding_size] = '\0';
+
+  char ra_bin[DOWNLINK_MTU_BITS + 1];
+  memset(ra_bin, '0', DOWNLINK_MTU_BITS);
+  ra_bin[DOWNLINK_MTU_BITS] = '\0';
+
+  strncpy(ra_bin, rule_id, rule->rule_id_size);
+  strncpy(ra_bin + dtag_idx, dtag, rule->t);
+  strncpy(ra_bin + w_idx, w, rule->m);
+  strncpy(ra_bin + c_idx, c, 1);
+  strncpy(ra_bin + padding_idx, padding, padding_size);
+
+  memset(dest, '\0', sizeof(CompoundACK));
+  bin_to_bytes(dest->message, ra_bin, DOWNLINK_MTU_BITS);
 }

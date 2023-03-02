@@ -1,4 +1,4 @@
-#include "rule.h"
+#include "fragment.h"
 #include "schc.h"
 #ifndef SCHC_OVER_SIGFOX_C_ACK_H
 #define SCHC_OVER_SIGFOX_C_ACK_H
@@ -141,3 +141,14 @@ int is_ack_compound(Rule *rule, CompoundACK *ack);
  *  ack: the CompoundACK struct to be processed.
  */
 int is_ack_complete(Rule *rule, CompoundACK *ack);
+
+/*
+ * Function:  generate_receiver_abort
+ * --------------------
+ * Generates a Receiver-Abort using the information of a Rule and a Fragment.
+ *
+ *  rule: the Rule struct used to process the Fragment.
+ *  src: the Fragment to be used as a reference.
+ *  dest: Fragment where to store the Sender-Abort information.
+ */
+void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest);

@@ -163,7 +163,7 @@ void get_fragment_header(Rule *rule, Fragment *fragment, char dest[]);
 void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]);
 
 /*
- * Function:  fragment_expects_ack
+ * Function:  is_fragment_sender_abort
  * --------------------
  * Checks whether the Fragment is a Sender-Abort.
  *
@@ -178,6 +178,7 @@ int is_fragment_sender_abort(Rule *rule, Fragment *fragment);
  * Generates a Sender-Abort using the information of a Rule and a Fragment.
  *
  *  rule: the Rule struct used to process the Fragment.
- *  fragment: the Fragment to be processed.
+ *  src: the Fragment to be used as a reference.
+ *  dest: Fragment where to store the Sender-Abort information.
  */
 void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest);

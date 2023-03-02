@@ -1,6 +1,6 @@
-
 #include "ack.h"
 #include "casting.h"
+#include "misc.h"
 #include <assert.h>
 #include <stdio.h>
 int test_ack_to_bin() {
@@ -151,7 +151,6 @@ int test_get_ack_nb_tuples() {
   return 0;
 }
 
-
 int test_get_ack_tuples() {
 
   // Tuples of compound ACK
@@ -204,18 +203,62 @@ int test_get_ack_tuples() {
   return 0;
 }
 
+int test_generate_receiver_abort() {
+
+  // Generate Receiver-Abort
+  Fragment fragment = {"\x15\x88\x88\x88", 4};
+  Rule rule;
+  init_rule_from_fragment(&rule, &fragment);
+  CompoundACK receiver_abort;
+  generate_receiver_abort(&rule, &fragment, &receiver_abort);
+
+  // Check fields
+  char w[rule.m + 1];
+  char c[2];
+  int header_length = rule.ack_header_length;
+  int header_remainder = header_length % L2_WORD_SIZE;
+  int padding_size = header_remainder == 0
+                         ? L2_WORD_SIZE
+                         : 2 * L2_WORD_SIZE - header_remainder;
+  int after_padding_size = DOWNLINK_MTU_BITS - header_length - padding_size;
+  int padding_idx = rule.ack_header_length;
+  int after_padding_idx = padding_idx + padding_size;
+  char padding[padding_size + 1];
+  char after_padding[after_padding_size + 1];
+
+  get_ack_w(&rule, &receiver_abort, w);
+  get_ack_c(&rule, &receiver_abort, c);
+  char as_bin[UPLINK_MTU_BITS + 1];
+  ack_to_bin(&receiver_abort, as_bin);
+  strncpy(padding, as_bin + padding_idx, padding_size);
+  padding[padding_size] = '\0';
+  strncpy(after_padding, as_bin + after_padding_idx, after_padding_size);
+  after_padding[after_padding_size] = '\0';
+
+  assert(is_ack_receiver_abort(&rule, &receiver_abort));
+  assert(is_monochar(w, '1'));
+  assert(strcmp(c, "1") == 0);
+  assert(is_monochar(padding, '1'));
+  assert(is_monochar(after_padding, '0'));
+  assert(!is_ack_compound(&rule, &receiver_abort));
+  assert(!is_ack_complete(&rule, &receiver_abort));
+
+  return 0;
+}
+
 int main() {
-    printf("%d test_ack_to_bin\n", test_ack_to_bin());
-    printf("%d test_init_rule_from_ack\n", test_init_rule_from_ack());
-    printf("%d test_get_ack_rule_id\n", test_get_ack_rule_id());
-    printf("%d test_get_ack_dtag\n", test_get_ack_dtag());
-    printf("%d test_get_ack_w\n", test_get_ack_w());
-    printf("%d test_get_ack_c\n", test_get_ack_c());
-    printf("%d test_is_ack_receiver_abort\n", test_is_ack_receiver_abort());
-    printf("%d test_is_ack_compound\n", test_is_ack_compound());
-    printf("%d test_is_ack_complete\n", test_is_ack_complete());
+  printf("%d test_ack_to_bin\n", test_ack_to_bin());
+  printf("%d test_init_rule_from_ack\n", test_init_rule_from_ack());
+  printf("%d test_get_ack_rule_id\n", test_get_ack_rule_id());
+  printf("%d test_get_ack_dtag\n", test_get_ack_dtag());
+  printf("%d test_get_ack_w\n", test_get_ack_w());
+  printf("%d test_get_ack_c\n", test_get_ack_c());
+  printf("%d test_is_ack_receiver_abort\n", test_is_ack_receiver_abort());
+  printf("%d test_is_ack_compound\n", test_is_ack_compound());
+  printf("%d test_is_ack_complete\n", test_is_ack_complete());
     printf("%d test_get_ack_nb_tuples\n", test_get_ack_nb_tuples());
     printf("%d test_get_ack_tuples\n", test_get_ack_tuples());
+    printf("%d test_generate_receiver_abort\n", test_generate_receiver_abort());
 
     return 0;
 }
