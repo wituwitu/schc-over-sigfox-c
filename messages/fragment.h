@@ -140,6 +140,8 @@ int get_fragment_header_size(Rule *rule, Fragment *fragment);
  */
 int get_fragment_max_payload_size(Rule *rule, Fragment *fragment);
 
+int get_fragment_payload_size(Rule *rule, Fragment *fragment);
+
 /*
  * Function:  get_fragment_rcs
  * --------------------

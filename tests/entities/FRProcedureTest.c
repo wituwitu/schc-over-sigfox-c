@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "misc.h"
 #include "fr_procedure.h"
+#include "casting.h"
 
 void assert_fragmentation(Rule rule, Fragment fragments[], int nb_fragments) {
     for (int i = 0; i < nb_fragments; i++) {
@@ -31,6 +32,21 @@ void test_fragmentation(Rule rule, int byte_size) {
     Fragment fragments[nb_fragments];
     fragment(&rule, fragments, schc_packet, byte_size);
     assert_fragmentation(rule, fragments, nb_fragments);
+
+    char reassembled[byte_size + 1];
+    for (int i = 0; i < nb_fragments; i++) {
+        int payload_size = get_fragment_payload_size(&rule, &fragments[i]);
+        char payload[payload_size + 1];
+        get_fragment_payload(&rule, &fragments[i], payload);
+        char payload_as_bytes[payload_size / 8 + 1];
+        bin_to_bytes(payload_as_bytes, payload, payload_size);
+
+        memcpy(reassembled + i * (rule.regular_payload_length / 8),
+               payload_as_bytes, payload_size / 8);
+    }
+    reassembled[byte_size] = '\0';
+
+    assert(strcmp(reassembled, schc_packet) == 0);
 }
 
 int test_get_number_of_fragments() {

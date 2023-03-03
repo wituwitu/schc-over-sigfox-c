@@ -16,8 +16,8 @@ int get_number_of_fragments(Rule *rule, int byte_size) {
     return res;
 }
 
-int
-fragment(Rule *rule, Fragment dest[], const char schc_packet[], int byte_size) {
+int fragment(Rule *rule, Fragment dest[],
+             const char schc_packet[], int byte_size) {
     if (byte_size > rule->max_schc_packet_byte_size) {
         printf("SCHC Packet is larger than allowed "
                "by Rule %d (%d > %d).",
@@ -32,12 +32,12 @@ fragment(Rule *rule, Fragment dest[], const char schc_packet[], int byte_size) {
     for (int i = 0; i < nb_fragments; i++) {
         all_1 = i == nb_fragments - 1;
 
-        payload_size = all_1
+        payload_size = all_1 && rule->all1_header_length != rule->header_length
                        ? byte_size % payload_byte_size
                        : payload_byte_size;
 
         char payload[payload_size + 1];
-        memcpy(payload, schc_packet + i * payload_size, payload_size);
+        memcpy(payload, schc_packet + i * payload_byte_size, payload_size);
         payload[payload_size] = '\0';
 
         Fragment fragment;
