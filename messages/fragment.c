@@ -130,13 +130,11 @@ void get_fragment_header(Rule *rule, Fragment *fragment, char dest[]) {
 }
 
 void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]) {
-    int header_size = get_fragment_header_size(rule, fragment);
-    int payload_size = get_fragment_payload_size(rule, fragment);
-    char fragment_as_bin[UPLINK_MTU_BITS + 1];
+    int header_size = get_fragment_header_size(rule, fragment) / 8;
+    int payload_size = get_fragment_payload_size(rule, fragment) / 8;
 
     memset(dest, '\0', payload_size);
-    fragment_to_bin(fragment, fragment_as_bin);
-    strncpy(dest, fragment_as_bin + header_size, payload_size);
+    strncpy(dest, fragment->message + header_size, payload_size);
     dest[payload_size] = '\0';
 }
 

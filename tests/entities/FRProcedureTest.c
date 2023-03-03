@@ -25,6 +25,27 @@ void assert_fragmentation(Rule rule, Fragment fragments[], int nb_fragments) {
     }
 }
 
+void test_reassembly(Rule rule, int byte_size) {
+    char schc_packet[byte_size + 1];
+    generate_packet(schc_packet, byte_size);
+    int nb_fragments = get_number_of_fragments(&rule, byte_size);
+    Fragment fragments[nb_fragments];
+    fragment(&rule, fragments, schc_packet, byte_size);
+
+    Fragment received[rule.max_fragment_number];
+    for (int i = 0; i < nb_fragments; i++) {
+        memcpy(&received[i], &fragments[i], sizeof(Fragment));
+    }
+    memset(&received[nb_fragments], '\0', sizeof(Fragment));
+
+    int packet_length = get_packet_length_from_array(&rule, received);
+
+    char reassembled[packet_length + 1];
+    reassemble(&rule, reassembled, received);
+
+    assert(strcmp(reassembled, schc_packet) == 0);
+}
+
 void test_fragmentation(Rule rule, int byte_size) {
     char schc_packet[byte_size + 1];
     generate_packet(schc_packet, byte_size);
@@ -35,14 +56,9 @@ void test_fragmentation(Rule rule, int byte_size) {
 
     char reassembled[byte_size + 1];
     for (int i = 0; i < nb_fragments; i++) {
-        int payload_size = get_fragment_payload_size(&rule, &fragments[i]);
-        char payload[payload_size + 1];
-        get_fragment_payload(&rule, &fragments[i], payload);
-        char payload_as_bytes[payload_size / 8 + 1];
-        bin_to_bytes(payload_as_bytes, payload, payload_size);
-
-        memcpy(reassembled + i * (rule.regular_payload_length / 8),
-               payload_as_bytes, payload_size / 8);
+        get_fragment_payload(&rule, &fragments[i], reassembled + i *
+                                                                 (rule.regular_payload_length /
+                                                                  8));
     }
     reassembled[byte_size] = '\0';
 
@@ -168,7 +184,50 @@ int test_fragment() {
 }
 
 int test_reassemble() {
-    return -1;
+
+    // Single byte header
+    Rule rule_single_header;
+    init_rule(&rule_single_header, "000");
+    // 11 bytes
+    test_reassembly(rule_single_header, 11);
+    // 100 bytes
+    test_reassembly(rule_single_header, 100);
+    // 121 bytes
+    test_reassembly(rule_single_header, 121);
+    // 300 bytes
+    test_reassembly(rule_single_header, 300);
+
+    // Double byte header op. 1
+    Rule rule_two_byte_op_1;
+    init_rule(&rule_two_byte_op_1, "111010");
+    // 10 bytes
+    test_reassembly(rule_two_byte_op_1, 10);
+    // 100 bytes
+    test_reassembly(rule_two_byte_op_1, 100);
+    // 121 bytes
+    test_reassembly(rule_two_byte_op_1, 121);
+    // 300 bytes
+    test_reassembly(rule_two_byte_op_1, 300);
+    // 480 bytes
+    test_reassembly(rule_two_byte_op_1, 480);
+
+    // Double byte header op. 2
+    Rule rule_two_byte_op_2;
+    init_rule(&rule_two_byte_op_2, "11111110");
+    // 10 bytes
+    test_reassembly(rule_two_byte_op_2, 10);
+    // 100 bytes
+    test_reassembly(rule_two_byte_op_2, 100);
+    // 121 bytes
+    test_reassembly(rule_two_byte_op_2, 121);
+    // 300 bytes
+    test_reassembly(rule_two_byte_op_2, 300);
+    // 480 bytes
+    test_reassembly(rule_two_byte_op_2, 480);
+    // 2400 bytes
+    test_reassembly(rule_two_byte_op_2, 2400);
+
+    return 0;
 }
 
 int main() {

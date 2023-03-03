@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "fr_procedure.h"
+#include "casting.h"
 
 
 int get_number_of_fragments(Rule *rule, int byte_size) {
@@ -46,4 +47,31 @@ int fragment(Rule *rule, Fragment dest[],
     }
 
     return 0;
+}
+
+int get_packet_length_from_array(Rule *rule, Fragment *fragments) {
+    for (int i = 0; fragments[i].message[0] != '\0'; i++) {
+        Fragment fragment = fragments[i];
+        if (is_fragment_all_1(rule, &fragment)) {
+            char w[rule->m + 1];
+            char rcs[rule->u + 1];
+            get_fragment_w(rule, &fragment, w);
+            get_fragment_rcs(rule, &fragment, rcs);
+
+            int w_idx = bin_to_int(w);
+            int nb_frgs_in_last_window = bin_to_int(rcs);
+            int nb_regular_fragments =
+                    rule->window_size * w_idx + nb_frgs_in_last_window - 1;
+
+            return (rule->regular_payload_length / 8) * nb_regular_fragments +
+                   fragment.byte_size;
+        }
+    }
+}
+
+void reassemble(Rule *rule, char dest[], Fragment fragments[]) {
+    for (int i = 0; fragments[i].message[0] != '\0'; i++) {
+        get_fragment_payload(rule, &fragments[i],
+                             dest + i * (rule->regular_payload_length / 8));
+    }
 }

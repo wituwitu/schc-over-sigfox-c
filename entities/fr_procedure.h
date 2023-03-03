@@ -25,7 +25,9 @@ int get_number_of_fragments(Rule *rule, int byte_size);
  *  schc_packet: the SCHC Packet to be fragmented.
  *  byte_size: size in bytes of the SCHC Packet.
  */
-int
-fragment(Rule *rule, Fragment dest[], const char schc_packet[], int byte_size);
+int fragment(Rule *rule, Fragment dest[],
+             const char schc_packet[], int byte_size);
 
-void reassemble(char dest[], Fragment fragments[]);
+int get_packet_length_from_array(Rule *rule, Fragment *fragments);
+
+void reassemble(Rule *rule, char dest[], Fragment fragments[]);
