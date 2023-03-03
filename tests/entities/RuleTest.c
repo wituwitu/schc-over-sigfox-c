@@ -17,6 +17,9 @@ int test_init_rule() {
     assert(rule_single_byte.ack_header_length == 6);
     assert(rule_single_byte.max_window_number == 4);
     assert(rule_single_byte.max_fragment_number == 28);
+    assert(rule_single_byte.regular_payload_length == 88);
+    assert(rule_single_byte.max_all1_payload_length == 80);
+    assert(rule_single_byte.max_schc_packet_byte_size == 300);
     assert(rule_single_byte.frg_indices.rule_id_idx == 0);
     assert(rule_single_byte.frg_indices.dtag_idx == 3);
     assert(rule_single_byte.frg_indices.w_idx == 3);
@@ -41,6 +44,9 @@ int test_init_rule() {
     assert(rule_two_byte_op_1.ack_header_length == 9);
     assert(rule_two_byte_op_1.max_window_number == 4);
     assert(rule_two_byte_op_1.max_fragment_number == 48);
+    assert(rule_two_byte_op_1.regular_payload_length == 80);
+    assert(rule_two_byte_op_1.max_all1_payload_length == 80);
+    assert(rule_two_byte_op_1.max_schc_packet_byte_size == 480);
     assert(rule_two_byte_op_1.frg_indices.rule_id_idx == 0);
     assert(rule_two_byte_op_1.frg_indices.dtag_idx == 6);
     assert(rule_two_byte_op_1.frg_indices.w_idx == 6);
@@ -65,6 +71,9 @@ int test_init_rule() {
     assert(rule_two_byte_op_2.ack_header_length == 12);
     assert(rule_two_byte_op_2.max_window_number == 8);
     assert(rule_two_byte_op_2.max_fragment_number == 248);
+    assert(rule_two_byte_op_2.regular_payload_length == 80);
+    assert(rule_two_byte_op_2.max_all1_payload_length == 72);
+    assert(rule_two_byte_op_2.max_schc_packet_byte_size == 2400);
     assert(rule_two_byte_op_2.frg_indices.rule_id_idx == 0);
     assert(rule_two_byte_op_2.frg_indices.dtag_idx == 8);
     assert(rule_two_byte_op_2.frg_indices.w_idx == 8);

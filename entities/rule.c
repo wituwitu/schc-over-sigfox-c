@@ -5,8 +5,9 @@
 
 void init_rule(Rule *rule, const char rule_id_binary[]) {
     int id, rule_id_size, t, m, n, window_size, u,
-      header_length, all1_header_length, ack_header_length,
-      max_window_number, max_fragment_number;
+            header_length, all1_header_length, ack_header_length,
+            max_window_number, max_fragment_number, regular_payload_length,
+            max_all1_payload_length, max_schc_packet_byte_size;
 
     memset(rule, 0, sizeof(Rule));
 
@@ -22,6 +23,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
         n = 3;
         window_size = 7;
         u = 3;
+        max_schc_packet_byte_size = 300;
     } else {
         char double_byte_header[7] = {};
         strncpy(double_byte_header, rule_id_binary, 6);
@@ -34,6 +36,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             n = 4;
             window_size = 12;
             u = 4;
+            max_schc_packet_byte_size = 480;
         } else {
             id = bin_to_int(rule_id_binary);
             rule_id_size = 8;
@@ -42,13 +45,14 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             n = 5;
             window_size = 31;
             u = 5;
+            max_schc_packet_byte_size = 2400;
         }
     }
 
     header_length = round_to_next_multiple(
             rule_id_size + t + m + n,
             L2_WORD_SIZE
-            );
+    );
 
     all1_header_length = round_to_next_multiple(
             rule_id_size + t + m + n + u,
@@ -58,6 +62,8 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     ack_header_length = rule_id_size + t + m + 1;
     max_window_number = 1 << m;
     max_fragment_number = max_window_number * window_size;
+    regular_payload_length = UPLINK_MTU_BITS - header_length;
+    max_all1_payload_length = UPLINK_MTU_BITS - all1_header_length;
 
     Rule res = {
             .id = id,
@@ -72,6 +78,9 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             .ack_header_length = ack_header_length,
             .max_window_number = max_window_number,
             .max_fragment_number = max_fragment_number,
+            .regular_payload_length = regular_payload_length,
+            .max_all1_payload_length = max_all1_payload_length,
+            .max_schc_packet_byte_size = max_schc_packet_byte_size,
             .frg_indices = {
                     .rule_id_idx = 0,
                     .dtag_idx = rule_id_size,

@@ -14,6 +14,9 @@ add_executable(
         RuleTest entities/RuleTest.c
 )
 add_executable(
+        FRProcedureTest entities/FRProcedureTest.c
+)
+add_executable(
         FragmentTest messages/FragmentTest.c
 )
 add_executable(
@@ -25,6 +28,7 @@ target_link_libraries(MiscTest utils)
 target_link_libraries(SocketServerTest sockets)
 target_link_libraries(SocketClientTest sockets)
 target_link_libraries(RuleTest entities)
+target_link_libraries(FRProcedureTest entities)
 target_link_libraries(FragmentTest messages)
 target_link_libraries(CompoundACKTest messages)
 

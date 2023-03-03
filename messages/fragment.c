@@ -46,13 +46,13 @@ void get_fragment_fcn(Rule *rule, Fragment *fragment, char dest[rule->n]) {
 }
 
 int is_fragment_all_0(Rule *rule, Fragment *fragment) {
-    char fcn[rule->n];
+    char fcn[rule->n + 1];
     get_fragment_fcn(rule, fragment, fcn);
     return is_monochar(fcn, '0');
 }
 
 int is_fragment_all_1(Rule *rule, Fragment *fragment) {
-    char fcn[rule->n];
+    char fcn[rule->n + 1];
     get_fragment_fcn(rule, fragment, fcn);
 
     if (!is_monochar(fcn, '1')) return 0;
@@ -60,10 +60,11 @@ int is_fragment_all_1(Rule *rule, Fragment *fragment) {
     int all_1_header_length = rule->all1_header_length;
     int payload_size = UPLINK_MTU_BITS - all_1_header_length;
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    char payload[payload_size];
+    char payload[payload_size + 1];
 
     fragment_to_bin(fragment, fragment_as_bin);
-    strncpy(payload, fragment_as_bin + all_1_header_length, payload_size);
+    memcpy(payload, fragment_as_bin + all_1_header_length, payload_size);
+    payload[payload_size] = '\0';
 
     if (payload[0] != '\0')
         return 1;
@@ -80,7 +81,7 @@ int fragment_expects_ack(Rule *rule, Fragment *fragment) {
 }
 
 int is_fragment_sender_abort(Rule *rule, Fragment *fragment) {
-    char w[rule->m], fcn[rule->n];
+    char w[rule->m + 1], fcn[rule->n + 1];
     get_fragment_w(rule, fragment, w);
     get_fragment_fcn(rule, fragment, fcn);
 
@@ -168,7 +169,6 @@ void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
 
 int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
                       int payload_byte_length, int nb_frag, int all_1) {
-
     int header_length;
     int window_id;
     char rule_id[rule->rule_id_size + 1];
@@ -176,6 +176,8 @@ int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
     char w[rule->m + 1];
     char fcn[rule->n + 1];
     char rcs[rule->u + 1];
+
+    memset(dest, '\0', sizeof(Fragment));
 
     header_length = all_1 ? rule->all1_header_length : rule->header_length;
     int payload_max_length = UPLINK_MTU_BITS - header_length;
@@ -207,7 +209,10 @@ int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
     strncpy(header_as_bin + rule->frg_indices.dtag_idx, dtag, rule->t);
     strncpy(header_as_bin + rule->frg_indices.w_idx, w, rule->m);
     strncpy(header_as_bin + rule->frg_indices.fcn_idx, fcn, rule->n);
-    strncpy(header_as_bin + rule->frg_indices.rcs_idx, rcs, rule->u);
+    if (rcs[0] != '\0') {
+        strncpy(header_as_bin + rule->frg_indices.rcs_idx, rcs, rule->u);
+    }
+    header_as_bin[header_length] = '\0';
 
     int header_byte_length = header_length / 8;
     int fragment_byte_length = header_byte_length + payload_byte_length;
@@ -219,7 +224,6 @@ int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
     memcpy(message, header_as_bytes, header_byte_length);
     memcpy(message + header_byte_length, payload, payload_byte_length);
 
-    memset(dest, '\0', sizeof(Fragment));
     memcpy(dest->message, message, fragment_byte_length);
     dest->byte_size = fragment_byte_length;
 

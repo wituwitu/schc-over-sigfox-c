@@ -18,6 +18,9 @@ typedef struct {
     int ack_header_length;
     int max_window_number;
     int max_fragment_number;
+    int regular_payload_length;
+    int max_all1_payload_length;
+    int max_schc_packet_byte_size;
     struct {
         int rule_id_idx;
         int dtag_idx;
