@@ -53,35 +53,43 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     all1_header_length = round_to_next_multiple(
             rule_id_size + t + m + n + u,
             L2_WORD_SIZE
-            );
+    );
 
     ack_header_length = rule_id_size + t + m + 1;
     max_window_number = 1 << m;
     max_fragment_number = max_window_number * window_size;
 
-    rule->id = id;
-    rule->rule_id_size = rule_id_size;
-    rule->t = t;
-    rule->m = m;
-    rule->n = n;
-    rule->window_size = window_size;
-    rule->u = u;
-    rule->header_length = header_length;
-    rule->all1_header_length = all1_header_length;
-    rule->ack_header_length = ack_header_length;
-    rule->max_window_number = max_window_number;
-    rule->max_fragment_number = max_fragment_number;
-    rule->frg_indices.rule_id_idx = 0;
-    rule->frg_indices.dtag_idx = rule_id_size;
-    rule->frg_indices.w_idx = rule_id_size + t;
-    rule->frg_indices.fcn_idx = rule_id_size + t + m;
-    rule->frg_indices.rcs_idx = rule_id_size + t + m + n;
-    rule->ack_indices.rule_id_idx = 0;
-    rule->ack_indices.dtag_idx = rule_id_size;
-    rule->ack_indices.w_idx = rule_id_size + t;
-    rule->ack_indices.c_idx = rule_id_size + t + m;
-    rule->ack_indices.bitmap_idx = rule_id_size + t + m + 1;
-    rule->ack_indices.tuple_idx = rule_id_size + t + m + 1 + window_size;
+    Rule res = {
+            .id = id,
+            .rule_id_size = rule_id_size,
+            .t = t,
+            .m = m,
+            .n = n,
+            .u = u,
+            .window_size = window_size,
+            .header_length = header_length,
+            .all1_header_length = all1_header_length,
+            .ack_header_length = ack_header_length,
+            .max_window_number = max_window_number,
+            .max_fragment_number = max_fragment_number,
+            .frg_indices = {
+                    .rule_id_idx = 0,
+                    .dtag_idx = rule_id_size,
+                    .w_idx = rule_id_size + t,
+                    .fcn_idx = rule_id_size + t + m,
+                    .rcs_idx = rule_id_size + t + m + n,
+            },
+            .ack_indices = {
+                    .rule_id_idx = 0,
+                    .dtag_idx = rule_id_size,
+                    .w_idx = rule_id_size + t,
+                    .c_idx = rule_id_size + t + m,
+                    .bitmap_idx = rule_id_size + t + m + 1,
+                    .tuple_idx = rule_id_size + t + m + 1 + window_size
+            }
+    };
+
+    memcpy(rule, &res, sizeof(Rule));
 }
 
 void parse_rule_from_bytes(Rule *rule, const char *byt) {
