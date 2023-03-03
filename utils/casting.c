@@ -7,20 +7,20 @@ long bin_to_int(const char *bits) {
 }
 
 void int_to_bin(char dest[], signed int src, int dest_size) {
-  memset(dest, '\0', dest_size + 1);
+    memset(dest, '\0', dest_size + 1);
 
-  size_t int_sz = sizeof(int) * 8;
+    size_t int_sz = sizeof(int) * 8;
 
-  char res[int_sz];
-  int shift = (int)int_sz - 1;
+    char res[int_sz];
+    int shift = (int) int_sz - 1;
 
-  int i = 0;
-  for (; shift >= 0; shift--) {
-    int k = src >> shift;
-    res[i++] = k & 1 ? '1' : '0';
-  }
+    int i = 0;
+    for (; shift >= 0; shift--) {
+        int k = src >> shift;
+        res[i++] = k & 1 ? '1' : '0';
+    }
 
-  strncpy(dest, res + int_sz - dest_size, dest_size);
+    strncpy(dest, res + int_sz - dest_size, dest_size);
 }
 
 void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {

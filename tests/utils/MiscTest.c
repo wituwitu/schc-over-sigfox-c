@@ -109,7 +109,6 @@ int round_to_next_multiple_test(void) {
 }
 
 int main() {
-
     printf("%d repeat_char_test\n", repeat_char_test());
     printf("%d str_rev_test\n", str_rev_test());
     printf("%d zfill_test\n", zfill_test());
