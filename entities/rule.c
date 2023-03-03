@@ -12,7 +12,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     memset(rule, 0, sizeof(Rule));
 
     char single_byte_header[4];
-    strncpy(single_byte_header, rule_id_binary, 3);
+    memcpy(single_byte_header, rule_id_binary, 3);
     single_byte_header[3] = '\0';
 
     if (strcmp(single_byte_header, "111") != 0) {

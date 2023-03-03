@@ -21,7 +21,7 @@ void sgfx_client_start(SigfoxClient *client) {
     client->expects_ack = 0;
     client->timeout = 60;
     client->seqnum = 0;
-    strncpy(client->buffer, "", DOWNLINK_MTU_BYTES);
+    memset(client->buffer, '\0', DOWNLINK_MTU_BYTES);
 
     client->serv_addr.sin_family = AF_INET;
     client->serv_addr.sin_port = htons(PORT);
