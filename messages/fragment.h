@@ -6,7 +6,7 @@
 #endif // SCHC_OVER_SIGFOX_C_FRAGMENT_H
 
 typedef struct {
-  char message[UPLINK_MTU_BYTES];
+    char message[UPLINK_MTU_BYTES];
     int byte_size;
 } Fragment;
 

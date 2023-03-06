@@ -59,17 +59,17 @@ int is_frg_all_1(Rule *rule, Fragment *fragment) {
 
     int all_1_header_length = rule->all1_header_length;
     int payload_size = UPLINK_MTU_BITS - all_1_header_length;
-    char fragment_as_bin[UPLINK_MTU_BITS + 1];
+    char frg_as_bin[UPLINK_MTU_BITS + 1];
     char payload[payload_size + 1];
 
-    frg_to_bin(fragment, fragment_as_bin);
-    memcpy(payload, fragment_as_bin + all_1_header_length, payload_size);
+    frg_to_bin(fragment, frg_as_bin);
+    memcpy(payload, frg_as_bin + all_1_header_length, payload_size);
     payload[payload_size] = '\0';
 
     if (payload[0] != '\0')
         return 1;
 
-    if (strlen(fragment_as_bin) == all_1_header_length)
+    if (strlen(frg_as_bin) == all_1_header_length)
         return 1;
 
     return 0;
