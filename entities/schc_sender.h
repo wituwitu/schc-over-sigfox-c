@@ -1,5 +1,4 @@
 #include "sigfox_socket.h"
-#include "fragment.h"
 #include "ack.h"
 
 #ifndef SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
@@ -20,15 +19,24 @@ typedef struct {
 } SCHCSender;
 
 /*
+ * Function:  init_sender
+ * --------------------
+ * Initializes the parameters of the SCHCSender structure.
+ *
+ *  s: SCHCSender structure to be initialized.
+ */
+void init_sender(SCHCSender *s);
+
+/*
  * Function:  schc_send
  * --------------------
- * Sends a SCHC Fragment towards the receiver end.
+ * Sends a SCHC Fragment towards the receiver end. Returns -1 on errors.
  *
  *  s: SCHCSender structure that controls the communication.
  *  rule: Rule used to process the communication.
  *  frg: Fragment to be sent.
  */
-int schc_send(SCHCSender *s, Rule *rule, Fragment *frg);
+ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg);
 
 /*
  * Function:  schc_recv

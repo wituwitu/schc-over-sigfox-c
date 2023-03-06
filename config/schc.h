@@ -18,6 +18,8 @@ extern int DELAY_BETWEEN_FRAGMENTS;
 
 // Sender config
 extern int ENABLE_MAX_ACK_REQUESTS;
+extern int UPLINK_LOSS_RATE;
+extern int DOWNLINK_LOSS_RATE;
 
 // Receiver config
 extern int RESET_DATA_AFTER_REASSEMBLY;

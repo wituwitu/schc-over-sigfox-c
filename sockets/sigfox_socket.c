@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <string.h>
 
+/* --------CLIENT-------- */
+
 void sgfx_client_start(SigfoxClient *client) {
     int sock_fd;
 
@@ -98,6 +100,8 @@ void sgfx_client_close(SigfoxClient *client) {
     close(client->sock_fd);
 }
 
+/* --------SERVER-------- */
+
 void sgfx_server_start(SigfoxServer *server) {
     struct sockaddr_in serv_addr;
     size_t addrlen = sizeof(serv_addr);
@@ -114,7 +118,7 @@ void sgfx_server_start(SigfoxServer *server) {
             SO_REUSEADDR | SO_REUSEPORT,
             &opt,
             sizeof(opt)
-            )) {
+    )) {
         perror("Setsockopt failed");
         exit(EXIT_FAILURE);
     }
@@ -129,7 +133,7 @@ void sgfx_server_start(SigfoxServer *server) {
             server->sock_fd,
             (struct sockaddr*) &serv_addr,
             addrlen
-            ) < 0) {
+    ) < 0) {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
