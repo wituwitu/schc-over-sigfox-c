@@ -1,5 +1,4 @@
 #include <stddef.h>
-#include "fragment.h"
 
 #ifndef SCHC_OVER_SIGFOX_C_FRAGMENT_QUEUE_H
 #define SCHC_OVER_SIGFOX_C_FRAGMENT_QUEUE_H

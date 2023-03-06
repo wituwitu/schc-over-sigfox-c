@@ -17,6 +17,9 @@ add_executable(
         FRProcedureTest entities/FRProcedureTest.c
 )
 add_executable(
+        FIFOQueuesTest entities/FIFOQueuesTest.c
+)
+add_executable(
         SCHCSenderTest entities/SCHCSenderTest.c
 )
 add_executable(
@@ -35,6 +38,7 @@ target_link_libraries(SocketServerTest sockets)
 target_link_libraries(SocketClientTest sockets)
 target_link_libraries(RuleTest entities)
 target_link_libraries(FRProcedureTest entities)
+target_link_libraries(FIFOQueuesTest entities)
 target_link_libraries(SCHCSenderTest entities)
 target_link_libraries(SCHCSenderTestRecv entities)
 target_link_libraries(FragmentTest messages)

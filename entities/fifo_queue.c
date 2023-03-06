@@ -7,10 +7,10 @@ int fq_is_empty(FIFOQueue *q) {
 void *fq_read(FIFOQueue *q) {
     if (fq_is_empty(q)) return NULL;
 
-    Fragment *frg = q->objs[q->tail];
+    void *obj = q->objs[q->tail];
     q->objs[q->tail] = NULL;
     q->tail = (q->tail + 1) % q->size;
-    return frg;
+    return obj;
 }
 
 int fq_write(FIFOQueue *q, void *obj) {
