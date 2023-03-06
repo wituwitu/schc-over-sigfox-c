@@ -10,11 +10,11 @@ typedef struct {
     size_t head;
     size_t tail;
     size_t size;
-    Fragment **fragments;
-} FragmentQueue;
+    void **objs;
+} FIFOQueue;
 
-Fragment *fq_read(FragmentQueue q);
+int fq_is_empty(FIFOQueue *q);
 
-int fq_write(FragmentQueue q);
+void *fq_read(FIFOQueue *q);
 
-int fq_is_empty(FragmentQueue q);
+int fq_write(FIFOQueue *q, void *obj);

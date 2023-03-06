@@ -4,14 +4,14 @@ set(HEADER_FILES
         rule.h
         fr_procedure.h
         schc_sender.h
-        fragment_queue.h
+        fifo_queue.h
         )
 
 set(SOURCE_FILES
         rule.c
         fr_procedure.c
         schc_sender.c
-        fragment_queue.c
+        fifo_queue.c
         )
 
 add_library(entities STATIC ${SOURCE_FILES} ${HEADER_FILES})
