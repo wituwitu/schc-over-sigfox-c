@@ -15,14 +15,12 @@ void assert_fragmentation(Rule rule, Fragment fragments[], int nb_fragments) {
             i != nb_fragments - 1) {
             assert(is_frg_all_0(&rule, &fragment_i));
             assert(!is_frg_all_1(&rule, &fragment_i));
+        } else if (i == nb_fragments - 1) {
+            assert(!is_frg_all_0(&rule, &fragment_i));
+            assert(is_frg_all_1(&rule, &fragment_i));
         } else {
-            if (i == nb_fragments - 1) {
-                assert(!is_frg_all_0(&rule, &fragment_i));
-                assert(is_frg_all_1(&rule, &fragment_i));
-            } else {
-                assert(!is_frg_all_0(&rule, &fragment_i));
-                assert(!is_frg_all_1(&rule, &fragment_i));
-            }
+            assert(!is_frg_all_0(&rule, &fragment_i));
+            assert(!is_frg_all_1(&rule, &fragment_i));
         }
     }
 }
@@ -30,7 +28,7 @@ void assert_fragmentation(Rule rule, Fragment fragments[], int nb_fragments) {
 void test_fragmentation(Rule rule, int byte_size) {
     char schc_packet[byte_size];
     generate_packet(schc_packet, byte_size);
-    int nb_fragments = get_number_of_fragments(&rule, byte_size);
+    int nb_fragments = get_nb_fragments(&rule, byte_size);
     Fragment fragments[nb_fragments];
     assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
     assert_fragmentation(rule, fragments, nb_fragments);
@@ -48,7 +46,7 @@ void test_fragmentation(Rule rule, int byte_size) {
 void test_packet_length(Rule rule, int byte_size) {
     char schc_packet[byte_size + 1];
     generate_packet(schc_packet, byte_size);
-    int nb_fragments = get_number_of_fragments(&rule, byte_size);
+    int nb_fragments = get_nb_fragments(&rule, byte_size);
     Fragment fragments[nb_fragments];
     assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
 
@@ -68,7 +66,7 @@ void test_packet_length(Rule rule, int byte_size) {
 void test_reassembly(Rule rule, int byte_size) {
     char schc_packet[byte_size + 1];
     generate_packet(schc_packet, byte_size);
-    int nb_fragments = get_number_of_fragments(&rule, byte_size);
+    int nb_fragments = get_nb_fragments(&rule, byte_size);
     Fragment fragments[nb_fragments];
     assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
 
@@ -101,17 +99,17 @@ int test_get_number_of_fragments() {
 
     // 11 bytes
     byte_size = 11;
-    assert(get_number_of_fragments(&rule_single_header, byte_size) == 2);
+    assert(get_nb_fragments(&rule_single_header, byte_size) == 2);
     // 100 bytes
     byte_size = 100;
-    assert(get_number_of_fragments(&rule_single_header, byte_size) == 10);
+    assert(get_nb_fragments(&rule_single_header, byte_size) == 10);
     // 121 bytes
     byte_size = 121;
-    assert(get_number_of_fragments(&rule_single_header, byte_size) == 12);
+    assert(get_nb_fragments(&rule_single_header, byte_size) == 12);
     // 300 bytes
     byte_size = 300;
-    assert(get_number_of_fragments(&rule_single_header, byte_size) == 28);
-    assert(get_number_of_fragments(&rule_single_header, byte_size) ==
+    assert(get_nb_fragments(&rule_single_header, byte_size) == 28);
+    assert(get_nb_fragments(&rule_single_header, byte_size) ==
            rule_single_header.max_fragment_number);
 
     // Double byte header op. 1
@@ -120,21 +118,21 @@ int test_get_number_of_fragments() {
 
     // 10 bytes
     byte_size = 10;
-    assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) == 1);
+    assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) == 1);
     // 100 bytes
     byte_size = 100;
-    assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) == 10);
+    assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) == 10);
     // 121 bytes
     byte_size = 121;
-    assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) == 13);
+    assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) == 13);
     // 300 bytes
     byte_size = 300;
-    assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) == 30);
+    assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) == 30);
     // 480 bytes
     byte_size = 480;
-    assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) == 48);
-    assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) ==
-                   rule_two_byte_op_1.max_fragment_number);
+    assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) == 48);
+    assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) ==
+           rule_two_byte_op_1.max_fragment_number);
 
     // Double byte header op. 2
     Rule rule_two_byte_op_2;
@@ -142,24 +140,24 @@ int test_get_number_of_fragments() {
 
     // 10 bytes
     byte_size = 10;
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 2);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 2);
     // 100 bytes
     byte_size = 100;
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 11);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 11);
     // 121 bytes
     byte_size = 121;
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 13);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 13);
     // 300 bytes
     byte_size = 300;
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 31);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 31);
     // 480 bytes
     byte_size = 480;
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 49);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 49);
     // 2400 bytes
     byte_size = 2400;
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 241);
-    assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) !=
-                   rule_two_byte_op_2.max_fragment_number);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 241);
+    assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) !=
+           rule_two_byte_op_2.max_fragment_number);
 
     return 0;
 }
@@ -215,7 +213,7 @@ int test_fragment() {
     int byte_0 = 0;
     char schc_0[byte_0];
     generate_packet(schc_0, byte_0);
-    int nb_0 = get_number_of_fragments(&rule, byte_0);
+    int nb_0 = get_nb_fragments(&rule, byte_0);
     Fragment frag_0[nb_0];
     assert(fragment(&rule, frag_0, schc_0, byte_0) < 0);
 
@@ -223,7 +221,7 @@ int test_fragment() {
     int byte_1000 = 1000;
     char schc_1000[byte_1000];
     generate_packet(schc_1000, byte_1000);
-    int nb_1000 = get_number_of_fragments(&rule, byte_1000);
+    int nb_1000 = get_nb_fragments(&rule, byte_1000);
     Fragment frag_1000[nb_1000];
     assert(fragment(&rule, frag_1000, schc_1000, byte_1000) < 0);
 

@@ -9,9 +9,9 @@
 #define DOWNLINK_MTU_BITS (DOWNLINK_MTU_BYTES * 8)
 
 extern char FR_MODE[];
-extern int RETRANSMISSION_TIMEOUT;
-extern int SIGFOX_DL_TIMEOUT;
-extern int INACTIVITY_TIMEOUT;
+extern float RETRANSMISSION_TIMEOUT;
+extern float SIGFOX_DL_TIMEOUT;
+extern float INACTIVITY_TIMEOUT;
 extern int MAX_ACK_REQUESTS;
 extern const int L2_WORD_SIZE;
 extern int DELAY_BETWEEN_FRAGMENTS;

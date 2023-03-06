@@ -4,7 +4,7 @@
 #include "casting.h"
 
 
-int get_number_of_fragments(Rule *rule, int byte_size) {
+int get_nb_fragments(Rule *rule, int byte_size) {
     int res;
     int payload_byte_size = rule->regular_payload_length / 8;
     res = (int) -floor((double) byte_size / -payload_byte_size);
@@ -32,7 +32,7 @@ int fragment(Rule *rule, Fragment dest[],
     }
 
     int reg_payload_byte_size = rule->regular_payload_length / 8;
-    int nb_fragments = get_number_of_fragments(rule, byte_size);
+    int nb_fragments = get_nb_fragments(rule, byte_size);
 
     int all_1, payload_size;
     for (int i = 0; i < nb_fragments; i++) {

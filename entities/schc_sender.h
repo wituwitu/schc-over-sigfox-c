@@ -1,5 +1,5 @@
 #include "sigfox_socket.h"
-#include "ack.h"
+#include "fr_procedure.h"
 
 #ifndef SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
 #define SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
@@ -42,13 +42,13 @@ ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg);
  * Function:  schc_recv
  * --------------------
  * Waits for a response from the SCHC Receiver. If a response is obtained,
- * it should later be parsed as a CompoundACK. If no respose is obtained after
- * the socket timeout, returns -1.
+ * it is parsed as a CompoundACK. Returns the number of bytes received.
+ * If no response is obtained, returns -1.
  *
  *  s: SCHCSender structure that controls the communication.
  *  rule: Rule used to process the communication.
  */
-int schc_recv(SCHCSender *s, Rule *rule);
+ssize_t schc_recv(SCHCSender *s, Rule *rule, CompoundACK *dest);
 
 /*
  * Function:  update_rt
@@ -59,6 +59,17 @@ int schc_recv(SCHCSender *s, Rule *rule);
  *  s: SCHCSender structure that controls the communication.
  */
 void update_rt(SCHCSender *s);
+
+/*
+ * Function:  update_timeout
+ * --------------------
+ * Configures the Sigfox socket timeout according to the SCHC Fragment to be
+ * sent.
+ *
+ *  s: SCHCSender structure that controls the communication.
+ *  frg: Fragment to be sent.
+ */
+void update_timeout(SCHCSender *s, Rule *rule, Fragment *frg);
 
 /*
  * Function:  update_queues
@@ -72,17 +83,6 @@ void update_rt(SCHCSender *s);
  *  ack: CompoundACK just received.
  */
 int update_queues(SCHCSender *s, Fragment *frg, CompoundACK *ack);
-
-/*
- * Function:  update_timeout
- * --------------------
- * Configures the Sigfox socket timeout according to the SCHC Fragment to be
- * sent.
- *
- *  s: SCHCSender structure that controls the communication.
- *  frg: Fragment to be sent.
- */
-int update_timeout(SCHCSender *s, Fragment *frg);
 
 /*
  * Function:  schc

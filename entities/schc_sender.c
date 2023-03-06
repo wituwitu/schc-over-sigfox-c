@@ -15,12 +15,40 @@ void init_sender(SCHCSender *s) {
 }
 
 ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg) {
-    if (s->ul_loss_rate > 0 && !is_frg_sender_abort(rule, frg)) {
-        if (random() % (101) < s->ul_loss_rate) {
-            s->socket.seqnum += 1;
-            printf("Fragment lost (rate)\n");
-            return 0;
-        }
+    if (s->ul_loss_rate > 0
+        && !is_frg_sender_abort(rule, frg)
+        && random() % 101 < s->ul_loss_rate) {
+        s->socket.seqnum += 1;
+        printf("Fragment lost (rate)\n");
+        return frg->byte_size;
     }
     return sgfx_client_send(&s->socket, frg->message, frg->byte_size);
+}
+
+ssize_t schc_recv(SCHCSender *s, Rule *rule, CompoundACK *dest) {
+    if (!s->socket.expects_ack) return 0;
+
+    char received[DOWNLINK_MTU_BYTES];
+    ssize_t retval = sgfx_client_recv(&s->socket, received);
+    memcpy(dest->message, received, DOWNLINK_MTU_BYTES);
+
+    if (s->dl_loss_rate > 0 && random() % 101 < s->dl_loss_rate) {
+        printf("ACK lost (rate)\n");
+        return -1;
+    }
+    return retval;
+}
+
+void update_rt(SCHCSender *s) {
+    s->rt = !is_frg_null(&s->retransmission_q[0]);
+}
+
+void update_timeout(SCHCSender *s, Rule *rule, Fragment *frg) {
+    if (is_frg_all_0(rule, frg) && !s->rt) {
+        sgfx_client_set_timeout(&s->socket, SIGFOX_DL_TIMEOUT);
+    } else if (is_frg_all_1(rule, frg)) {
+        sgfx_client_set_timeout(&s->socket, RETRANSMISSION_TIMEOUT);
+    } else {
+        sgfx_client_set_timeout(&s->socket, 60);
+    }
 }
