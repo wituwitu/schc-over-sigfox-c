@@ -6,7 +6,7 @@
 #endif // SCHC_OVER_SIGFOX_C_FRAGMENT_H
 
 typedef struct {
-  char message[UPLINK_MTU_BYTES + 1];
+  char message[UPLINK_MTU_BYTES];
     int byte_size;
 } Fragment;
 
@@ -18,21 +18,21 @@ typedef struct {
  *  fragment: the Fragment to be processed.
  *  dest: buffer where to store the data.
  */
-void fragment_to_bin(Fragment *fragment,
-                     char dest[fragment->byte_size * 8 + 1]);
+void frg_to_bin(Fragment *fragment,
+                char dest[fragment->byte_size * 8 + 1]);
 
 /*
- * Function:  init_rule_from_fragment
+ * Function:  init_rule_from_frg
  * --------------------
  * Initializes a Rule struct using information from a Fragment.
  *
  *  dest: the Rule to be initialized.
  *  fragment: the Fragment to be processed.
  */
-void init_rule_from_fragment(Rule *dest, Fragment *fragment);
+void init_rule_from_frg(Rule *dest, Fragment *fragment);
 
 /*
- * Function:  get_fragment_rule_id
+ * Function:  get_frg_rule_id
  * --------------------
  * Obtains the binary representation of the Rule ID from a Fragment.
  *
@@ -40,11 +40,11 @@ void init_rule_from_fragment(Rule *dest, Fragment *fragment);
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_rule_id(Rule *rule, Fragment *fragment,
-                          char dest[rule->rule_id_size + 1]);
+void get_frg_rule_id(Rule *rule, Fragment *fragment,
+                     char dest[rule->rule_id_size + 1]);
 
 /*
- * Function:  get_fragment_dtag
+ * Function:  get_frg_dtag
  * --------------------
  * Obtains the binary representation of the DTag from a Fragment.
  *
@@ -52,10 +52,10 @@ void get_fragment_rule_id(Rule *rule, Fragment *fragment,
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_dtag(Rule *rule, Fragment *fragment, char dest[rule->t + 1]);
+void get_frg_dtag(Rule *rule, Fragment *fragment, char dest[rule->t + 1]);
 
 /*
- * Function:  get_fragment_w
+ * Function:  get_frg_w
  * --------------------
  * Obtains the binary representation of the W field from a Fragment.
  *
@@ -63,10 +63,10 @@ void get_fragment_dtag(Rule *rule, Fragment *fragment, char dest[rule->t + 1]);
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]);
+void get_frg_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]);
 
 /*
- * Function:  get_fragment_fcn
+ * Function:  get_frg_fcn
  * --------------------
  * Obtains the binary representation of the FCN field from a Fragment.
  *
@@ -74,20 +74,20 @@ void get_fragment_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]);
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_fcn(Rule *rule, Fragment *fragment, char dest[rule->n + 1]);
+void get_frg_fcn(Rule *rule, Fragment *fragment, char dest[rule->n + 1]);
 
 /*
- * Function:  is_fragment_all_0
+ * Function:  is_frg_all_0
  * --------------------
  * Check whether the FCN field of a Fragment is composed only of '0's.
  *
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  */
-int is_fragment_all_0(Rule *rule, Fragment *fragment);
+int is_frg_all_0(Rule *rule, Fragment *fragment);
 
 /*
- * Function:  is_fragment_all_1
+ * Function:  is_frg_all_1
  * --------------------
  * Check whether the FCN field of a Fragment is composed only of '1's, while
  * still being a valid Fragment.
@@ -95,20 +95,20 @@ int is_fragment_all_0(Rule *rule, Fragment *fragment);
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  */
-int is_fragment_all_1(Rule *rule, Fragment *fragment);
+int is_frg_all_1(Rule *rule, Fragment *fragment);
 
 /*
- * Function:  fragment_expects_ack
+ * Function:  frg_expects_ack
  * --------------------
  * Checks whether the Fragment expects an ACK from the receiver.
  *
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  */
-int fragment_expects_ack(Rule *rule, Fragment *fragment);
+int frg_expects_ack(Rule *rule, Fragment *fragment);
 
 /*
- * Function:  get_fragment_rcs
+ * Function:  get_frg_rcs
  * --------------------
  * Obtains the binary representation of the RCS field from a Fragment.
  *
@@ -116,63 +116,71 @@ int fragment_expects_ack(Rule *rule, Fragment *fragment);
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]);
+void get_frg_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]);
 
 /*
- * Function:  get_fragment_header_size
+ * Function:  get_frg_header_byte_size
  * --------------------
- * Obtains the header size of a Fragment, depending on whether the fragment is
- * an All-1.
- *
- *  rule: the Rule struct used to process the Fragment.
- *  fragment: the Fragment to be processed.
- */
-int get_fragment_header_size(Rule *rule, Fragment *fragment);
-
-/*
- * Function:  get_fragment_max_payload_size
- * --------------------
- * Obtains the maximum payload size of a Fragment, depending on whether the
+ * Obtains the header size of a Fragment in bytes, depending on whether the
  * fragment is an All-1.
  *
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  */
-int get_fragment_max_payload_size(Rule *rule, Fragment *fragment);
-
-int get_fragment_payload_size(Rule *rule, Fragment *fragment);
+int get_frg_header_byte_size(Rule *rule, Fragment *fragment);
 
 /*
- * Function:  get_fragment_rcs
+ * Function:  get_frg_max_payload_byte_size
  * --------------------
- * Obtains the binary representation of the header field from a Fragment.
+ * Obtains the maximum payload size of a Fragment in bytes, depending on
+ * whether the fragment is an All-1.
+ *
+ *  rule: the Rule struct used to process the Fragment.
+ *  fragment: the Fragment to be processed.
+ */
+int get_frg_max_payload_byte_size(Rule *rule, Fragment *fragment);
+
+/*
+ * Function:  get_frg_payload_byte_size
+ * --------------------
+ * Obtains the payload size of a Fragment in bytes.
+ *
+ *  rule: the Rule struct used to process the Fragment.
+ *  fragment: the Fragment to be processed.
+ */
+int get_frg_payload_byte_size(Rule *rule, Fragment *fragment);
+
+/*
+ * Function:  get_frg_header
+ * --------------------
+ * Obtains the bytes representation of the header field from a Fragment.
  *
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_header(Rule *rule, Fragment *fragment, char dest[]);
+void get_frg_header(Rule *rule, Fragment *fragment, char dest[]);
 
 /*
- * Function:  get_fragment_payload
+ * Function:  get_frg_payload
  * --------------------
- * Obtains the binary representation of the payload field from a Fragment.
+ * Obtains the bytes representation of the payload field from a Fragment.
  *
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  *  dest: buffer to store the result.
  */
-void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]);
+void get_frg_payload(Rule *rule, Fragment *fragment, char dest[]);
 
 /*
- * Function:  is_fragment_sender_abort
+ * Function:  is_frg_sender_abort
  * --------------------
  * Checks whether the Fragment is a Sender-Abort.
  *
  *  rule: the Rule struct used to process the Fragment.
  *  fragment: the Fragment to be processed.
  */
-int is_fragment_sender_abort(Rule *rule, Fragment *fragment);
+int is_frg_sender_abort(Rule *rule, Fragment *fragment);
 
 /*
  * Function:  generate_sender_abort
@@ -186,7 +194,7 @@ int is_fragment_sender_abort(Rule *rule, Fragment *fragment);
 void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest);
 
 /*
- * Function:  generate_fragment
+ * Function:  generate_frg
  * --------------------
  * Generates a SCHC Fragment and stores it in a Fragment struct. Returns -1 on
  * errors.
@@ -198,5 +206,26 @@ void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest);
  *  nb_frag: the global index of the Fragment.
  *  all_1: whether the Fragment to be generated is an All-1.
  */
-int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
-                      int payload_byte_length, int nb_frag, int all_1);
+int generate_frg(Rule *rule, Fragment *dest, const char payload[],
+                 int payload_byte_length, int nb_frag, int all_1);
+
+/*
+ * Function:  generate_null_frg
+ * --------------------
+ * Generates a null SCHC Fragment, used to identify the end of a SCHC Fragment
+ * array at the receiver end.
+ *
+ *  rule: the Rule struct used to create the Fragment.
+ *  dest: Fragment structure where to store the null fragment.
+ */
+void generate_null_frg(Fragment *dest);
+
+/*
+ * Function:  is_frg_null
+ * --------------------
+ * Checks whether a SCHC Fragment is a null Fragment.
+ *
+ *  rule: the Rule struct used to create the Fragment.
+ *  frg: the Fragment to check.
+ */
+int is_frg_null(Fragment *frg);

@@ -3,57 +3,57 @@
 #include "misc.h"
 #include <stdio.h>
 
-void fragment_to_bin(Fragment *fragment,
-                     char dest[fragment->byte_size * 8 + 1]) {
+void frg_to_bin(Fragment *fragment,
+                char dest[fragment->byte_size * 8 + 1]) {
     memset(dest, '\0', UPLINK_MTU_BITS + 1);
     bytes_to_bin(dest, fragment->message, fragment->byte_size);
 }
 
-void init_rule_from_fragment(Rule *dest, Fragment *fragment) {
+void init_rule_from_frg(Rule *dest, Fragment *fragment) {
     char as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, as_bin);
+    frg_to_bin(fragment, as_bin);
     init_rule(dest, as_bin);
 }
 
-void get_fragment_rule_id(Rule *rule, Fragment *fragment,
-                          char dest[rule->rule_id_size + 1]) {
+void get_frg_rule_id(Rule *rule, Fragment *fragment,
+                     char dest[rule->rule_id_size + 1]) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
     strncpy(dest, fragment_as_bin + rule->frg_indices.rule_id_idx,
             rule->rule_id_size);
     dest[rule->rule_id_size] = '\0';
 }
 
-void get_fragment_dtag(Rule *rule, Fragment *fragment, char dest[rule->t + 1]) {
+void get_frg_dtag(Rule *rule, Fragment *fragment, char dest[rule->t + 1]) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
     strncpy(dest, fragment_as_bin + rule->frg_indices.dtag_idx, rule->t);
     dest[rule->t] = '\0';
 }
 
-void get_fragment_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]) {
+void get_frg_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
     strncpy(dest, fragment_as_bin + rule->frg_indices.w_idx, rule->m);
     dest[rule->m] = '\0';
 }
 
-void get_fragment_fcn(Rule *rule, Fragment *fragment, char dest[rule->n]) {
+void get_frg_fcn(Rule *rule, Fragment *fragment, char dest[rule->n]) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
     strncpy(dest, fragment_as_bin + rule->frg_indices.fcn_idx, rule->n);
     dest[rule->n] = '\0';
 }
 
-int is_fragment_all_0(Rule *rule, Fragment *fragment) {
+int is_frg_all_0(Rule *rule, Fragment *fragment) {
     char fcn[rule->n + 1];
-    get_fragment_fcn(rule, fragment, fcn);
+    get_frg_fcn(rule, fragment, fcn);
     return is_monochar(fcn, '0');
 }
 
-int is_fragment_all_1(Rule *rule, Fragment *fragment) {
+int is_frg_all_1(Rule *rule, Fragment *fragment) {
     char fcn[rule->n + 1];
-    get_fragment_fcn(rule, fragment, fcn);
+    get_frg_fcn(rule, fragment, fcn);
 
     if (!is_monochar(fcn, '1')) return 0;
 
@@ -62,7 +62,7 @@ int is_fragment_all_1(Rule *rule, Fragment *fragment) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
     char payload[payload_size + 1];
 
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
     memcpy(payload, fragment_as_bin + all_1_header_length, payload_size);
     payload[payload_size] = '\0';
 
@@ -75,67 +75,64 @@ int is_fragment_all_1(Rule *rule, Fragment *fragment) {
     return 0;
 }
 
-int fragment_expects_ack(Rule *rule, Fragment *fragment) {
-    return is_fragment_all_0(rule, fragment) ||
-           is_fragment_all_1(rule, fragment);
+int frg_expects_ack(Rule *rule, Fragment *fragment) {
+    return is_frg_all_0(rule, fragment) ||
+           is_frg_all_1(rule, fragment);
 }
 
-int is_fragment_sender_abort(Rule *rule, Fragment *fragment) {
+int is_frg_sender_abort(Rule *rule, Fragment *fragment) {
     char w[rule->m + 1], fcn[rule->n + 1];
-    get_fragment_w(rule, fragment, w);
-    get_fragment_fcn(rule, fragment, fcn);
+    get_frg_w(rule, fragment, w);
+    get_frg_fcn(rule, fragment, fcn);
 
     if (!is_monochar(w, '1') || !is_monochar(fcn, '1'))
         return 0;
 
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
 
     return strlen(fragment_as_bin) < rule->all1_header_length;
 }
 
-void get_fragment_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]) {
-    if (!is_fragment_all_1(rule, fragment)) {
+void get_frg_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]) {
+    if (!is_frg_all_1(rule, fragment)) {
         memset(dest, '\0', rule->u + 1);
         return;
     }
 
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+    frg_to_bin(fragment, fragment_as_bin);
     strncpy(dest, fragment_as_bin + rule->frg_indices.rcs_idx, rule->u);
     dest[rule->u] = '\0';
 }
 
-int get_fragment_header_size(Rule *rule, Fragment *fragment) {
-    return is_fragment_all_1(rule, fragment)
-           ? rule->all1_header_length
-           : rule->header_length;
+int get_frg_header_byte_size(Rule *rule, Fragment *fragment) {
+    return is_frg_all_1(rule, fragment)
+           ? rule->all1_header_length / 8
+           : rule->header_length / 8;
 }
 
-int get_fragment_max_payload_size(Rule *rule, Fragment *fragment) {
-    return UPLINK_MTU_BITS - get_fragment_header_size(rule, fragment);
+int get_frg_max_payload_byte_size(Rule *rule, Fragment *fragment) {
+    return UPLINK_MTU_BYTES - get_frg_header_byte_size(rule, fragment);
 }
 
-int get_fragment_payload_size(Rule *rule, Fragment *fragment) {
-    return fragment->byte_size * 8 - get_fragment_header_size(rule, fragment);
+int get_frg_payload_byte_size(Rule *rule, Fragment *fragment) {
+    return fragment->byte_size - get_frg_header_byte_size(rule, fragment);
 }
 
-void get_fragment_header(Rule *rule, Fragment *fragment, char dest[]) {
-    int header_size = get_fragment_header_size(rule, fragment);
-    char fragment_as_bin[UPLINK_MTU_BITS + 1];
-    fragment_to_bin(fragment, fragment_as_bin);
+void get_frg_header(Rule *rule, Fragment *fragment, char dest[]) {
+    int header_size = get_frg_header_byte_size(rule, fragment);
+
     memset(dest, '\0', header_size);
-    strncpy(dest, fragment_as_bin, header_size);
-    dest[header_size] = '\0';
+    memcpy(dest, fragment->message, header_size);
 }
 
-void get_fragment_payload(Rule *rule, Fragment *fragment, char dest[]) {
-    int header_size = get_fragment_header_size(rule, fragment) / 8;
-    int payload_size = get_fragment_payload_size(rule, fragment) / 8;
+void get_frg_payload(Rule *rule, Fragment *fragment, char dest[]) {
+    int header_size = get_frg_header_byte_size(rule, fragment);
+    int payload_size = get_frg_payload_byte_size(rule, fragment);
 
     memset(dest, '\0', payload_size);
-    strncpy(dest, fragment->message + header_size, payload_size);
-    dest[payload_size] = '\0';
+    memcpy(dest, fragment->message + header_size, payload_size);
 }
 
 void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
@@ -144,8 +141,8 @@ void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
     char w[rule->m + 1];
     char fcn[rule->n + 1];
 
-    get_fragment_rule_id(rule, src, rule_id);
-    get_fragment_dtag(rule, src, dtag);
+    get_frg_rule_id(rule, src, rule_id);
+    get_frg_dtag(rule, src, dtag);
     memset(w, '1', rule->m);
     memset(fcn, '1', rule->n);
 
@@ -169,8 +166,8 @@ void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
     dest->byte_size = byte_size;
 }
 
-int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
-                      int payload_byte_length, int nb_frag, int all_1) {
+int generate_frg(Rule *rule, Fragment *dest, const char payload[],
+                 int payload_byte_length, int nb_frag, int all_1) {
     int header_length;
     int window_id;
     char rule_id[rule->rule_id_size + 1];
@@ -221,13 +218,28 @@ int generate_fragment(Rule *rule, Fragment *dest, const char payload[],
     char header_as_bytes[header_byte_length + 1];
     bin_to_bytes(header_as_bytes, header_as_bin, header_length);
 
-    char message[UPLINK_MTU_BYTES + 1];
-    memset(message, '\0', UPLINK_MTU_BYTES + 1);
+    char message[UPLINK_MTU_BYTES];
+    memset(message, '\0', UPLINK_MTU_BYTES);
     memcpy(message, header_as_bytes, header_byte_length);
     memcpy(message + header_byte_length, payload, payload_byte_length);
-
     memcpy(dest->message, message, fragment_byte_length);
     dest->byte_size = fragment_byte_length;
 
     return 0;
+}
+
+void generate_null_frg(Fragment *dest) {
+    char message[UPLINK_MTU_BYTES];
+    memset(message, '\0', UPLINK_MTU_BYTES);
+
+    memcpy(dest->message, message, UPLINK_MTU_BYTES);
+    dest->byte_size = 0;
+}
+
+int is_frg_null(Fragment *frg) {
+    char empty[UPLINK_MTU_BYTES];
+    memset(empty, '\0', UPLINK_MTU_BYTES);
+
+    return memcmp(frg->message, empty, UPLINK_MTU_BYTES) == 0
+           && frg->byte_size == 0;
 }
