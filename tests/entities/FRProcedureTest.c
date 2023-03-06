@@ -4,6 +4,8 @@
 #include "fr_procedure.h"
 #include "casting.h"
 
+/* ------ AUX FUNCTIONS ------ */
+
 void assert_fragmentation(Rule rule, Fragment fragments[], int nb_fragments) {
     for (int i = 0; i < nb_fragments; i++) {
         Fragment fragment_i;
@@ -11,18 +13,56 @@ void assert_fragmentation(Rule rule, Fragment fragments[], int nb_fragments) {
 
         if (i % rule.window_size == rule.window_size - 1 &&
             i != nb_fragments - 1) {
-            assert(is_fragment_all_0(&rule, &fragment_i));
-            assert(!is_fragment_all_1(&rule, &fragment_i));
+            assert(is_frg_all_0(&rule, &fragment_i));
+            assert(!is_frg_all_1(&rule, &fragment_i));
         } else {
             if (i == nb_fragments - 1) {
-                assert(!is_fragment_all_0(&rule, &fragment_i));
-                assert(is_fragment_all_1(&rule, &fragment_i));
+                assert(!is_frg_all_0(&rule, &fragment_i));
+                assert(is_frg_all_1(&rule, &fragment_i));
             } else {
-                assert(!is_fragment_all_0(&rule, &fragment_i));
-                assert(!is_fragment_all_1(&rule, &fragment_i));
+                assert(!is_frg_all_0(&rule, &fragment_i));
+                assert(!is_frg_all_1(&rule, &fragment_i));
             }
         }
     }
+}
+
+void test_fragmentation(Rule rule, int byte_size) {
+    char schc_packet[byte_size];
+    generate_packet(schc_packet, byte_size);
+    int nb_fragments = get_number_of_fragments(&rule, byte_size);
+    Fragment fragments[nb_fragments];
+    assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
+    assert_fragmentation(rule, fragments, nb_fragments);
+
+    char reassembled[byte_size];
+    for (int i = 0; i < nb_fragments; i++) {
+        get_frg_payload(&rule, &fragments[i], reassembled + i *
+                                                            (rule.regular_payload_length /
+                                                             8));
+    }
+
+    assert(memcmp(reassembled, schc_packet, byte_size) == 0);
+}
+
+void test_packet_length(Rule rule, int byte_size) {
+    char schc_packet[byte_size + 1];
+    generate_packet(schc_packet, byte_size);
+    int nb_fragments = get_number_of_fragments(&rule, byte_size);
+    Fragment fragments[nb_fragments];
+    assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
+
+    Fragment received[rule.max_fragment_number];
+    int i = 0;
+    while (i < nb_fragments) {
+        memcpy(&(received[i]), &(fragments[i]), sizeof(Fragment));
+        i++;
+    }
+    Fragment null;
+    generate_null_frg(&null);
+    memcpy(&(received[i]), &null, sizeof(Fragment));
+
+    assert(get_packet_length_from_array(&rule, received) == byte_size);
 }
 
 void test_reassembly(Rule rule, int byte_size) {
@@ -30,40 +70,28 @@ void test_reassembly(Rule rule, int byte_size) {
     generate_packet(schc_packet, byte_size);
     int nb_fragments = get_number_of_fragments(&rule, byte_size);
     Fragment fragments[nb_fragments];
-    fragment(&rule, fragments, schc_packet, byte_size);
+    assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
 
     Fragment received[rule.max_fragment_number];
-    for (int i = 0; i < nb_fragments; i++) {
-        memcpy(&received[i], &fragments[i], sizeof(Fragment));
+    int i = 0;
+    while (i < nb_fragments) {
+        memcpy(&(received[i]), &(fragments[i]), sizeof(Fragment));
+        i++;
     }
-    memset(&received[nb_fragments], '\0', sizeof(Fragment));
+    Fragment null;
+    generate_null_frg(&null);
+    memcpy(&(received[i]), &null, sizeof(Fragment));
 
     int packet_length = get_packet_length_from_array(&rule, received);
 
-    char reassembled[packet_length + 1];
-    reassemble(&rule, reassembled, received);
+    char reassembled[packet_length];
+    assert(reassemble(&rule, reassembled, received) == 0);
 
-    assert(strcmp(reassembled, schc_packet) == 0);
+    assert(memcmp(reassembled, schc_packet, packet_length) == 0);
 }
 
-void test_fragmentation(Rule rule, int byte_size) {
-    char schc_packet[byte_size + 1];
-    generate_packet(schc_packet, byte_size);
-    int nb_fragments = get_number_of_fragments(&rule, byte_size);
-    Fragment fragments[nb_fragments];
-    fragment(&rule, fragments, schc_packet, byte_size);
-    assert_fragmentation(rule, fragments, nb_fragments);
 
-    char reassembled[byte_size + 1];
-    for (int i = 0; i < nb_fragments; i++) {
-        get_fragment_payload(&rule, &fragments[i], reassembled + i *
-                                                                 (rule.regular_payload_length /
-                                                                  8));
-    }
-    reassembled[byte_size] = '\0';
-
-    assert(strcmp(reassembled, schc_packet) == 0);
-}
+/* ------ MAIN FUNCTIONS ------ */
 
 int test_get_number_of_fragments() {
     // Single byte header
@@ -106,7 +134,7 @@ int test_get_number_of_fragments() {
     byte_size = 480;
     assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) == 48);
     assert(get_number_of_fragments(&rule_two_byte_op_1, byte_size) ==
-           rule_two_byte_op_1.max_fragment_number);
+                   rule_two_byte_op_1.max_fragment_number);
 
     // Double byte header op. 2
     Rule rule_two_byte_op_2;
@@ -131,7 +159,7 @@ int test_get_number_of_fragments() {
     byte_size = 2400;
     assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) == 241);
     assert(get_number_of_fragments(&rule_two_byte_op_2, byte_size) !=
-           rule_two_byte_op_2.max_fragment_number);
+                   rule_two_byte_op_2.max_fragment_number);
 
     return 0;
 }
@@ -179,6 +207,77 @@ int test_fragment() {
     test_fragmentation(rule_two_byte_op_2, 480);
     // 2400 bytes
     test_fragmentation(rule_two_byte_op_2, 2400);
+
+    // Errors
+    Rule rule = rule_single_header;
+
+    // Byte size 0
+    int byte_0 = 0;
+    char schc_0[byte_0];
+    generate_packet(schc_0, byte_0);
+    int nb_0 = get_number_of_fragments(&rule, byte_0);
+    Fragment frag_0[nb_0];
+    assert(fragment(&rule, frag_0, schc_0, byte_0) < 0);
+
+    // Byte size longer than limit
+    int byte_1000 = 1000;
+    char schc_1000[byte_1000];
+    generate_packet(schc_1000, byte_1000);
+    int nb_1000 = get_number_of_fragments(&rule, byte_1000);
+    Fragment frag_1000[nb_1000];
+    assert(fragment(&rule, frag_1000, schc_1000, byte_1000) < 0);
+
+    return 0;
+}
+
+int test_get_packet_length_from_array() {
+    // Single byte header
+    Rule rule_single_header;
+    init_rule(&rule_single_header, "000");
+    // 11 bytes
+    test_packet_length(rule_single_header, 11);
+    // 100 bytes
+    test_packet_length(rule_single_header, 100);
+    // 121 bytes
+    test_packet_length(rule_single_header, 121);
+    // 131 bytes
+    test_packet_length(rule_single_header, 131);
+    // 300 bytes
+    test_packet_length(rule_single_header, 300);
+
+    // Double byte header op. 1
+    Rule rule_two_byte_op_1;
+    init_rule(&rule_two_byte_op_1, "111010");
+    // 10 bytes
+    test_packet_length(rule_two_byte_op_1, 10);
+    // 100 bytes
+    test_packet_length(rule_two_byte_op_1, 100);
+    // 121 bytes
+    test_packet_length(rule_two_byte_op_1, 121);
+    // 131 bytes
+    test_packet_length(rule_two_byte_op_1, 131);
+    // 300 bytes
+    test_packet_length(rule_two_byte_op_1, 300);
+    // 480 bytes
+    test_packet_length(rule_two_byte_op_1, 480);
+
+    // Double byte header op. 2
+    Rule rule_two_byte_op_2;
+    init_rule(&rule_two_byte_op_2, "11111110");
+    // 10 bytes
+    test_packet_length(rule_two_byte_op_2, 10);
+    // 100 bytes
+    test_packet_length(rule_two_byte_op_2, 100);
+    // 121 bytes
+    test_packet_length(rule_two_byte_op_2, 121);
+    // 131 bytes
+    test_packet_length(rule_two_byte_op_2, 131);
+    // 300 bytes
+    test_packet_length(rule_two_byte_op_2, 300);
+    // 480 bytes
+    test_packet_length(rule_two_byte_op_2, 480);
+    // 2400 bytes
+    test_packet_length(rule_two_byte_op_2, 2400);
 
     return 0;
 }
@@ -233,6 +332,8 @@ int test_reassemble() {
 int main() {
     printf("%d test_get_number_of_fragments\n", test_get_number_of_fragments());
     printf("%d test_fragment\n", test_fragment());
+    printf("%d test_get_packet_length_from_array\n",
+           test_get_packet_length_from_array());
     printf("%d test_reassemble\n", test_reassemble());
 
     return 0;

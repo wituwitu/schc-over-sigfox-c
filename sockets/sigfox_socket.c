@@ -4,10 +4,10 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <string.h>
 
 void sgfx_client_start(SigfoxClient *client) {
     int sock_fd;

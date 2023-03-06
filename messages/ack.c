@@ -159,8 +159,8 @@ void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest) {
     char w[rule->m + 1];
     char c[] = "1";
 
-    get_fragment_rule_id(rule, src, rule_id);
-    get_fragment_dtag(rule, src, dtag);
+    get_frg_rule_id(rule, src, rule_id);
+    get_frg_dtag(rule, src, dtag);
     memset(w, '1', rule->m);
 
     int header_remainder = rule->ack_header_length % L2_WORD_SIZE;

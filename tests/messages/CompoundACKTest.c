@@ -211,7 +211,7 @@ int test_generate_receiver_abort() {
     // Generate Receiver-Abort
     Fragment fragment = {"\x15\x88\x88\x88", 4};
     Rule rule;
-    init_rule_from_fragment(&rule, &fragment);
+    init_rule_from_frg(&rule, &fragment);
     CompoundACK receiver_abort;
     generate_receiver_abort(&rule, &fragment, &receiver_abort);
 

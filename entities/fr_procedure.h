@@ -19,7 +19,7 @@ int get_number_of_fragments(Rule *rule, int byte_size);
  * Function:  fragment
  * --------------------
  * Performs the SCHC fragmentation procedure and stores the resulting Fragments
- * in an array.
+ * in an array. Returns -1 on errors.
  *
  *  rule: the Rule struct used to perform the fragmentation.
  *  schc_packet: the SCHC Packet to be fragmented.
@@ -28,6 +28,26 @@ int get_number_of_fragments(Rule *rule, int byte_size);
 int fragment(Rule *rule, Fragment dest[],
              const char schc_packet[], int byte_size);
 
+/*
+ * Function:  get_packet_length_from_array
+ * --------------------
+ * Given a null-Fragment-terminated Fragment array, obtains the size of
+ * the SCHC Packet that the array will reassemble into.
+ *
+ *  rule: the Rule struct used to perform the procedure.
+ *  fragments: null-Fragment-terminated Fragment array.
+ */
 int get_packet_length_from_array(Rule *rule, Fragment *fragments);
 
-void reassemble(Rule *rule, char dest[], Fragment fragments[]);
+/*
+ * Function:  reassemble
+ * --------------------
+ * Given a null-Fragment-terminated Fragment array, reassembles all Fragments
+ * into the SCHC Packet they represent. Returns -1 on errors.
+ *
+ *  rule: the Rule struct used to perform the procedure.
+ *  dest: buffer where to store the result. Its size must match the size of the
+ *  SCHC Packet, and is obtained by get_packet_length_from_array().
+ *  fragments: null-Fragment-terminated Fragment array.
+ */
+int reassemble(Rule *rule, char dest[], Fragment fragments[]);

@@ -6,7 +6,7 @@
 #endif // SCHC_OVER_SIGFOX_C_ACK_H
 
 typedef struct {
-  char message[DOWNLINK_MTU_BYTES + 1];
+  char message[DOWNLINK_MTU_BYTES];
 } CompoundACK;
 
 /*
