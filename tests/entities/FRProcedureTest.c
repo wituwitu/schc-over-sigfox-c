@@ -35,9 +35,11 @@ void test_fragmentation(Rule rule, int byte_size) {
 
     char reassembled[byte_size];
     for (int i = 0; i < nb_fragments; i++) {
-        get_frg_payload(&rule, &fragments[i], reassembled + i *
-                                                            (rule.regular_payload_length /
-                                                             8));
+        get_frg_payload(
+                &rule,
+                &fragments[i],
+                reassembled + i * (rule.regular_payload_length / 8)
+        );
     }
 
     assert(memcmp(reassembled, schc_packet, byte_size) == 0);

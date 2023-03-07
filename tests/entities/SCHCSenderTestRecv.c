@@ -39,7 +39,7 @@ int main() {
     memcpy(all1.message, buf, recvlen);
     all1.byte_size = (int) recvlen;
     assert(memcmp(buf, all1.message, recvlen) == 0);
-    assert(all1.byte_size == 4);
+    assert(all1.byte_size == recvlen);
     printf("Received All-1 (1)\n");
     CompoundACK ack;
     memcpy(ack.message, "\x13\xc8\x00\x00\x00\x00\x00\x00", DOWNLINK_MTU_BYTES);

@@ -12,8 +12,12 @@ typedef struct {
     void **objs;
 } FIFOQueue;
 
+void fq_construct(FIFOQueue *q, size_t size);
+
+void fq_destroy(FIFOQueue *q);
+
 int fq_is_empty(FIFOQueue *q);
 
-void *fq_read(FIFOQueue *q);
-
 int fq_write(FIFOQueue *q, void *obj);
+
+void *fq_read(FIFOQueue *q);
