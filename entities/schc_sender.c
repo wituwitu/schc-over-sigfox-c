@@ -3,15 +3,12 @@
 #include "schc_sender.h"
 #include "casting.h"
 #include "misc.h"
-#include "fifo_queue.h"
 
 void init_sender(SCHCSender *s) {
     s->attempts = 0;
     s->nb_fragments = 0;
     s->last_window = 0;
     sgfx_client_start(&s->socket);
-    s->transmission_q = NULL;
-    s->retransmission_q = NULL;
     s->rt = 0;
     s->ul_loss_rate = UPLINK_LOSS_RATE;
     s->dl_loss_rate = DOWNLINK_LOSS_RATE;
@@ -43,7 +40,7 @@ ssize_t schc_recv(SCHCSender *s, Rule *rule, CompoundACK *dest) {
 }
 
 void update_rt(SCHCSender *s) {
-    s->rt = !is_frg_null(&s->retransmission_q[0]);
+    s->rt = !fq_is_empty(&s->retransmission_q);
 }
 
 void update_timeout(SCHCSender *s, Rule *rule, Fragment *frg) {
@@ -74,7 +71,7 @@ int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
         int only_has_all1 = strcmp(bitmap_last, "") == 0 &&
                             bitmap[rule->window_size - 1] == '1';
         int is_ones = is_monochar(bitmap_last, '1');
-        frgs_arent_missing = only_has_all1 && is_ones;
+        frgs_arent_missing = only_has_all1 || is_ones;
         strncpy(dest, bitmap_last, bitmap_sz);
     }
 

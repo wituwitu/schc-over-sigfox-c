@@ -13,8 +13,6 @@ int init_sender_test() {
     assert(s.nb_fragments == 0);
     assert(s.last_window == 0);
     assert(s.socket.seqnum == 0);
-    assert(s.transmission_q == NULL);
-    assert(s.retransmission_q == NULL);
     assert(s.rt == 0);
     assert(s.ul_loss_rate == UPLINK_LOSS_RATE);
     assert(s.dl_loss_rate == DOWNLINK_LOSS_RATE);
@@ -90,18 +88,20 @@ int update_rt_test() {
     fragment(&rule, fragments, schc_packet, size);
     generate_null_frg(&fragments[nb_frgs]);
 
-    // Non-empty retransmission queue
+    fq_construct(&s.retransmission_q, nb_frgs + 1);
+
+    // Empty retransmission queue
     assert(s.rt == 0);
-    s.retransmission_q = fragments;
+    update_rt(&s);
+    assert(s.rt == 0);
+
+    // Non empty retransmission queue
+    fq_write(&s.retransmission_q, &fragments[0]);
+    assert(s.rt == 0);
     update_rt(&s);
     assert(s.rt == 1);
 
-    // Empty retransmission queue
-    for (int i = 0; i < nb_frgs; i++) {
-        generate_null_frg(&s.retransmission_q[i]);
-    }
-    update_rt(&s);
-    assert(s.rt == 0);
+    fq_destroy(&s.retransmission_q);
 
     return 0;
 }
@@ -135,15 +135,82 @@ int get_bitmap_to_retransmit_test() {
     init_sender(&s);
     Rule rule;
     init_rule(&rule, "000");
+    char bitmap_to_retransmit[rule.window_size + 1];
 
-    // TODO: bitmap with losses of non-final window
-    // TODO: bitmap without losses of non-final window
-    // TODO: bitmap with losses of final window, full size
-    // TODO: bitmap with losses of final window, smaller size
-    // TODO: bitmap without losses of final window, full size
-    // TODO: bitmap without losses of final window, smaller size
+    // Bitmap with losses of non-final window
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    s.nb_fragments = 14;
+    s.last_window = 1;
+    int ack_window_1 = 0;
+    char bitmap_1[] = "1001011";
 
-    return -1
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_1,
+            bitmap_1, bitmap_to_retransmit
+    ) == rule.window_size);
+    assert(strcmp(bitmap_to_retransmit, "1001011") == 0);
+
+    // Bitmap without losses of non-final window
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    int ack_window_2 = 0;
+    char bitmap_2[] = "1111111";
+
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_2,
+            bitmap_2, bitmap_to_retransmit
+    ) == -1);
+
+    // Bitmap with losses of final window, full size
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    int ack_window_3 = 1;
+    char bitmap_3[] = "1011001";
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_3,
+            bitmap_3, bitmap_to_retransmit
+    ) == rule.window_size - 1);
+    assert(strcmp(bitmap_to_retransmit, "101100") == 0);
+
+    // Bitmap without losses of final window, full size
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    int ack_window_4 = 1;
+    char bitmap_4[] = "1111111";
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_4,
+            bitmap_4, bitmap_to_retransmit
+    ) == -1);
+
+    // Bitmap with losses of final window, smaller size
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    s.nb_fragments = 12;
+    int ack_window_5 = 1;
+    char bitmap_5[] = "1011001";
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_5,
+            bitmap_5, bitmap_to_retransmit
+    ) == 4);
+    assert(strcmp(bitmap_to_retransmit, "1011") == 0);
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+
+    // Bitmap without losses of final window, smaller size
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    int ack_window_6 = 1;
+    char bitmap_6[] = "1111001";
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_6,
+            bitmap_6, bitmap_to_retransmit
+    ) == -1);
+
+    // Bitmap without losses of final window, minimum size
+    memset(bitmap_to_retransmit, '\0', rule.window_size + 1);
+    s.nb_fragments = 8;
+    int ack_window_7 = 1;
+    char bitmap_7[] = "0000001";
+    assert(get_bitmap_to_retransmit(
+            &s, &rule, ack_window_7,
+            bitmap_7, bitmap_to_retransmit
+    ) == -1);
+
+    return 0;
 }
 
 int main() {
