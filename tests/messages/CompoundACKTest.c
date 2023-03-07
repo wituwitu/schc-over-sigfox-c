@@ -77,9 +77,9 @@ int test_is_ack_receiver_abort() {
     char ra_bin[] =
             "0001111111111111000000000000000000000000000000000000000000000000";
     char ra_bytes[8];
-    bin_to_bytes(ra_bytes, ra_bin, 64);
+    bin_to_bytes(ra_bytes, ra_bin, DOWNLINK_MTU_BITS);
     CompoundACK receiver_abort;
-    strncpy(receiver_abort.message, ra_bytes, 8);
+    memcpy(receiver_abort.message, ra_bytes, DOWNLINK_MTU_BYTES);
     Rule rule;
     init_rule_from_ack(&rule, &receiver_abort);
     assert(is_ack_receiver_abort(&rule, &receiver_abort));
@@ -87,9 +87,9 @@ int test_is_ack_receiver_abort() {
     char ack_bin[] =
             "0001110000000000000000000000000000000000000000000000000000000000";
     char ack_bytes[8];
-    bin_to_bytes(ack_bytes, ack_bin, 64);
+    bin_to_bytes(ack_bytes, ack_bin, DOWNLINK_MTU_BITS);
     CompoundACK ack;
-    strncpy(ack.message, ack_bytes, 8);
+    memcpy(ack.message, ack_bytes, DOWNLINK_MTU_BYTES);
     assert(!is_ack_receiver_abort(&rule, &ack));
 
     return 0;
@@ -99,9 +99,9 @@ int test_is_ack_compound() {
     char cack_bin[] =
             "0000001110001101110011111111001000000000000000000000000000000000";
     char cack_bytes[8];
-    bin_to_bytes(cack_bytes, cack_bin, 64);
+    bin_to_bytes(cack_bytes, cack_bin, DOWNLINK_MTU_BITS);
     CompoundACK cack;
-    strncpy(cack.message, cack_bytes, 8);
+    memcpy(cack.message, cack_bytes, DOWNLINK_MTU_BYTES);
     Rule rule;
     init_rule_from_ack(&rule, &cack);
     assert(is_ack_compound(&rule, &cack));
@@ -109,9 +109,9 @@ int test_is_ack_compound() {
     char ra_bin[] =
             "0001111111111111000000000000000000000000000000000000000000000000";
     char ra_bytes[8];
-    bin_to_bytes(ra_bytes, ra_bin, 64);
+    bin_to_bytes(ra_bytes, ra_bin, DOWNLINK_MTU_BITS);
     CompoundACK receiver_abort;
-    strncpy(receiver_abort.message, ra_bytes, 8);
+    memcpy(receiver_abort.message, ra_bytes, DOWNLINK_MTU_BYTES);
     assert(!is_ack_compound(&rule, &receiver_abort));
     assert(is_ack_receiver_abort(&rule, &receiver_abort));
 
@@ -122,9 +122,9 @@ int test_is_ack_complete() {
     char ack_bin[] =
             "0001110000000000000000000000000000000000000000000000000000000000";
     char ack_bytes[9] = "";
-    bin_to_bytes(ack_bytes, ack_bin, 64);
+    bin_to_bytes(ack_bytes, ack_bin, DOWNLINK_MTU_BITS);
     CompoundACK ack;
-    memcpy(ack.message, ack_bytes, 9);
+    memcpy(ack.message, ack_bytes, DOWNLINK_MTU_BYTES);
     Rule rule;
     init_rule_from_ack(&rule, &ack);
     assert(is_ack_complete(&rule, &ack));
@@ -136,9 +136,9 @@ int test_get_ack_nb_tuples() {
     char ack_bin[] =
             "0000001110001101110011111111001000000000000000000000000000000000";
     char ack_bytes[8] = "";
-    bin_to_bytes(ack_bytes, ack_bin, 64);
+    bin_to_bytes(ack_bytes, ack_bin, DOWNLINK_MTU_BITS);
     CompoundACK ack;
-    strncpy(ack.message, ack_bytes, 8);
+    memcpy(ack.message, ack_bytes, 8);
     Rule rule;
     init_rule_from_ack(&rule, &ack);
     assert(get_ack_nb_tuples(&rule, &ack) == 3);
@@ -146,9 +146,9 @@ int test_get_ack_nb_tuples() {
     char one_bin[] =
             "0001110000000000000000000000000000000000000000000000000000000000";
     char one_bytes[8] = "";
-    bin_to_bytes(one_bytes, one_bin, 64);
+    bin_to_bytes(one_bytes, one_bin, DOWNLINK_MTU_BITS);
     CompoundACK one;
-    strncpy(one.message, one_bytes, 8);
+    memcpy(one.message, one_bytes, 8);
     assert(get_ack_nb_tuples(&rule, &one) == 1);
 
     return 0;
@@ -160,9 +160,9 @@ int test_get_ack_tuples() {
     char ack_bin[] =
             "0000001110001101110011111111001000000000000000000000000000000000";
     char ack_bytes[8] = "";
-    bin_to_bytes(ack_bytes, ack_bin, 64);
+    bin_to_bytes(ack_bytes, ack_bin, DOWNLINK_MTU_BITS);
     CompoundACK ack;
-    strncpy(ack.message, ack_bytes, 8);
+    memcpy(ack.message, ack_bytes, DOWNLINK_MTU_BYTES);
     Rule rule;
     init_rule_from_ack(&rule, &ack);
 
@@ -184,9 +184,9 @@ int test_get_ack_tuples() {
     char complete_ack_bin[] =
             "0001110000000000000000000000000000000000000000000000000000000000";
     char complete_ack_bytes[8] = "";
-    bin_to_bytes(complete_ack_bytes, complete_ack_bin, 64);
+    bin_to_bytes(complete_ack_bytes, complete_ack_bin, DOWNLINK_MTU_BITS);
     CompoundACK complete_ack;
-    strncpy(complete_ack.message, complete_ack_bytes, 8);
+    memcpy(complete_ack.message, complete_ack_bytes, DOWNLINK_MTU_BYTES);
 
     int complete_nb_tuples = get_ack_nb_tuples(&rule, &complete_ack);
     char complete_windows[complete_nb_tuples][rule.m + 1];
@@ -233,9 +233,9 @@ int test_generate_receiver_abort() {
     get_ack_c(&rule, &receiver_abort, c);
     char as_bin[UPLINK_MTU_BITS + 1];
     ack_to_bin(&receiver_abort, as_bin);
-    strncpy(padding, as_bin + padding_idx, padding_size);
+    memcpy(padding, as_bin + padding_idx, padding_size);
     padding[padding_size] = '\0';
-    strncpy(after_padding, as_bin + after_padding_idx, after_padding_size);
+    memcpy(after_padding, as_bin + after_padding_idx, after_padding_size);
     after_padding[after_padding_size] = '\0';
 
     assert(is_ack_receiver_abort(&rule, &receiver_abort));

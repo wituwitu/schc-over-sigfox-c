@@ -1,5 +1,6 @@
 #include "sigfox_socket.h"
 #include "fr_procedure.h"
+#include "fifo_queue.h"
 
 #ifndef SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
 #define SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
@@ -11,8 +12,9 @@ typedef struct {
     int nb_fragments;
     int last_window;
     SigfoxClient socket;
-    Fragment *transmission_q;
-    Fragment *retransmission_q;
+    Fragment *fragments;
+    FIFOQueue transmission_q;
+    FIFOQueue retransmission_q;
     int rt;
     int ul_loss_rate;
     int dl_loss_rate;
@@ -72,17 +74,35 @@ void update_rt(SCHCSender *s);
 void update_timeout(SCHCSender *s, Rule *rule, Fragment *frg);
 
 /*
- * Function:  update_queues
+ * Function:  get_bitmap_to_retransmit
  * --------------------
- * Updates the transmission and retransmission queues with information of
- * the current state of the SCHC transmission, provided by the SCHC Fragment
- * just sent and the ACK received.
+ * Obtains the bitmap used to identify lost fragments.
+ *
+ * Returns the size of said bitmap, or -1 if no fragment is reported missing
+ * in the bitmap.
+ *
+ *  s: SCHCSender structure that controls the communication.
+ *  rule: Rule used to process the communication.
+ *  ack_window: Number of the window the bitmap corresponds to.
+ *  bitmap: Bitmap being processed.
+ *  dest: Where to store the resulting bitmap.
+ */
+int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
+                             char bitmap[], char dest[]);
+
+/*
+ * Function:  update_rt_queue
+ * --------------------
+ * Updates the retransmission queue using information of the current state of
+ * the SCHC transmission, provided by the SCHC Fragment just sent and the
+ * ACK received.
  *
  *  s: SCHCSender structure that controls the communication.
  *  frg: Fragment just sent.
  *  ack: CompoundACK just received.
  */
-int update_queues(SCHCSender *s, Fragment *frg, CompoundACK *ack);
+void
+update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack);
 
 /*
  * Function:  schc

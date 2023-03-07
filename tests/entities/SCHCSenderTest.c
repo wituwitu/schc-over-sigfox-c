@@ -130,11 +130,29 @@ int update_timeout_test() {
     return 0;
 }
 
+int get_bitmap_to_retransmit_test() {
+    SCHCSender s;
+    init_sender(&s);
+    Rule rule;
+    init_rule(&rule, "000");
+
+    // TODO: bitmap with losses of non-final window
+    // TODO: bitmap without losses of non-final window
+    // TODO: bitmap with losses of final window, full size
+    // TODO: bitmap with losses of final window, smaller size
+    // TODO: bitmap without losses of final window, full size
+    // TODO: bitmap without losses of final window, smaller size
+
+    return -1
+}
+
 int main() {
     printf("%d init_sender_test\n", init_sender_test());
     //printf("%d schc_send_test\n", schc_send_test());
     //printf("%d schc_recv_test\n", schc_recv_test());
     printf("%d update_rt_test\n", update_rt_test());
     printf("%d update_timeout_test\n", update_timeout_test());
+    printf("%d get_bitmap_to_retransmit_test\n",
+           get_bitmap_to_retransmit_test());
     return 0;
 }

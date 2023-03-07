@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "schc_sender.h"
+#include "casting.h"
+#include "misc.h"
+#include "fifo_queue.h"
 
 void init_sender(SCHCSender *s) {
     s->attempts = 0;
@@ -50,5 +53,68 @@ void update_timeout(SCHCSender *s, Rule *rule, Fragment *frg) {
         sgfx_client_set_timeout(&s->socket, RETRANSMISSION_TIMEOUT);
     } else {
         sgfx_client_set_timeout(&s->socket, 60);
+    }
+}
+
+int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
+                             char bitmap[], char dest[]) {
+    int frgs_arent_missing;
+    int bitmap_sz;
+
+    if (ack_window != s->last_window) {
+        bitmap_sz = rule->window_size;
+        frgs_arent_missing = is_monochar(bitmap, '1');
+        strncpy(dest, bitmap, rule->window_size);
+    } else {
+        bitmap_sz = (s->nb_fragments - 1) % rule->window_size;
+        char bitmap_last[bitmap_sz + 1];
+        strncpy(bitmap_last, bitmap, bitmap_sz);
+        bitmap_last[bitmap_sz] = '\0';
+
+        int only_has_all1 = strcmp(bitmap_last, "") == 0 &&
+                            bitmap[rule->window_size - 1] == '1';
+        int is_ones = is_monochar(bitmap_last, '1');
+        frgs_arent_missing = only_has_all1 && is_ones;
+        strncpy(dest, bitmap_last, bitmap_sz);
+    }
+
+    return frgs_arent_missing ? -1 : bitmap_sz;
+}
+
+void
+update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack) {
+    int nb_tuples = get_ack_nb_tuples(rule, ack);
+    char windows[nb_tuples][rule->m + 1];
+    char bitmaps[nb_tuples][rule->window_size + 1];
+    get_ack_tuples(rule, ack, nb_tuples, windows, bitmaps);
+
+    for (int i = 0; i < nb_tuples + 1; i++) {
+        int nb_ack_window = bin_to_int(windows[i]);
+        char bitmap[rule->window_size + 1];
+        strncpy(bitmap, bitmaps[i], rule->window_size);
+        bitmap[rule->window_size] = '\0';
+
+        char bitmap_to_retransmit[rule->window_size + 1];
+        memset(bitmap_to_retransmit, '\0', rule->window_size + 1);
+
+        int bitmap_sz = get_bitmap_to_retransmit(s, rule, nb_ack_window, bitmap,
+                                                 bitmap_to_retransmit);
+        if (bitmap_sz < 0) {
+            Fragment sender_abort;
+            generate_sender_abort(rule, frg, &sender_abort);
+            fq_write(&s->transmission_q, &sender_abort);
+            return;
+        }
+
+        for (int j = 0; j < bitmap_sz; j++) {
+            if (bitmap_to_retransmit[j] == '0') {
+                int idx = rule->window_size * nb_ack_window + j;
+                fq_write(&s->retransmission_q, &s->fragments[idx]);
+            }
+        }
+    }
+
+    if (is_frg_all_1(rule, frg)) {
+        fq_write(&s->transmission_q, frg);
     }
 }
