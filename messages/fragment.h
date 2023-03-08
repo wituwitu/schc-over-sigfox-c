@@ -229,3 +229,14 @@ void generate_null_frg(Fragment *dest);
  *  frg: the Fragment to check.
  */
 int is_frg_null(Fragment *frg);
+
+/*
+ * Function:  get_frg_idx
+ * --------------------
+ * Obtains the index of a fragment in an array of Fragments ordered by
+ * window and FCN, usually the result of the fragmentation process.
+ *
+ *  rule: the Rule struct used to process the Fragment.
+ *  frg: the Fragment to check.
+ */
+int get_frg_idx(Rule *rule, Fragment *frg);

@@ -459,6 +459,26 @@ int test_is_fragment_null() {
     return 0;
 }
 
+int test_get_frg_idx() {
+
+    Rule rule;
+    init_rule(&rule, "000");
+
+    // Normal fragment
+    Fragment fragment = {"\x15\x88\x88\x88", 4};
+    assert(get_frg_idx(&rule, &fragment) == 15);
+
+    // All-0 fragment
+    Fragment all0 = {"\x00\x00\x00\x00", 4};
+    assert(get_frg_idx(&rule, &all0) == 6);
+
+    // All-1 fragment
+    Fragment all1 = {"\027\200DD", 4};
+    assert(get_frg_idx(&rule, &all1) == 17);
+
+    return 0;
+}
+
 int main() {
     printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
     printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
@@ -482,6 +502,7 @@ int main() {
     printf("%d test_generate_fragment\n", test_generate_fragment());
     printf("%d test_generate_null_fragment\n", test_generate_null_fragment());
     printf("%d test_is_fragment_null\n", test_is_fragment_null());
+    printf("%d test_get_frg_idx\n", test_get_frg_idx());
 
     return 0;
 }

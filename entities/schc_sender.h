@@ -96,12 +96,13 @@ int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
  * Updates the retransmission queue using information of the current state of
  * the SCHC transmission, provided by the SCHC Fragment just sent and the
  * ACK received.
+ * Returns -1 on errors.
  *
  *  s: SCHCSender structure that controls the communication.
  *  frg: Fragment just sent.
  *  ack: CompoundACK just received.
  */
-void
+int
 update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack);
 
 /*

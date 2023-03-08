@@ -86,7 +86,6 @@ int update_rt_test() {
     int nb_frgs = get_nb_fragments(&rule, size);
     Fragment fragments[nb_frgs + 1];
     fragment(&rule, fragments, schc_packet, size);
-    generate_null_frg(&fragments[nb_frgs]);
 
     fq_construct(&s.retransmission_q, nb_frgs + 1);
 
@@ -213,6 +212,143 @@ int get_bitmap_to_retransmit_test() {
     return 0;
 }
 
+int update_rt_queue_test() {
+
+    SCHCSender s;
+    init_sender(&s);
+    Rule rule;
+    init_rule(&rule, "000");
+
+    fq_construct(&s.transmission_q, rule.max_fragment_number + 1);
+    fq_construct(&s.retransmission_q, rule.max_fragment_number + 1);
+
+    // Fragment a SCHC Packet
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    int nb_frgs = get_nb_fragments(&rule, size);
+    Fragment fragments[nb_frgs + 1];
+    fragment(&rule, fragments, schc_packet, size);
+    s.fragments = fragments;
+    s.nb_fragments = nb_frgs;
+    s.last_window = 3;
+
+    // --------- All-0 fragment (window "10") ---------
+    char all0_bin[] = "0001000000000000000000000000000000000000";
+    Fragment all0;
+    all0.byte_size = bin_to_bytes(all0.message, all0_bin, 40);
+
+    // Get ACK
+    char ack1_bin[] =
+            "0000001110001101110011111111001000000000000000000000000000000000";
+    char ack1_bytes[8] = "";
+    bin_to_bytes(ack1_bytes, ack1_bin, DOWNLINK_MTU_BITS);
+    CompoundACK ack1;
+    memcpy(ack1.message, ack1_bytes, DOWNLINK_MTU_BYTES);
+
+    // Trigger error (ACK reported greater window)
+    assert(update_rt_queue(&s, &rule, &all0, &ack1) == -1);
+
+    // Get ACK
+    char ack2_bin[] =
+            "0000001110001101110011000000000000000000000000000000000000000000";
+    char ack2_bytes[8] = "";
+    bin_to_bytes(ack2_bytes, ack2_bin, DOWNLINK_MTU_BITS);
+    CompoundACK ack2;
+    memcpy(ack2.message, ack2_bytes, DOWNLINK_MTU_BYTES);
+
+    // Update RT queue
+    assert(update_rt_queue(&s, &rule, &all0, &ack2) == 0);
+
+    // Check fragments in RT queue
+    int i = 0;
+    while (!fq_is_empty(&s.retransmission_q)) {
+        void *rd = fq_read(&s.retransmission_q);
+        if (rd == NULL) {
+            break;
+        }
+
+        Fragment *ptr = (Fragment *) rd;
+        int idx = get_frg_idx(&rule, ptr);
+
+        Fragment lost = fragments[idx];
+
+        assert(memcmp(ptr->message, lost.message, ptr->byte_size) == 0);
+        assert(ptr->byte_size == lost.byte_size);
+        i++;
+    }
+    assert(i == 5);
+    assert(fq_is_empty(&s.retransmission_q));
+
+    // --------- All-1 fragment ---------
+    Fragment all1 = {"\x1F\200DD", 4};
+    assert(is_frg_all_1(&rule, &all1));
+
+    // Get ACK
+    char ack3_bin[] =
+            "0000001110001101110011111111001000000000000000000000000000000000";
+    char ack3_bytes[8] = "";
+    bin_to_bytes(ack3_bytes, ack3_bin, DOWNLINK_MTU_BITS);
+    CompoundACK ack3;
+    memcpy(ack3.message, ack3_bytes, DOWNLINK_MTU_BYTES);
+
+    // Update RT queue
+    assert(update_rt_queue(&s, &rule, &all1, &ack3) == 0);
+
+    // Check fragments in RT queue
+    int j = 0;
+    while (!fq_is_empty(&s.retransmission_q)) {
+        void *rd = fq_read(&s.retransmission_q);
+        if (rd == NULL) {
+            break;
+        }
+
+        Fragment *ptr = (Fragment *) rd;
+        int idx = get_frg_idx(&rule, ptr);
+
+        Fragment lost = fragments[idx];
+
+        assert(memcmp(ptr->message, lost.message, ptr->byte_size) == 0);
+        assert(ptr->byte_size == lost.byte_size);
+        j++;
+    }
+    assert(j == 7);
+    assert(fq_is_empty(&s.retransmission_q));
+
+    // Check if All-1 was queued
+    assert(!fq_is_empty(&s.transmission_q));
+    Fragment *get = (Fragment *) fq_read(&s.transmission_q);
+    assert(is_frg_all_1(&rule, get));
+    assert(fq_is_empty(&s.transmission_q));
+
+    // --------- No missing tile at receiver ---------
+
+    // Get ACK
+    char ack4_bin[] =
+            "0000001111111000000000000000000000000000000000000000000000000000";
+    char ack4_bytes[8] = "";
+    bin_to_bytes(ack4_bytes, ack4_bin, DOWNLINK_MTU_BITS);
+    CompoundACK ack4;
+    memcpy(ack4.message, ack4_bytes, DOWNLINK_MTU_BYTES);
+
+    // Update RT queue
+    assert(update_rt_queue(&s, &rule, &all1, &ack4) == 0);
+
+    // Check RT queue
+    assert(fq_is_empty(&s.retransmission_q));
+
+    // Check T queue
+    assert(!fq_is_empty(&s.transmission_q));
+    Fragment *sa = (Fragment *) fq_read(&s.transmission_q);
+    assert(is_frg_sender_abort(&rule, sa));
+    assert(fq_is_empty(&s.transmission_q));
+
+    fq_destroy(&s.transmission_q);
+    fq_destroy(&s.retransmission_q);
+
+    return 0;
+}
+
 int main() {
     printf("%d init_sender_test\n", init_sender_test());
     //printf("%d schc_send_test\n", schc_send_test());
@@ -221,5 +357,7 @@ int main() {
     printf("%d update_timeout_test\n", update_timeout_test());
     printf("%d get_bitmap_to_retransmit_test\n",
            get_bitmap_to_retransmit_test());
+    printf("%d update_rt_queue_test\n", update_rt_queue_test());
+
     return 0;
 }

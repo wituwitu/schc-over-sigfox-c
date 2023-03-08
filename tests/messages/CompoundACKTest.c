@@ -151,6 +151,14 @@ int test_get_ack_nb_tuples() {
     memcpy(one.message, one_bytes, 8);
     assert(get_ack_nb_tuples(&rule, &one) == 1);
 
+    char two_bin[] =
+            "0000001110001101110011000000000000000000000000000000000000000000";
+    char two_bytes[8] = "";
+    bin_to_bytes(two_bytes, two_bin, DOWNLINK_MTU_BITS);
+    CompoundACK two;
+    memcpy(two.message, two_bytes, DOWNLINK_MTU_BYTES);
+    assert(get_ack_nb_tuples(&rule, &two) == 2);
+
     return 0;
 }
 
@@ -178,6 +186,28 @@ int test_get_ack_tuples() {
     for (int i = 0; i < nb_tuples; i++) {
         assert(strcmp(windows[i], windows_expected[i]) == 0);
         assert(strcmp(bitmaps[i], bitmaps_expected[i]) == 0);
+    }
+
+    // Another
+    char ack2_bin[] =
+            "0000001110001101110011000000000000000000000000000000000000000000";
+    char ack2_bytes[8] = "";
+    bin_to_bytes(ack2_bytes, ack2_bin, DOWNLINK_MTU_BITS);
+    CompoundACK ack2;
+    memcpy(ack2.message, ack2_bytes, DOWNLINK_MTU_BYTES);
+
+    int nb_tuples2 = get_ack_nb_tuples(&rule, &ack2);
+    char windows2[nb_tuples2][rule.m + 1];
+    char bitmaps2[nb_tuples2][rule.window_size + 1];
+
+    get_ack_tuples(&rule, &ack2, nb_tuples2, windows2, bitmaps2);
+
+    char windows_expected2[3][3] = {"00", "10"};
+    char bitmaps_expected2[3][8] = {"1110001", "1110011"};
+
+    for (int i = 0; i < nb_tuples2; i++) {
+        assert(strcmp(windows2[i], windows_expected2[i]) == 0);
+        assert(strcmp(bitmaps2[i], bitmaps_expected2[i]) == 0);
     }
 
     // Tuples of complete ACK

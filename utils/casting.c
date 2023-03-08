@@ -23,8 +23,8 @@ void int_to_bin(char dest[], signed int src, int dest_size) {
     strncpy(dest, res + int_sz - dest_size, dest_size);
 }
 
-void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
-    unsigned int dest_size = src_size * 8;
+int bytes_to_bin(char *dest, const char *src, int src_size) {
+    int dest_size = src_size * 8;
     char bits[dest_size + 1];
     char *p = bits;
 
@@ -42,10 +42,11 @@ void bytes_to_bin(char *dest, const char *src, unsigned int src_size) {
 
     bits[dest_size] = '\0';
     memcpy(dest, bits, dest_size);
+    return dest_size;
 }
 
-void bin_to_bytes(char *dest, char *src, unsigned int src_size) {
-    unsigned int dest_size = src_size / 8;
+int bin_to_bytes(char *dest, char *src, int src_size) {
+    int dest_size = src_size / 8;
     memset(dest, '\0', dest_size + 1);
     char bytes[dest_size + 1];
     char *p = src;
@@ -59,4 +60,5 @@ void bin_to_bytes(char *dest, char *src, unsigned int src_size) {
     }
     bytes[i] = '\0';
     memcpy(dest, bytes, dest_size);
+    return dest_size;
 }

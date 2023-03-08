@@ -243,3 +243,22 @@ int is_frg_null(Fragment *frg) {
     return memcmp(frg->message, empty, UPLINK_MTU_BYTES) == 0
            && frg->byte_size == 0;
 }
+
+int get_frg_idx(Rule *rule, Fragment *frg) {
+    char fcn[rule->n + 1];
+    char w[rule->m + 1];
+    get_frg_w(rule, frg, w);
+    int frg_wdw = bin_to_int(w);
+
+    int frg_nb;
+    if (is_frg_all_1(rule, frg)) {
+        char rcs[rule->u + 1];
+        get_frg_rcs(rule, frg, rcs);
+        frg_nb = bin_to_int(rcs) - 1;
+    } else {
+        get_frg_fcn(rule, frg, fcn);
+        frg_nb = rule->window_size - bin_to_int(fcn) - 1;
+    }
+
+    return rule->window_size * frg_wdw + frg_nb;
+}

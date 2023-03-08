@@ -89,7 +89,7 @@ void get_ack_tuples(Rule *rule, CompoundACK *ack, int nb_tuples,
 
     char *p = as_bin + rule->ack_indices.tuple_idx;
 
-    for (int i = 1; i <= nb_tuples; i++) {
+    for (int i = 1; i <= nb_tuples - 1; i++) {
         strncpy(windows[i], p, rule->m);
         strncpy(bitmaps[i], p + rule->m, rule->window_size);
         windows[i][rule->m] = '\0';
