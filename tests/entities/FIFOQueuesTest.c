@@ -44,7 +44,7 @@ int test_fq_write() {
     }
 
     for (int i = 0; i < queue_size; i++) {
-        int wr = fq_write(&q, (void *) &i_array[i]);
+        int wr = fq_put(&q, (void *) &i_array[i]);
         if (i == queue_size - 1) {
             assert(wr == -1);
             assert(q.tail == 0);
@@ -79,7 +79,7 @@ int test_fq_write() {
     fq_construct(&fq, fq_size);
 
     for (int i = 0; i < nb_fragments; i++) {
-        int wr = fq_write(&fq, (void *) &fragments[i]);
+        int wr = fq_put(&fq, (void *) &fragments[i]);
         assert(wr == 0);
         assert(fq.head == i + 1);
         assert(fq.tail == 0);
@@ -111,11 +111,11 @@ int test_fq_read() {
     }
 
     for (int i = 0; i < int_arr_len; i++) {
-        assert(fq_write(&q, (void *) &i_array[i]) == 0);
+        assert(fq_put(&q, (void *) &i_array[i]) == 0);
     }
 
     for (int i = 0; i < queue_size; i++) {
-        void *obj = fq_read(&q);
+        void *obj = fq_get(&q);
         if (i == queue_size - 1) {
             assert(obj == NULL);
         } else {
@@ -143,12 +143,12 @@ int test_fq_read() {
     fq_construct(&fq, fq_size);
 
     for (int i = 0; i < nb_fragments; i++) {
-        assert(fq_write(&fq, (void *) &fragments[i]) == 0);
+        assert(fq_put(&fq, (void *) &fragments[i]) == 0);
     }
 
     Fragment *p;
     for (int i = 0; i < nb_fragments; i++) {
-        p = (Fragment *) fq_read(&fq);
+        p = (Fragment *) fq_get(&fq);
         assert(memcmp(fragments[i].message, p->message,
                       fragments[i].byte_size) == 0);
         assert(fragments[i].byte_size == p->byte_size);
@@ -167,10 +167,10 @@ int test_fq_is_empty() {
     assert(fq_is_empty(&q));
 
     int a = 1;
-    fq_write(&q, (void *) &a);
+    fq_put(&q, (void *) &a);
     assert(!fq_is_empty(&q));
 
-    int *p = (int *) fq_read(&q);
+    int *p = (int *) fq_get(&q);
     assert(*p == a);
     assert(fq_is_empty(&q));
 
@@ -194,59 +194,59 @@ int test_routine() {
 
     int i = 0;
 
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i]) == -1);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i]) == -1);
     assert(i == 9);
 
-    assert(*(int *) fq_read(&q) == 0);
-    assert(*(int *) fq_read(&q) == 1);
-    assert(*(int *) fq_read(&q) == 2);
-    assert(*(int *) fq_read(&q) == 3);
-    assert(*(int *) fq_read(&q) == 4);
+    assert(*(int *) fq_get(&q) == 0);
+    assert(*(int *) fq_get(&q) == 1);
+    assert(*(int *) fq_get(&q) == 2);
+    assert(*(int *) fq_get(&q) == 3);
+    assert(*(int *) fq_get(&q) == 4);
 
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i]) == -1);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i]) == -1);
     assert(i == 14);
 
-    assert(*(int *) fq_read(&q) == 5);
-    assert(*(int *) fq_read(&q) == 6);
-    assert(*(int *) fq_read(&q) == 7);
-    assert(*(int *) fq_read(&q) == 8);
-    assert(*(int *) fq_read(&q) == 9);
-    assert(*(int *) fq_read(&q) == 10);
-    assert(*(int *) fq_read(&q) == 11);
-    assert(*(int *) fq_read(&q) == 12);
+    assert(*(int *) fq_get(&q) == 5);
+    assert(*(int *) fq_get(&q) == 6);
+    assert(*(int *) fq_get(&q) == 7);
+    assert(*(int *) fq_get(&q) == 8);
+    assert(*(int *) fq_get(&q) == 9);
+    assert(*(int *) fq_get(&q) == 10);
+    assert(*(int *) fq_get(&q) == 11);
+    assert(*(int *) fq_get(&q) == 12);
 
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
-    assert(fq_write(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
+    assert(fq_put(&q, &int_arr[i++]) == 0);
     assert(i == 21);
 
-    assert(*(int *) fq_read(&q) == 13);
-    assert(*(int *) fq_read(&q) == 14);
-    assert(*(int *) fq_read(&q) == 15);
-    assert(*(int *) fq_read(&q) == 16);
-    assert(*(int *) fq_read(&q) == 17);
-    assert(*(int *) fq_read(&q) == 18);
-    assert(*(int *) fq_read(&q) == 19);
-    assert(*(int *) fq_read(&q) == 20);
-    assert(fq_read(&q) == NULL);
+    assert(*(int *) fq_get(&q) == 13);
+    assert(*(int *) fq_get(&q) == 14);
+    assert(*(int *) fq_get(&q) == 15);
+    assert(*(int *) fq_get(&q) == 16);
+    assert(*(int *) fq_get(&q) == 17);
+    assert(*(int *) fq_get(&q) == 18);
+    assert(*(int *) fq_get(&q) == 19);
+    assert(*(int *) fq_get(&q) == 20);
+    assert(fq_get(&q) == NULL);
 
     assert(fq_is_empty(&q));
 

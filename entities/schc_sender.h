@@ -8,26 +8,37 @@
 #endif //SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
 
 typedef struct {
-    int attempts;
-    int nb_fragments;
-    int last_window;
     SigfoxClient socket;
     Fragment *fragments;
+    int nb_fragments;
+    int last_window;
     FIFOQueue transmission_q;
     FIFOQueue retransmission_q;
+    int attempts;
     int rt;
     int ul_loss_rate;
     int dl_loss_rate;
 } SCHCSender;
 
 /*
- * Function:  init_sender
+ * Function:  sender_construct
  * --------------------
  * Initializes the parameters of the SCHCSender structure.
+ * Returns -1 on errors.
  *
  *  s: SCHCSender structure to be initialized.
  */
-void init_sender(SCHCSender *s);
+int
+sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size);
+
+/*
+ * Function:  sender_destroy
+ * --------------------
+ * Frees the memory allocated for the SCHCSender structure.
+ *
+ *  s: SCHCSender structure to be destroyed.
+ */
+void sender_destroy(SCHCSender *s);
 
 /*
  * Function:  schc_send

@@ -17,7 +17,7 @@ int fq_is_empty(FIFOQueue *q) {
     return q->head == q->tail;
 }
 
-int fq_write(FIFOQueue *q, void *obj) {
+int fq_put(FIFOQueue *q, void *obj) {
     if (((q->head + 1) % q->size) == q->tail) {
         printf("Queue full.\n");
         return -1;
@@ -29,7 +29,7 @@ int fq_write(FIFOQueue *q, void *obj) {
     return 0;
 }
 
-void *fq_read(FIFOQueue *q) {
+void *fq_get(FIFOQueue *q) {
     if (fq_is_empty(q)) {
         printf("Queue empty.\n");
         return NULL;

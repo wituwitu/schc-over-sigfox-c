@@ -17,6 +17,11 @@ int get_nb_fragments(Rule *rule, int byte_size) {
     return res;
 }
 
+int get_nb_windows(Rule *rule, int byte_size) {
+    int nb_fragments = get_nb_fragments(rule, byte_size);
+    return ceil((double) nb_fragments / rule->window_size);
+}
+
 int fragment(Rule *rule, Fragment dest[],
              const char schc_packet[], int byte_size) {
     if (byte_size > rule->max_schc_packet_byte_size) {

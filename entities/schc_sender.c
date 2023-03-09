@@ -4,15 +4,36 @@
 #include "casting.h"
 #include "misc.h"
 
-// TODO: Receive SCHC Fragment in init() configuring all its parameters
-void init_sender(SCHCSender *s) {
-    s->attempts = 0;
-    s->nb_fragments = 0;
-    s->last_window = 0;
+int
+sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size) {
     sgfx_client_start(&s->socket);
+
+    s->nb_fragments = get_nb_fragments(rule, byte_size);
+    s->last_window = get_nb_windows(rule, byte_size);
+    s->fragments = malloc(sizeof(Fragment) * s->nb_fragments);
+
+    if (fragment(rule, s->fragments, schc_packet, byte_size) < 0) {
+        printf("Fragment procedure failed.\n");
+        return -1;
+    }
+
+    fq_construct(&s->transmission_q, s->nb_fragments + 1);
+    fq_construct(&s->retransmission_q, s->nb_fragments + 1);
+
+    s->attempts = 0;
     s->rt = 0;
     s->ul_loss_rate = UPLINK_LOSS_RATE;
     s->dl_loss_rate = DOWNLINK_LOSS_RATE;
+
+    return 0;
+}
+
+void sender_destroy(SCHCSender *s) {
+    sgfx_client_close(&s->socket);
+    free(s->fragments);
+    s->fragments = 0;
+    fq_destroy(&s->transmission_q);
+    fq_destroy(&s->retransmission_q);
 }
 
 ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg) {
@@ -111,20 +132,20 @@ update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack) {
             printf("Compound ACK reported no missing Fragment.\n");
             Fragment sender_abort;
             generate_sender_abort(rule, frg, &sender_abort);
-            fq_write(&s->transmission_q, &sender_abort);
+            fq_put(&s->transmission_q, &sender_abort);
             return 0;
         }
 
         for (int j = 0; j < bitmap_sz; j++) {
             if (bitmap_to_retransmit[j] == '0') {
                 int idx = rule->window_size * nb_ack_window + j;
-                fq_write(&s->retransmission_q, &s->fragments[idx]);
+                fq_put(&s->retransmission_q, &s->fragments[idx]);
             }
         }
     }
 
     if (is_frg_all_1(rule, frg)) {
-        fq_write(&s->transmission_q, frg);
+        fq_put(&s->transmission_q, frg);
     }
 
     return 0;

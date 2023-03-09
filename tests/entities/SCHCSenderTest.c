@@ -5,21 +5,69 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <malloc.h>
 
-int init_sender_test() {
+int test_sender_construct() {
+    // Generate a SCHC Packet
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+
+    // Init rule
+    Rule rule;
+    init_rule(&rule, "000");
+
     SCHCSender s;
-    init_sender(&s);
-    assert(s.attempts == 0);
-    assert(s.nb_fragments == 0);
-    assert(s.last_window == 0);
+    sender_construct(&s, &rule, schc_packet, size);
+
     assert(s.socket.seqnum == 0);
+    assert(s.nb_fragments == 28);
+    assert(s.last_window == 4);
+    assert(s.fragments != NULL);
+
+    for (int i = 0; i < s.nb_fragments; i++) {
+        if (is_frg_all_1(&rule, &s.fragments[i])) {
+            assert(i == 27);
+            assert(s.fragments[i].byte_size == 5);
+        } else {
+            assert(s.fragments[i].byte_size == 12);
+        }
+    }
+
+    assert(fq_is_empty(&s.transmission_q));
+    assert(fq_is_empty(&s.retransmission_q));
+    assert(s.attempts == 0);
     assert(s.rt == 0);
     assert(s.ul_loss_rate == UPLINK_LOSS_RATE);
     assert(s.dl_loss_rate == DOWNLINK_LOSS_RATE);
 
+    // Free memory
+    fq_destroy(&s.transmission_q);
+    fq_destroy(&s.retransmission_q);
+    free(s.fragments);
+
     return 0;
 }
 
+int test_sender_destroy() {
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    Rule rule;
+    init_rule(&rule, "000");
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
+
+    sender_destroy(&s);
+    assert(sgfx_client_send(&s.socket, "test", 4) == -1);
+    assert(s.fragments == NULL);
+    assert(s.transmission_q.objs == NULL);
+    assert(s.retransmission_q.objs == NULL);
+
+    return 0;
+}
+
+/*
 int schc_send_test() {
     SCHCSender s;
     init_sender(&s);
@@ -73,21 +121,15 @@ int schc_recv_test() {
 
     return 0;
 }
-
+*/
 int update_rt_test() {
-    SCHCSender s;
-    init_sender(&s);
-    Rule rule;
-    init_rule(&rule, "000");
-
     int size = 11;
     char schc_packet[size];
     generate_packet(schc_packet, size);
-    int nb_frgs = get_nb_fragments(&rule, size);
-    Fragment fragments[nb_frgs + 1];
-    fragment(&rule, fragments, schc_packet, size);
-
-    fq_construct(&s.retransmission_q, nb_frgs + 1);
+    Rule rule;
+    init_rule(&rule, "000");
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
 
     // Empty retransmission queue
     assert(s.rt == 0);
@@ -95,21 +137,20 @@ int update_rt_test() {
     assert(s.rt == 0);
 
     // Non empty retransmission queue
-    fq_write(&s.retransmission_q, &fragments[0]);
+    fq_put(&s.retransmission_q, &s.fragments[0]);
     assert(s.rt == 0);
     update_rt(&s);
     assert(s.rt == 1);
 
-    fq_destroy(&s.retransmission_q);
-
+    sender_destroy(&s);
     return 0;
 }
 
 int update_timeout_test() {
-    SCHCSender s;
-    init_sender(&s);
     Rule rule;
     init_rule(&rule, "000");
+    SCHCSender s;
+    sender_construct(&s, &rule, "SCHCPACKET", 10);
 
     // Normal fragment
     Fragment fragment = {"\x15\x88\x88\x88", 4};
@@ -126,14 +167,15 @@ int update_timeout_test() {
     update_timeout(&s, &rule, &all_1);
     assert(s.socket.timeout == RETRANSMISSION_TIMEOUT);
 
+    sender_destroy(&s);
     return 0;
 }
 
 int get_bitmap_to_retransmit_test() {
-    SCHCSender s;
-    init_sender(&s);
     Rule rule;
     init_rule(&rule, "000");
+    SCHCSender s;
+    sender_construct(&s, &rule, "SCHCPACKET", 10);
     char bitmap_to_retransmit[rule.window_size + 1];
 
     // Bitmap with losses of non-final window
@@ -209,18 +251,13 @@ int get_bitmap_to_retransmit_test() {
             bitmap_7, bitmap_to_retransmit
     ) == -1);
 
+    sender_destroy(&s);
     return 0;
 }
 
 int update_rt_queue_test() {
-
-    SCHCSender s;
-    init_sender(&s);
     Rule rule;
     init_rule(&rule, "000");
-
-    fq_construct(&s.transmission_q, rule.max_fragment_number + 1);
-    fq_construct(&s.retransmission_q, rule.max_fragment_number + 1);
 
     // Fragment a SCHC Packet
     int size = 300;
@@ -229,9 +266,9 @@ int update_rt_queue_test() {
     int nb_frgs = get_nb_fragments(&rule, size);
     Fragment fragments[nb_frgs + 1];
     fragment(&rule, fragments, schc_packet, size);
-    s.fragments = fragments;
-    s.nb_fragments = nb_frgs;
-    s.last_window = 3;
+
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
 
     // --------- All-0 fragment (window "10") ---------
     char all0_bin[] = "0001000000000000000000000000000000000000";
@@ -263,7 +300,7 @@ int update_rt_queue_test() {
     // Check fragments in RT queue
     int i = 0;
     while (!fq_is_empty(&s.retransmission_q)) {
-        void *rd = fq_read(&s.retransmission_q);
+        void *rd = fq_get(&s.retransmission_q);
         if (rd == NULL) {
             break;
         }
@@ -298,7 +335,7 @@ int update_rt_queue_test() {
     // Check fragments in RT queue
     int j = 0;
     while (!fq_is_empty(&s.retransmission_q)) {
-        void *rd = fq_read(&s.retransmission_q);
+        void *rd = fq_get(&s.retransmission_q);
         if (rd == NULL) {
             break;
         }
@@ -317,7 +354,7 @@ int update_rt_queue_test() {
 
     // Check if All-1 was queued
     assert(!fq_is_empty(&s.transmission_q));
-    Fragment *get = (Fragment *) fq_read(&s.transmission_q);
+    Fragment *get = (Fragment *) fq_get(&s.transmission_q);
     assert(is_frg_all_1(&rule, get));
     assert(fq_is_empty(&s.transmission_q));
 
@@ -339,18 +376,18 @@ int update_rt_queue_test() {
 
     // Check T queue
     assert(!fq_is_empty(&s.transmission_q));
-    Fragment *sa = (Fragment *) fq_read(&s.transmission_q);
+    Fragment *sa = (Fragment *) fq_get(&s.transmission_q);
     assert(is_frg_sender_abort(&rule, sa));
     assert(fq_is_empty(&s.transmission_q));
 
-    fq_destroy(&s.transmission_q);
-    fq_destroy(&s.retransmission_q);
+    sender_destroy(&s);
 
     return 0;
 }
 
 int main() {
-    printf("%d init_sender_test\n", init_sender_test());
+    printf("%d test_sender_construct\n", test_sender_construct());
+    printf("%d test_sender_destroy\n", test_sender_destroy());
     //printf("%d schc_send_test\n", schc_send_test());
     //printf("%d schc_recv_test\n", schc_recv_test());
     printf("%d update_rt_test\n", update_rt_test());
