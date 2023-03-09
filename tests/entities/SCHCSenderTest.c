@@ -22,7 +22,7 @@ int test_sender_construct() {
 
     assert(s.socket.seqnum == 0);
     assert(s.nb_fragments == 28);
-    assert(s.last_window == 4);
+    assert(s.last_window == 3);
     assert(s.fragments != NULL);
 
     for (int i = 0; i < s.nb_fragments; i++) {

@@ -17,7 +17,7 @@ extern const int L2_WORD_SIZE;
 extern int DELAY_BETWEEN_FRAGMENTS;
 
 // Sender config
-extern int ENABLE_MAX_ACK_REQUESTS;
+extern int DISABLE_MAX_ACK_REQUESTS;
 extern int UPLINK_LOSS_RATE;
 extern int DOWNLINK_LOSS_RATE;
 

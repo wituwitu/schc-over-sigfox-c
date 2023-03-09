@@ -7,6 +7,7 @@
 
 typedef struct {
     char message[DOWNLINK_MTU_BYTES];
+    int byte_size;
 } CompoundACK;
 
 /*

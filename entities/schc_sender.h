@@ -7,6 +7,10 @@
 
 #endif //SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
 
+#define SCHC_SENDER_ABORTED 1
+#define SCHC_RECEIVER_ABORTED 2
+#define SCHC_COMPLETED 3
+
 typedef struct {
     SigfoxClient socket;
     Fragment *fragments;
@@ -39,29 +43,6 @@ sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size);
  *  s: SCHCSender structure to be destroyed.
  */
 void sender_destroy(SCHCSender *s);
-
-/*
- * Function:  schc_send
- * --------------------
- * Sends a SCHC Fragment towards the receiver end. Returns -1 on errors.
- *
- *  s: SCHCSender structure that controls the communication.
- *  rule: Rule used to process the communication.
- *  frg: Fragment to be sent.
- */
-ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg);
-
-/*
- * Function:  schc_recv
- * --------------------
- * Waits for a response from the SCHC Receiver. If a response is obtained,
- * it is parsed as a CompoundACK. Returns the number of bytes received.
- * If no response is obtained, returns -1.
- *
- *  s: SCHCSender structure that controls the communication.
- *  rule: Rule used to process the communication.
- */
-ssize_t schc_recv(SCHCSender *s, Rule *rule, CompoundACK *dest);
 
 /*
  * Function:  update_rt
@@ -117,12 +98,37 @@ int
 update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack);
 
 /*
+ * Function:  schc_send
+ * --------------------
+ * Sends a SCHC Fragment towards the receiver end. Returns -1 on errors.
+ *
+ *  s: SCHCSender structure that controls the communication.
+ *  rule: Rule used to process the communication.
+ *  frg: Fragment to be sent.
+ */
+ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg);
+
+/*
+ * Function:  schc_recv
+ * --------------------
+ * Waits for a response from the SCHC Receiver. If a response is obtained,
+ * it is parsed as a CompoundACK. Returns the number of bytes received.
+ * If no response is obtained, returns -1.
+ *
+ *  s: SCHCSender structure that controls the communication.
+ *  dest: CompoundACK structure where to store the informacion.
+ */
+ssize_t schc_recv(SCHCSender *s, CompoundACK *dest);
+
+/*
  * Function:  schc
  * --------------------
  * Performs the SCHC Sender behavior to send a single SCHC Fragment and update
  * internal variables.
- * Returns -1 on errors, such as sending a Sender-Abort, receiving a
- * Receiver-Abort or a network timeout.
+ * Returns -1 on network errors.
+ * Returns SCHC_SENDER_ABORTED on sending a Sender-Abort.
+ * Returns SCHC_RECEIVER_ABORTED on receiving a Receiver-Abort.
+ * Returns SCHC_COMPLETED on receving a complete ACK.
  *
  *  s: SCHCSender structure that controls the communication.
  *  rule: Rule used to process the communication.

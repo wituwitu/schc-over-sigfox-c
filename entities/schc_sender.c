@@ -9,7 +9,7 @@ sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size) {
     sgfx_client_start(&s->socket);
 
     s->nb_fragments = get_nb_fragments(rule, byte_size);
-    s->last_window = get_nb_windows(rule, byte_size);
+    s->last_window = get_nb_windows(rule, byte_size) - 1;
     s->fragments = malloc(sizeof(Fragment) * s->nb_fragments);
 
     if (fragment(rule, s->fragments, schc_packet, byte_size) < 0) {
@@ -34,31 +34,6 @@ void sender_destroy(SCHCSender *s) {
     s->fragments = 0;
     fq_destroy(&s->transmission_q);
     fq_destroy(&s->retransmission_q);
-}
-
-ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg) {
-    if (s->ul_loss_rate > 0
-        && !is_frg_sender_abort(rule, frg)
-        && random() % 101 < s->ul_loss_rate) {
-        s->socket.seqnum += 1;
-        printf("Fragment lost (rate)\n");
-        return frg->byte_size;
-    }
-    return sgfx_client_send(&s->socket, frg->message, frg->byte_size);
-}
-
-ssize_t schc_recv(SCHCSender *s, Rule *rule, CompoundACK *dest) {
-    if (!s->socket.expects_ack) return 0;
-
-    char received[DOWNLINK_MTU_BYTES];
-    ssize_t retval = sgfx_client_recv(&s->socket, received);
-    memcpy(dest->message, received, DOWNLINK_MTU_BYTES);
-
-    if (s->dl_loss_rate > 0 && random() % 101 < s->dl_loss_rate) {
-        printf("ACK lost (rate)\n");
-        return -1;
-    }
-    return retval;
 }
 
 void update_rt(SCHCSender *s) {
@@ -147,6 +122,99 @@ update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack) {
     if (is_frg_all_1(rule, frg)) {
         fq_put(&s->transmission_q, frg);
     }
+
+    return 0;
+}
+
+ssize_t schc_send(SCHCSender *s, Rule *rule, Fragment *frg) {
+    if (s->ul_loss_rate > 0
+        && !is_frg_sender_abort(rule, frg)
+        && random() % 101 < s->ul_loss_rate) {
+        s->socket.seqnum += 1;
+        printf("Fragment lost (rate)\n");
+        return frg->byte_size;
+    }
+    return sgfx_client_send(&s->socket, frg->message, frg->byte_size);
+}
+
+ssize_t schc_recv(SCHCSender *s, CompoundACK *dest) {
+    if (!s->socket.expects_ack) return 0;
+
+    char received[DOWNLINK_MTU_BYTES];
+    ssize_t retval = sgfx_client_recv(&s->socket, received);
+    memcpy(dest->message, received, DOWNLINK_MTU_BYTES);
+    dest->byte_size = (int) retval;
+
+    if (s->dl_loss_rate > 0 && random() % 101 < s->dl_loss_rate) {
+        printf("ACK lost (rate)\n");
+        return -1;
+    }
+    return retval;
+}
+
+int schc(SCHCSender *s, Rule *rule, Fragment *frg) {
+    if (is_frg_all_1(rule, frg)) s->attempts += 1;
+    update_timeout(s, rule, frg);
+    int enable_recv = frg_expects_ack(rule, frg) && !s->rt;
+    sgfx_client_set_reception(&s->socket, enable_recv);
+
+    if (schc_send(s, rule, frg) < 0) {
+        if (is_frg_all_1(rule, frg)) {
+            printf("ACK-REQ attempts: %d\n", s->attempts);
+            if (s->attempts >= MAX_ACK_REQUESTS && !DISABLE_MAX_ACK_REQUESTS) {
+                printf("MAX_ACK_REQUESTS reached.\n");
+                Fragment sa;
+                generate_sender_abort(rule, frg, &sa);
+                fq_put(&s->transmission_q, &sa);
+            } else {
+                printf("All-1 timeout reached. Sending ACK-REQ again.\n");
+                fq_put(&s->transmission_q, frg);
+            }
+        } else if (is_frg_all_0(rule, frg)) {
+            printf("All-0 timeout reached. Proceeding to next window.\n");
+        } else {
+            printf("Timeout reached at regular fragment.\n");
+            return -1;
+        }
+        return 0;
+    }
+
+    CompoundACK ack;
+    if (enable_recv) {
+        schc_recv(s, &ack);
+    } else {
+        ack.byte_size = 0;
+    }
+
+    update_rt(s);
+
+    if (is_frg_sender_abort(rule, frg)) {
+        printf("Sender-Abort sent.\n");
+        return SCHC_SENDER_ABORTED;
+    }
+
+    if (!frg_expects_ack(rule, frg) || ack.byte_size == 0) return 0;
+
+    printf("ACK received.\n");
+    s->attempts = 0;
+
+    if (is_ack_receiver_abort(rule, &ack)) {
+        printf("Receiver-Abort received.\n");
+        return SCHC_RECEIVER_ABORTED;
+    }
+
+    char ack_wdw[rule->m + 1];
+    get_ack_w(rule, &ack, ack_wdw);
+
+    if (is_frg_all_1(rule, frg)
+        && bin_to_int(ack_wdw) == s->last_window
+        && is_ack_complete(rule, &ack)) {
+        printf("Complete ACK received. End of transmission.\n");
+        return SCHC_COMPLETED;
+    }
+
+    update_rt_queue(s, rule, frg, &ack);
+    update_rt(s);
 
     return 0;
 }

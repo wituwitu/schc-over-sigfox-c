@@ -13,7 +13,7 @@ const int L2_WORD_SIZE = 8;
 int DELAY_BETWEEN_FRAGMENTS = 10; /* in seconds */
 
 /* Sender config */
-int ENABLE_MAX_ACK_REQUESTS = 1;
+int DISABLE_MAX_ACK_REQUESTS = 1;
 int UPLINK_LOSS_RATE = 0;
 int DOWNLINK_LOSS_RATE = 0;
 

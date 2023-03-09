@@ -183,5 +183,6 @@ void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest) {
     strncpy(ra_bin + rule->ack_header_length, padding, padding_size);
 
     memset(dest, '\0', sizeof(CompoundACK));
-    bin_to_bytes(dest->message, ra_bin, DOWNLINK_MTU_BITS);
+    int byte_size = bin_to_bytes(dest->message, ra_bin, DOWNLINK_MTU_BITS);
+    dest->byte_size = byte_size;
 }
