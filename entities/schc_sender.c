@@ -76,7 +76,7 @@ int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
 }
 
 int
-update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack) {
+update_queues(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack) {
     int nb_tuples = get_ack_nb_tuples(rule, ack);
     char windows[nb_tuples][rule->m + 1];
     char bitmaps[nb_tuples][rule->window_size + 1];
@@ -152,39 +152,33 @@ ssize_t schc_recv(SCHCSender *s, CompoundACK *dest) {
     return retval;
 }
 
+int timeout_procedure(SCHCSender *s, Rule *rule, Fragment *frg) {
+    if (is_frg_all_1(rule, frg)) {
+        printf("ACK-REQ attempts: %d\n", s->attempts);
+        if (s->attempts >= MAX_ACK_REQUESTS && !DISABLE_MAX_ACK_REQUESTS) {
+            printf("MAX_ACK_REQUESTS reached.\n");
+            generate_sender_abort(rule, frg, frg);
+            fq_put(&s->transmission_q, frg);
+        } else {
+            printf("All-1 timeout reached. Sending ACK-REQ again.\n");
+            fq_put(&s->transmission_q, frg);
+        }
+    } else if (is_frg_all_0(rule, frg)) {
+        printf("All-0 timeout reached. Proceeding to next window.\n");
+    } else {
+        printf("Timeout reached at regular fragment.\n");
+        return -1;
+    }
+    return 0;
+}
+
 int schc(SCHCSender *s, Rule *rule, Fragment *frg) {
     if (is_frg_all_1(rule, frg)) s->attempts += 1;
     update_timeout(s, rule, frg);
     int enable_recv = frg_expects_ack(rule, frg) && !s->rt;
     sgfx_client_set_reception(&s->socket, enable_recv);
 
-    if (schc_send(s, rule, frg) < 0) {
-        if (is_frg_all_1(rule, frg)) {
-            printf("ACK-REQ attempts: %d\n", s->attempts);
-            if (s->attempts >= MAX_ACK_REQUESTS && !DISABLE_MAX_ACK_REQUESTS) {
-                printf("MAX_ACK_REQUESTS reached.\n");
-                Fragment sa;
-                generate_sender_abort(rule, frg, &sa);
-                fq_put(&s->transmission_q, &sa);
-            } else {
-                printf("All-1 timeout reached. Sending ACK-REQ again.\n");
-                fq_put(&s->transmission_q, frg);
-            }
-        } else if (is_frg_all_0(rule, frg)) {
-            printf("All-0 timeout reached. Proceeding to next window.\n");
-        } else {
-            printf("Timeout reached at regular fragment.\n");
-            return -1;
-        }
-        return 0;
-    }
-
-    CompoundACK ack;
-    if (enable_recv) {
-        schc_recv(s, &ack);
-    } else {
-        ack.byte_size = 0;
-    }
+    if (schc_send(s, rule, frg) < 0) return timeout_procedure(s, rule, frg);
 
     update_rt(s);
 
@@ -193,7 +187,10 @@ int schc(SCHCSender *s, Rule *rule, Fragment *frg) {
         return SCHC_SENDER_ABORTED;
     }
 
-    if (!frg_expects_ack(rule, frg) || ack.byte_size == 0) return 0;
+    if (!enable_recv) return 0;
+
+    CompoundACK ack;
+    if (schc_recv(s, &ack) < 0) return timeout_procedure(s, rule, frg);
 
     printf("ACK received.\n");
     s->attempts = 0;
@@ -213,7 +210,7 @@ int schc(SCHCSender *s, Rule *rule, Fragment *frg) {
         return SCHC_COMPLETED;
     }
 
-    update_rt_queue(s, rule, frg, &ack);
+    update_queues(s, rule, frg, &ack);
     update_rt(s);
 
     return 0;

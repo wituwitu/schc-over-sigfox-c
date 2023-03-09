@@ -67,62 +67,7 @@ int test_sender_destroy() {
     return 0;
 }
 
-/*
-int schc_send_test() {
-    SCHCSender s;
-    init_sender(&s);
-    Rule rule;
-    init_rule(&rule, "000");
-
-    // Send fragment without loss
-    Fragment fragment = {"\x15\x88\x88\x88", 4};
-    assert(schc_send(&s, &rule, &fragment) == 4);
-    assert(s.socket.seqnum == 1);
-
-    // Send fragment with loss
-    s.ul_loss_rate = 100;
-    assert(schc_send(&s, &rule, &fragment) == 4);
-    assert(s.socket.seqnum == 2);
-
-    sleep(2);
-
-    return 0;
-}
-
-int schc_recv_test() {
-    SCHCSender s;
-    init_sender(&s);
-    Rule rule;
-    init_rule(&rule, "000");
-
-    // Send and recv fragment without loss
-    Fragment all_1 = {"\027\200DD", 4};
-    s.socket.expects_ack = 1;
-    schc_send(&s, &rule, &all_1);
-    CompoundACK ack_1;
-    assert(schc_recv(&s, &rule, &ack_1) == DOWNLINK_MTU_BYTES);
-    assert(memcmp(ack_1.message, "\x13\xc8\x00\x00\x00\x00\x00\x00",
-                  DOWNLINK_MTU_BYTES) == 0);
-
-    // Send and recv fragment with DL loss
-    s.dl_loss_rate = 100;
-    s.socket.timeout = 1;
-    CompoundACK ack_2;
-    schc_send(&s, &rule, &all_1);
-    assert(schc_recv(&s, &rule, &ack_2) == -1);
-
-    // Send and recv fragment without expecting it
-    Fragment fragment = {"\x15\x88\x88\x88", 4};
-    s.dl_loss_rate = 0;
-    s.socket.expects_ack = 0;
-    CompoundACK ack_3;
-    schc_send(&s, &rule, &fragment);
-    assert(schc_recv(&s, &rule, &ack_3) == 0);
-
-    return 0;
-}
-*/
-int update_rt_test() {
+int test_update_rt() {
     int size = 11;
     char schc_packet[size];
     generate_packet(schc_packet, size);
@@ -146,7 +91,7 @@ int update_rt_test() {
     return 0;
 }
 
-int update_timeout_test() {
+int test_update_timeout() {
     Rule rule;
     init_rule(&rule, "000");
     SCHCSender s;
@@ -171,7 +116,7 @@ int update_timeout_test() {
     return 0;
 }
 
-int get_bitmap_to_retransmit_test() {
+int test_get_bitmap_to_retransmit() {
     Rule rule;
     init_rule(&rule, "000");
     SCHCSender s;
@@ -255,7 +200,7 @@ int get_bitmap_to_retransmit_test() {
     return 0;
 }
 
-int update_rt_queue_test() {
+int test_update_queues() {
     Rule rule;
     init_rule(&rule, "000");
 
@@ -284,7 +229,7 @@ int update_rt_queue_test() {
     memcpy(ack1.message, ack1_bytes, DOWNLINK_MTU_BYTES);
 
     // Trigger error (ACK reported greater window)
-    assert(update_rt_queue(&s, &rule, &all0, &ack1) == -1);
+    assert(update_queues(&s, &rule, &all0, &ack1) == -1);
 
     // Get ACK
     char ack2_bin[] =
@@ -295,7 +240,7 @@ int update_rt_queue_test() {
     memcpy(ack2.message, ack2_bytes, DOWNLINK_MTU_BYTES);
 
     // Update RT queue
-    assert(update_rt_queue(&s, &rule, &all0, &ack2) == 0);
+    assert(update_queues(&s, &rule, &all0, &ack2) == 0);
 
     // Check fragments in RT queue
     int i = 0;
@@ -330,7 +275,7 @@ int update_rt_queue_test() {
     memcpy(ack3.message, ack3_bytes, DOWNLINK_MTU_BYTES);
 
     // Update RT queue
-    assert(update_rt_queue(&s, &rule, &all1, &ack3) == 0);
+    assert(update_queues(&s, &rule, &all1, &ack3) == 0);
 
     // Check fragments in RT queue
     int j = 0;
@@ -369,7 +314,7 @@ int update_rt_queue_test() {
     memcpy(ack4.message, ack4_bytes, DOWNLINK_MTU_BYTES);
 
     // Update RT queue
-    assert(update_rt_queue(&s, &rule, &all1, &ack4) == 0);
+    assert(update_queues(&s, &rule, &all1, &ack4) == 0);
 
     // Check RT queue
     assert(fq_is_empty(&s.retransmission_q));
@@ -381,20 +326,216 @@ int update_rt_queue_test() {
     assert(fq_is_empty(&s.transmission_q));
 
     sender_destroy(&s);
-
     return 0;
+}
+
+int test_timeout_procedure() {
+    Rule rule;
+    init_rule(&rule, "000");
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
+
+    // Normal fragment timeout
+    Fragment fragment = {"\x15\x88\x88\x88", 4};
+    assert(timeout_procedure(&s, &rule, &fragment) == -1);
+
+    // All-0 timeout
+    Fragment all0 = {"\000DDD", 4};
+    assert(timeout_procedure(&s, &rule, &all0) == 0);
+
+    // All-1 timeout not having reached MAX_ACK_REQUESTS
+    Fragment all1 = {"\027\200DD", 4};
+    assert(timeout_procedure(&s, &rule, &all1) == 0);
+    assert(!fq_is_empty(&s.transmission_q));
+    Fragment *just_put = fq_get(&s.transmission_q);
+    assert(memcmp(just_put->message, all1.message, all1.byte_size) == 0);
+    assert(just_put->byte_size == all1.byte_size);
+
+    // All-1 timeout having reached MAX_ACK_REQUESTS
+    assert(fq_is_empty(&s.transmission_q));
+    s.attempts = MAX_ACK_REQUESTS;
+    assert(timeout_procedure(&s, &rule, &all1) == 0);
+    assert(!fq_is_empty(&s.transmission_q));
+    Fragment *sa = fq_get(&s.transmission_q);
+    assert(is_frg_sender_abort(&rule, sa));
+
+    sender_destroy(&s);
+    return 0;
+}
+
+int test_schc_send() {
+    Rule rule;
+    init_rule(&rule, "000");
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
+
+    // Send fragment without loss
+    Fragment fragment = {"\x15\x88\x88\x88", 4};
+    assert(schc_send(&s, &rule, &fragment) == 4);
+    assert(s.socket.seqnum == 1);
+
+    // Send fragment with loss
+    s.ul_loss_rate = 100;
+    assert(schc_send(&s, &rule, &fragment) == 4);
+    assert(s.socket.seqnum == 2);
+
+    sleep(2);
+    sender_destroy(&s);
+    return 0;
+}
+
+int test_schc_recv() {
+    Rule rule;
+    init_rule(&rule, "000");
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
+
+    // Send and recv fragment without loss
+    Fragment all_1 = {"\027\200DD", 4};
+    s.socket.expects_ack = 1;
+    schc_send(&s, &rule, &all_1);
+    CompoundACK ack_1;
+    assert(schc_recv(&s, &ack_1) == DOWNLINK_MTU_BYTES);
+    assert(memcmp(ack_1.message, "\x13\xc8\x00\x00\x00\x00\x00\x00",
+                  DOWNLINK_MTU_BYTES) == 0);
+
+    // Send and recv fragment with DL loss
+    s.dl_loss_rate = 100;
+    s.socket.timeout = 1;
+    CompoundACK ack_2;
+    schc_send(&s, &rule, &all_1);
+    assert(schc_recv(&s, &ack_2) == -1);
+
+    // Send and recv fragment without expecting it
+    Fragment fragment = {"\x15\x88\x88\x88", 4};
+    s.dl_loss_rate = 0;
+    s.socket.expects_ack = 0;
+    CompoundACK ack_3;
+    schc_send(&s, &rule, &fragment);
+    assert(schc_recv(&s, &ack_3) == 0);
+
+    sender_destroy(&s);
+    return 0;
+}
+
+int test_schc() {
+    Rule rule;
+    init_rule(&rule, "000");
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
+
+    // TODO: Sending regular with timeout
+    Fragment fragment = {"\x15\x88\x88\x88", 4};
+    assert(schc(&s, &rule, &fragment) == -1);
+
+    // TODO: Sending regular without timeout
+    assert(schc(&s, &rule, &fragment) == 0);
+    assert(s.rt == 0);
+
+    // TODO: Sending all-0 with timeout
+    Fragment all0 = {"\000DDD", 4};
+    s.ul_loss_rate = 100;
+    assert(schc(&s, &rule, &all0) == 0);
+    assert(s.rt == 0);
+    s.ul_loss_rate = 0;
+
+    // TODO: Sending all-0 with timeout (No ack received)
+    s.dl_loss_rate = 100;
+    assert(schc(&s, &rule, &all0) == 0);
+    s.dl_loss_rate = 0;
+
+    // TODO: Sending all-0 without timeout (ack received)
+    assert(schc(&s, &rule, &all0) == 0);
+    assert(s.rt == 1);
+    assert(s.attempts == 0);
+    assert(!fq_is_empty(&s.retransmission_q));
+
+    // TODO: Send from retransmission queue
+    while (!fq_is_empty(&s.retransmission_q)) {
+        Fragment *to_send = fq_get(&s.retransmission_q);
+        assert(schc(&s, &rule, to_send) == 0);
+        assert(s.rt == 1);
+    }
+    assert(s.rt == 0);
+
+    // TODO: Sending all-0 without timeout (receiver-abort received)
+    assert(schc(&s, &rule, &all0) == SCHC_RECEIVER_ABORTED);
+
+    // TODO: Sending all-1 with timeout
+    Fragment all1 = {"\027\200DD", 4};
+    s.ul_loss_rate = 100;
+    assert(schc(&s, &rule, &all1) == 0);
+    assert(s.attempts == 1);
+    assert(!fq_is_empty(&s.transmission_q));
+    Fragment *tr1 = fq_get(&s.transmission_q);
+    assert(is_frg_all_1(&rule, tr1));
+    s.ul_loss_rate = 0;
+
+    // TODO: Sending all-1 without timeout (No ack received)
+    s.dl_loss_rate = 100;
+    assert(schc(&s, &rule, &all1) == 0);
+    assert(s.attempts == 2);
+    assert(!fq_is_empty(&s.transmission_q));
+    Fragment *tr2 = fq_get(&s.transmission_q);
+    assert(is_frg_all_1(&rule, tr2));
+    s.dl_loss_rate = 0;
+
+    // TODO: Sending all-1 without timeout (incomplete ack received)
+    assert(schc(&s, &rule, &all1) == 0);
+    assert(s.rt == 1);
+    assert(s.attempts == 0);
+    assert(!fq_is_empty(&s.retransmission_q));
+
+    // TODO: Send from retransmission queue after All-1
+    while (!fq_is_empty(&s.retransmission_q)) {
+        Fragment *to_send = fq_get(&s.retransmission_q);
+        assert(schc(&s, &rule, to_send) == 0);
+        assert(s.rt == 1);
+    }
+    assert(s.rt == 0);
+    Fragment *enqueued = fq_get(&s.transmission_q);
+    assert(is_frg_all_1(&rule, enqueued));
+
+    // TODO: Sending all-1 without timeout (complete ack received)
+    assert(schc(&s, &rule, &all1) == SCHC_COMPLETED);
+
+    // TODO: Sending all-1 without timeout (receiver-abort ack received)
+    assert(schc(&s, &rule, &all1) == SCHC_RECEIVER_ABORTED);
+
+    // TODO: Sending sender-abort
+    Fragment sa;
+    generate_sender_abort(&rule, &all1, &sa);
+    assert(schc(&s, &rule, &sa) == SCHC_SENDER_ABORTED);
+
+    sender_destroy(&s);
+    return -1;
 }
 
 int main() {
     printf("%d test_sender_construct\n", test_sender_construct());
     printf("%d test_sender_destroy\n", test_sender_destroy());
-    //printf("%d schc_send_test\n", schc_send_test());
-    //printf("%d schc_recv_test\n", schc_recv_test());
-    printf("%d update_rt_test\n", update_rt_test());
-    printf("%d update_timeout_test\n", update_timeout_test());
-    printf("%d get_bitmap_to_retransmit_test\n",
-           get_bitmap_to_retransmit_test());
-    printf("%d update_rt_queue_test\n", update_rt_queue_test());
+    printf("%d test_update_rt\n", test_update_rt());
+    printf("%d test_update_timeout\n", test_update_timeout());
+    printf("%d test_get_bitmap_to_retransmit\n",
+           test_get_bitmap_to_retransmit());
+    printf("%d test_update_queues\n", test_update_queues());
+    printf("%d test_timeout_procedure\n", test_timeout_procedure());
+
+    // printf("%d schc_send_test\n", test_schc_send());
+    // printf("%d schc_recv_test\n", test_schc_recv());
+    // printf("%d test_schc\n", test_schc());
 
     return 0;
 }

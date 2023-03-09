@@ -83,9 +83,9 @@ int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
                              char bitmap[], char dest[]);
 
 /*
- * Function:  update_rt_queue
+ * Function:  update_queues
  * --------------------
- * Updates the retransmission queue using information of the current state of
+ * Updates the SCHCSender queues using information of the current state of
  * the SCHC transmission, provided by the SCHC Fragment just sent and the
  * ACK received.
  * Returns -1 on errors.
@@ -95,7 +95,20 @@ int get_bitmap_to_retransmit(SCHCSender *s, Rule *rule, int ack_window,
  *  ack: CompoundACK just received.
  */
 int
-update_rt_queue(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack);
+update_queues(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack);
+
+/*
+ * Function:  timeout_procedure
+ * --------------------
+ * Updates internal variables of SCHCSender assuming that a schc_send() or
+ * schc_recv() timeout occurred.
+ * Returns -1 on network errors.
+ *
+ *  s: SCHCSender structure that controls the communication.
+ *  rule: Rule used to process the communication.
+ *  frg: Fragment just sent.
+ */
+int timeout_procedure(SCHCSender *s, Rule *rule, Fragment *frg);
 
 /*
  * Function:  schc_send
