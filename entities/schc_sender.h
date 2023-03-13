@@ -150,7 +150,7 @@ ssize_t schc_recv(SCHCSender *s, CompoundACK *dest);
 int schc(SCHCSender *s, Rule *rule, Fragment *frg);
 
 /*
- * Function:  start
+ * Function:  sender_start
  * --------------------
  * Performs the full SCHC Sender procedure (fragmentation and delivery)
  * for a SCHC Packet.
@@ -159,4 +159,4 @@ int schc(SCHCSender *s, Rule *rule, Fragment *frg);
  *  rule: Rule to be used to process the communication.
  *  schc_packet: SCHC Packet to be fragmented and sent.
  */
-ssize_t start(SCHCSender *s, Rule *rule);
+ssize_t sender_start(SCHCSender *s, Rule *rule);

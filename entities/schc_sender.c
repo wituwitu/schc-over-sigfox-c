@@ -219,12 +219,17 @@ int schc(SCHCSender *s, Rule *rule, Fragment *frg) {
     return 0;
 }
 
-ssize_t start(SCHCSender *s, Rule *rule) {
+ssize_t sender_start(SCHCSender *s, Rule *rule) {
+
+    for (int i = 0; i < s->nb_fragments; i++) {
+        fq_put(&s->transmission_q, &s->fragments[i]);
+    }
+
     while (!fq_is_empty(&s->transmission_q) ||
            !fq_is_empty(&s->retransmission_q)) {
         Fragment *frg;
         frg = s->rt ? fq_get(&s->retransmission_q) : fq_get(&s->transmission_q);
-        ssize_t sendval = schc_send(s, rule, frg);
+        ssize_t sendval = schc(s, rule, frg);
 
         if (sendval == -1) {
             return -1;

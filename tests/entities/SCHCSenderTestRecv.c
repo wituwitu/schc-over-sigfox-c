@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "sigfox_socket.h"
 #include "ack.h"
 #include "casting.h"
@@ -84,6 +85,13 @@ int main() {
     ack2.byte_size = DOWNLINK_MTU_BYTES;
     assert(sgfx_server_send(&server, ack2.message) == 8);
     printf("Sent ACK (response to All-0)\n");
+
+    // Sending all-0 with timeout (no response)
+    recvlen = sgfx_server_recv(&server, buf);
+    assert(recvlen == 4);
+    printf("Received.\n");
+    assert(memcmp(buf, "\x10\x88\x88\x88", recvlen) == 0);
+    sleep((unsigned int) SIGFOX_DL_TIMEOUT + 1);
 
     // Sending all-0 with timeout (ack received)
     recvlen = sgfx_server_recv(&server, buf);
@@ -176,6 +184,34 @@ int main() {
     memcpy(sa.message, buf, recvlen);
     sa.byte_size = (int) recvlen;
     assert(is_frg_sender_abort(&rule, &sa));
+
+    /* ------ test_sender_start ------ */
+    printf("------ test_sender_start ------\n");
+
+    sgfx_server_set_timeout(&server, INACTIVITY_TIMEOUT);
+    for (int i = 0; i < 28; i++) {
+        recvlen = sgfx_server_recv(&server, buf);
+        printf("recvlen: %ld\n", recvlen);
+        printf("Received.\n");
+        Fragment frg;
+        memcpy(frg.message, buf, recvlen);
+        frg.byte_size = (int) recvlen;
+
+        assert(!is_frg_sender_abort(&rule, &frg));
+
+        if ((i + 1) % 7 == 0) {
+            if (i == 27) {
+                assert(is_frg_all_1(&rule, &frg));
+            } else {
+                assert(is_frg_all_0(&rule, &frg));
+            }
+        }
+    }
+
+    assert(sgfx_server_send(&server, complete_ack.message) == 8);
+    printf("Sent Complete ACK\n");
+
+    sgfx_server_close(&server);
 
     return 0;
 }

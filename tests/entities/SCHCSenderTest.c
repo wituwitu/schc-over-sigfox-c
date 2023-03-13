@@ -446,7 +446,7 @@ int test_schc() {
     assert(schc(&s, &rule, &fragment) == 0);
     assert(s.rt == 0);
 
-    // Sending all-0 with timeout
+    // Sending all-0 with timeout (Fragment lost)
     Fragment all0 = {"\x10\x88\x88\x88", 4};
     s.ul_loss_rate = 100;
     assert(schc(&s, &rule, &all0) == 0);
@@ -457,6 +457,9 @@ int test_schc() {
     s.dl_loss_rate = 100;
     assert(schc(&s, &rule, &all0) == 0);
     s.dl_loss_rate = 0;
+
+    // Sending all-0 with timeout (no response)
+    assert(schc(&s, &rule, &all0) == 0);
 
     // Sending all-0 without timeout (ACK received)
     assert(schc(&s, &rule, &all0) == 0);
@@ -509,7 +512,8 @@ int test_schc() {
     assert(s.rt == 0);
     Fragment *enqueued = fq_get(&s.transmission_q);
     assert(is_frg_all_1(&rule, enqueued));
-    assert(memcmp(enqueued, &all1, sizeof(Fragment)) == 0);
+    assert(memcmp(enqueued->message, all1.message, enqueued->byte_size) == 0);
+    assert(enqueued->byte_size == all1.byte_size);
 
     // Sending all-1 without timeout (complete ack received)
     assert(schc(&s, &rule, enqueued) == SCHC_COMPLETED);
@@ -526,6 +530,25 @@ int test_schc() {
     return 0;
 }
 
+int test_sender_start() {
+    Rule rule;
+    init_rule(&rule, "000");
+    int size = 300;
+    char schc_packet[size];
+    generate_packet(schc_packet, size);
+    SCHCSender s;
+    sender_construct(&s, &rule, schc_packet, size);
+
+    sender_start(&s, &rule);
+
+    assert(fq_is_empty(&s.transmission_q));
+    assert(fq_is_empty(&s.retransmission_q));
+
+    sender_destroy(&s);
+
+    return 0;
+}
+
 int main() {
     printf("%d test_sender_construct\n", test_sender_construct());
     printf("%d test_sender_destroy\n", test_sender_destroy());
@@ -539,9 +562,10 @@ int main() {
     // The below tests require SCHCSenderTestRecv.c to be run
     // in a separate terminal.
 
-    printf("%d schc_send_test\n", test_schc_send());
-    printf("%d schc_recv_test\n", test_schc_recv());
+    printf("%d test_schc_send\n", test_schc_send());
+    printf("%d test_schc_recv\n", test_schc_recv());
     printf("%d test_schc\n", test_schc());
+    printf("%d test_sender_start\n", test_sender_start());
 
     return 0;
 }
