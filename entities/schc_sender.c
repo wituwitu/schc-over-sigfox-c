@@ -218,3 +218,21 @@ int schc(SCHCSender *s, Rule *rule, Fragment *frg) {
 
     return 0;
 }
+
+ssize_t start(SCHCSender *s, Rule *rule) {
+    while (!fq_is_empty(&s->transmission_q) ||
+           !fq_is_empty(&s->retransmission_q)) {
+        Fragment *frg;
+        frg = s->rt ? fq_get(&s->retransmission_q) : fq_get(&s->transmission_q);
+        ssize_t sendval = schc_send(s, rule, frg);
+
+        if (sendval == -1) {
+            return -1;
+        } else if (sendval == SCHC_SENDER_ABORTED
+                   || sendval == SCHC_RECEIVER_ABORTED
+                   || sendval == SCHC_COMPLETED) {
+            return sendval;
+        }
+    }
+    return 0;
+}

@@ -159,4 +159,4 @@ int schc(SCHCSender *s, Rule *rule, Fragment *frg);
  *  rule: Rule to be used to process the communication.
  *  schc_packet: SCHC Packet to be fragmented and sent.
  */
-int start(SCHCSender *s, Rule *rule, char schc_packet[]);
+ssize_t start(SCHCSender *s, Rule *rule);
