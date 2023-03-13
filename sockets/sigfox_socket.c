@@ -64,8 +64,15 @@ ssize_t sgfx_client_send(SigfoxClient *client, const char sendbuf[], int n) {
 }
 
 ssize_t sgfx_client_recv(SigfoxClient *client, char recvbuf[]) {
-    memcpy(recvbuf, client->buffer, DOWNLINK_MTU_BYTES + 1);
-    memset(client->buffer, '\0', DOWNLINK_MTU_BYTES + 1);
+    char emptybuf[DOWNLINK_MTU_BYTES];
+    memset(emptybuf, '\0', DOWNLINK_MTU_BYTES);
+
+    if (memcmp(client->buffer, emptybuf, DOWNLINK_MTU_BYTES) == 0) {
+        return -1;
+    }
+
+    memcpy(recvbuf, client->buffer, DOWNLINK_MTU_BYTES);
+    memcpy(client->buffer, emptybuf, DOWNLINK_MTU_BYTES);
     return DOWNLINK_MTU_BYTES;
 }
 

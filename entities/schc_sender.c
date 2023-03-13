@@ -142,6 +142,9 @@ ssize_t schc_recv(SCHCSender *s, CompoundACK *dest) {
 
     char received[DOWNLINK_MTU_BYTES];
     ssize_t retval = sgfx_client_recv(&s->socket, received);
+
+    if (retval == -1) return -1;
+
     memcpy(dest->message, received, DOWNLINK_MTU_BYTES);
     dest->byte_size = (int) retval;
 

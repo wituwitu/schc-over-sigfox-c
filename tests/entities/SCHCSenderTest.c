@@ -436,45 +436,47 @@ int test_schc() {
     SCHCSender s;
     sender_construct(&s, &rule, schc_packet, size);
 
-    // TODO: Sending regular with timeout
+    // Sending regular with timeout
     Fragment fragment = {"\x15\x88\x88\x88", 4};
-    assert(schc(&s, &rule, &fragment) == -1);
+    s.ul_loss_rate = 100;
+    assert(schc(&s, &rule, &fragment) == 0);
+    s.ul_loss_rate = 0;
 
-    // TODO: Sending regular without timeout
+    // Sending regular without timeout
     assert(schc(&s, &rule, &fragment) == 0);
     assert(s.rt == 0);
 
-    // TODO: Sending all-0 with timeout
-    Fragment all0 = {"\000DDD", 4};
+    // Sending all-0 with timeout
+    Fragment all0 = {"\x10\x88\x88\x88", 4};
     s.ul_loss_rate = 100;
     assert(schc(&s, &rule, &all0) == 0);
     assert(s.rt == 0);
     s.ul_loss_rate = 0;
 
-    // TODO: Sending all-0 with timeout (No ack received)
+    // Sending all-0 with timeout (ACK lost)
     s.dl_loss_rate = 100;
     assert(schc(&s, &rule, &all0) == 0);
     s.dl_loss_rate = 0;
 
-    // TODO: Sending all-0 without timeout (ack received)
+    // Sending all-0 without timeout (ACK received)
     assert(schc(&s, &rule, &all0) == 0);
     assert(s.rt == 1);
     assert(s.attempts == 0);
     assert(!fq_is_empty(&s.retransmission_q));
 
-    // TODO: Send from retransmission queue
+    // Send from retransmission queue
     while (!fq_is_empty(&s.retransmission_q)) {
         Fragment *to_send = fq_get(&s.retransmission_q);
-        assert(schc(&s, &rule, to_send) == 0);
         assert(s.rt == 1);
+        assert(schc(&s, &rule, to_send) == 0);
     }
     assert(s.rt == 0);
 
-    // TODO: Sending all-0 without timeout (receiver-abort received)
+    // Sending all-0 without timeout (receiver-abort received)
     assert(schc(&s, &rule, &all0) == SCHC_RECEIVER_ABORTED);
 
-    // TODO: Sending all-1 with timeout
-    Fragment all1 = {"\027\200DD", 4};
+    // Sending all-1 with timeout
+    Fragment all1 = {"\x1F\xE0\x88\x88", 4};
     s.ul_loss_rate = 100;
     assert(schc(&s, &rule, &all1) == 0);
     assert(s.attempts == 1);
@@ -483,7 +485,7 @@ int test_schc() {
     assert(is_frg_all_1(&rule, tr1));
     s.ul_loss_rate = 0;
 
-    // TODO: Sending all-1 without timeout (No ack received)
+    // Sending all-1 without timeout (ACK lost)
     s.dl_loss_rate = 100;
     assert(schc(&s, &rule, &all1) == 0);
     assert(s.attempts == 2);
@@ -492,35 +494,36 @@ int test_schc() {
     assert(is_frg_all_1(&rule, tr2));
     s.dl_loss_rate = 0;
 
-    // TODO: Sending all-1 without timeout (incomplete ack received)
+    // Sending all-1 without timeout (incomplete ACK received)
     assert(schc(&s, &rule, &all1) == 0);
     assert(s.rt == 1);
     assert(s.attempts == 0);
     assert(!fq_is_empty(&s.retransmission_q));
 
-    // TODO: Send from retransmission queue after All-1
+    // Send from retransmission queue after All-1
     while (!fq_is_empty(&s.retransmission_q)) {
         Fragment *to_send = fq_get(&s.retransmission_q);
-        assert(schc(&s, &rule, to_send) == 0);
         assert(s.rt == 1);
+        assert(schc(&s, &rule, to_send) == 0);
     }
     assert(s.rt == 0);
     Fragment *enqueued = fq_get(&s.transmission_q);
     assert(is_frg_all_1(&rule, enqueued));
+    assert(memcmp(enqueued, &all1, sizeof(Fragment)) == 0);
 
-    // TODO: Sending all-1 without timeout (complete ack received)
-    assert(schc(&s, &rule, &all1) == SCHC_COMPLETED);
+    // Sending all-1 without timeout (complete ack received)
+    assert(schc(&s, &rule, enqueued) == SCHC_COMPLETED);
 
-    // TODO: Sending all-1 without timeout (receiver-abort ack received)
+    // Sending all-1 without timeout (receiver-abort received)
     assert(schc(&s, &rule, &all1) == SCHC_RECEIVER_ABORTED);
 
-    // TODO: Sending sender-abort
+    // Sending sender-abort
     Fragment sa;
     generate_sender_abort(&rule, &all1, &sa);
     assert(schc(&s, &rule, &sa) == SCHC_SENDER_ABORTED);
 
     sender_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int main() {
@@ -533,9 +536,12 @@ int main() {
     printf("%d test_update_queues\n", test_update_queues());
     printf("%d test_timeout_procedure\n", test_timeout_procedure());
 
-    // printf("%d schc_send_test\n", test_schc_send());
-    // printf("%d schc_recv_test\n", test_schc_recv());
-    // printf("%d test_schc\n", test_schc());
+    // The below tests require SCHCSenderTestRecv.c to be run
+    // in a separate terminal.
+
+    printf("%d schc_send_test\n", test_schc_send());
+    printf("%d schc_recv_test\n", test_schc_recv());
+    printf("%d test_schc\n", test_schc());
 
     return 0;
 }
