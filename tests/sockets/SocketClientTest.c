@@ -28,8 +28,7 @@ int main() {
     assert(client.expects_ack == 1);
     assert(sgfx_client_send(&client, hello, 12) == 12);
     assert(sgfx_client_recv(&client, buf) == 8);
-    printf("Received: %s\n", buf);
-    assert(strcmp(buf, "hellocli") == 0);
+    assert(memcmp(buf, "hellocli", DOWNLINK_MTU_BYTES) == 0);
 
     // Trigger timeout at receiver
     sleep(2);
@@ -56,7 +55,8 @@ int main() {
     char as_bin[64];
     bytes_to_bin(as_bin, buf, 8);
     printf("Received (bin): %s\n", as_bin);
-    assert(strcmp(buf, "\xFF\x00\xFF\x00\x00\x00\x00\x00") == 0);
+    assert(memcmp(buf, "\xFF\x00\xFF\x00\x00\x00\x00\x00",
+                  DOWNLINK_MTU_BYTES) == 0);
     assert(strcmp(as_bin, "11111111000000001111111100000000"
                           "00000000000000000000000000000000") == 0);
 

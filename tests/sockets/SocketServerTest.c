@@ -21,7 +21,7 @@ int main() {
     char buf[UPLINK_MTU_BYTES];
     assert(sgfx_server_recv(&server, buf) == 12);
     printf("Received: %s\n", buf);
-    assert(strcmp(buf, "helloserver.") == 0);
+    assert(memcmp(buf, "helloserver.", UPLINK_MTU_BYTES) == 0);
 
     // Sending a reply
     char ack[] = "hellocli";
@@ -39,13 +39,13 @@ int main() {
     assert(sgfx_server_recv(&server, buf) == 6);
     printf("Received: %s\n", buf);
     assert(strlen(buf) == 6);
-    assert(strcmp(buf, "hello2") == 0);
+    assert(memcmp(buf, "hello2", 6) == 0);
 
     // Triggering timeout at sender
     assert(sgfx_server_recv(&server, buf) == 5);
     printf("Received: %s\n", buf);
     assert(strlen(buf) == 5);
-    assert(strcmp(buf, "third") == 0);
+    assert(memcmp(buf, "third", 5) == 0);
     sleep(2);
 
     // Receiving and sending messages with null bytes
