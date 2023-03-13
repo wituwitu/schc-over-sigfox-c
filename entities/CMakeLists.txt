@@ -4,6 +4,7 @@ set(HEADER_FILES
         rule.h
         fr_procedure.h
         schc_sender.h
+        schc_receiver.h
         fifo_queue.h
         )
 
@@ -11,6 +12,7 @@ set(SOURCE_FILES
         rule.c
         fr_procedure.c
         schc_sender.c
+        schc_receiver.c
         fifo_queue.c
         )
 
