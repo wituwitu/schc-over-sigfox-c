@@ -240,3 +240,13 @@ int is_frg_null(Fragment *frg);
  *  frg: the Fragment to check.
  */
 int get_frg_idx(Rule *rule, Fragment *frg);
+
+/*
+ * Function:  frg_equal
+ * --------------------
+ * Checks whether the message and the byte size of two fragments are identical.
+ *
+ *  frg1: first fragment.
+ *  frg2: second fragment.
+ */
+int frg_equal(Fragment *frg1, Fragment *frg2);

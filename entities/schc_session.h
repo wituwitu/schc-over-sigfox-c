@@ -9,10 +9,10 @@ typedef struct {
     Rule rule;
     Fragment *fragments;
     CompoundACK ack;
-    char *bitmaps;
+    char *bitmap;
     char *requested_fragments;
     Fragment last_fragment;
-    CompoundACK pending_ack;
+    CompoundACK last_ack;
     CompoundACK receiver_abort;
     int aborted;
     int timestamp;
@@ -30,13 +30,13 @@ int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp);
 
 int session_requested_fragment(SCHCSession *s, Fragment *frg);
 
+int session_already_received(SCHCSession *s, Fragment *frg);
+
 int session_expects_fragment(SCHCSession *s, Fragment *frg);
 
 int session_get_pending_ack(SCHCSession *s, Fragment *frg);
 
 int session_update_bitmap(SCHCSession *s, Fragment *frg);
-
-int session_already_received(SCHCSession *s, Fragment *frg);
 
 int session_update_requested(SCHCSession *s);
 

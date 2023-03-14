@@ -106,7 +106,7 @@ int get_ack_nb_tuples(Rule *rule, CompoundACK *ack);
  *  ack: the CompoundACK struct to be processed.
  *  nb_tuples: number of tuples to be retrieved.
  *  windows: string array where to store window identifiers.
- *  bitmaps: string array where to store bitmaps.
+ *  bitmap: string array where to store bitmap.
  */
 void get_ack_tuples(Rule *rule, CompoundACK *ack, int nb_tuples,
                     char windows[nb_tuples][rule->m + 1],

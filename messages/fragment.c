@@ -262,3 +262,11 @@ int get_frg_idx(Rule *rule, Fragment *frg) {
 
     return rule->window_size * frg_wdw + frg_nb;
 }
+
+// TODO: Untested
+int frg_equal(Fragment *frg1, Fragment *frg2) {
+    return frg1->byte_size == frg2->byte_size
+           && memcmp(frg1->message,
+                     frg2->message,
+                     frg1->byte_size) == 0;
+}
