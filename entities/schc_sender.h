@@ -7,10 +7,6 @@
 
 #endif //SCHC_OVER_SIGFOX_C_SCHC_SENDER_H
 
-#define SCHC_SENDER_ABORTED 1
-#define SCHC_RECEIVER_ABORTED 2
-#define SCHC_COMPLETED 3
-
 typedef struct {
     SigfoxClient socket;
     Fragment *fragments;

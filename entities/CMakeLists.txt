@@ -3,17 +3,19 @@ project(sockets)
 set(HEADER_FILES
         rule.h
         fr_procedure.h
-        schc_sender.h
-        schc_receiver.h
         fifo_queue.h
+        schc_sender.h
+        schc_session.h
+        schc_receiver.h
         )
 
 set(SOURCE_FILES
         rule.c
         fr_procedure.c
-        schc_sender.c
-        schc_receiver.c
         fifo_queue.c
+        schc_sender.c
+        schc_session.c
+        schc_receiver.c
         )
 
 add_library(entities STATIC ${SOURCE_FILES} ${HEADER_FILES})

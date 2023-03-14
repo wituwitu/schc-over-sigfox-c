@@ -5,9 +5,9 @@
 #include "schc.h"
 
 char FR_MODE[] = "ACK ON ERROR";
-float RETRANSMISSION_TIMEOUT = 100;
-float SIGFOX_DL_TIMEOUT = 60; /* in seconds */
-float INACTIVITY_TIMEOUT = 500;  /* in seconds */
+int RETRANSMISSION_TIMEOUT = 100;
+int SIGFOX_DL_TIMEOUT = 60; /* in seconds */
+int INACTIVITY_TIMEOUT = 500;  /* in seconds */
 int MAX_ACK_REQUESTS = 5;
 const int L2_WORD_SIZE = 8;
 int DELAY_BETWEEN_FRAGMENTS = 10; /* in seconds */
