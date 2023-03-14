@@ -38,6 +38,12 @@ void get_frg_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]) {
     dest[rule->m] = '\0';
 }
 
+int get_frg_window(Rule *rule, Fragment *frg) {
+    char w[rule->m + 1];
+    get_frg_w(rule, frg, w);
+    return bin_to_int(w);
+}
+
 void get_frg_fcn(Rule *rule, Fragment *fragment, char dest[rule->n]) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
     frg_to_bin(fragment, fragment_as_bin);
@@ -46,12 +52,16 @@ void get_frg_fcn(Rule *rule, Fragment *fragment, char dest[rule->n]) {
 }
 
 int is_frg_all_0(Rule *rule, Fragment *fragment) {
+    if (is_frg_null(fragment)) return 0;
+
     char fcn[rule->n + 1];
     get_frg_fcn(rule, fragment, fcn);
     return is_monochar(fcn, '0');
 }
 
 int is_frg_all_1(Rule *rule, Fragment *fragment) {
+    if (is_frg_null(fragment)) return 0;
+
     char fcn[rule->n + 1];
     get_frg_fcn(rule, fragment, fcn);
 
@@ -76,11 +86,15 @@ int is_frg_all_1(Rule *rule, Fragment *fragment) {
 }
 
 int frg_expects_ack(Rule *rule, Fragment *fragment) {
+    if (is_frg_null(fragment)) return 0;
+
     return is_frg_all_0(rule, fragment) ||
            is_frg_all_1(rule, fragment);
 }
 
 int is_frg_sender_abort(Rule *rule, Fragment *fragment) {
+    if (is_frg_null(fragment)) return 0;
+
     char w[rule->m + 1], fcn[rule->n + 1];
     get_frg_w(rule, fragment, w);
     get_frg_fcn(rule, fragment, fcn);
@@ -233,7 +247,7 @@ void generate_null_frg(Fragment *dest) {
     memset(message, '\0', UPLINK_MTU_BYTES);
 
     memcpy(dest->message, message, UPLINK_MTU_BYTES);
-    dest->byte_size = 0;
+    dest->byte_size = -1;
 }
 
 int is_frg_null(Fragment *frg) {
@@ -241,14 +255,12 @@ int is_frg_null(Fragment *frg) {
     memset(empty, '\0', UPLINK_MTU_BYTES);
 
     return memcmp(frg->message, empty, UPLINK_MTU_BYTES) == 0
-           && frg->byte_size == 0;
+           && frg->byte_size == -1;
 }
 
 int get_frg_idx(Rule *rule, Fragment *frg) {
     char fcn[rule->n + 1];
-    char w[rule->m + 1];
-    get_frg_w(rule, frg, w);
-    int frg_wdw = bin_to_int(w);
+    int frg_wdw = get_frg_window(rule, frg);
 
     int frg_nb;
     if (is_frg_all_1(rule, frg)) {
@@ -263,7 +275,6 @@ int get_frg_idx(Rule *rule, Fragment *frg) {
     return rule->window_size * frg_wdw + frg_nb;
 }
 
-// TODO: Untested
 int frg_equal(Fragment *frg1, Fragment *frg2) {
     return frg1->byte_size == frg2->byte_size
            && memcmp(frg1->message,

@@ -66,6 +66,16 @@ void get_frg_dtag(Rule *rule, Fragment *fragment, char dest[rule->t + 1]);
 void get_frg_w(Rule *rule, Fragment *fragment, char dest[rule->m + 1]);
 
 /*
+* Function:  get_frg_window
+* --------------------
+* Obtains the number of the window the Fragment belongs to.
+*
+*  rule: the Rule struct used to process the Fragment.
+*  fragment: the Fragment to be processed.
+*/
+int get_frg_window(Rule *rule, Fragment *frg);
+
+/*
  * Function:  get_frg_fcn
  * --------------------
  * Obtains the binary representation of the FCN field from a Fragment.

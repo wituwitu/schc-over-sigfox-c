@@ -279,6 +279,38 @@ int test_generate_receiver_abort() {
     return 0;
 }
 
+int test_generate_null_ack() {
+    CompoundACK ack;
+    Rule rule;
+    init_rule(&rule, "000");
+    generate_null_ack(&ack);
+
+    char empty[DOWNLINK_MTU_BYTES];
+    memset(empty, '\0', DOWNLINK_MTU_BYTES);
+    assert(memcmp(ack.message, empty, DOWNLINK_MTU_BYTES) == 0);
+    assert(ack.byte_size == -1);
+
+    return 0;
+}
+
+int test_is_ack_null() {
+    // Null ACK
+    CompoundACK ack;
+    Rule rule;
+    init_rule(&rule, "000");
+    generate_null_ack(&ack);
+    assert(is_ack_null(&ack));
+    assert(!is_ack_complete(&rule, &ack));
+    assert(!is_ack_compound(&rule, &ack));
+    assert(!is_ack_receiver_abort(&rule, &ack));
+
+    // Normal ack
+    CompoundACK ack1 = {"\x15\x88\x88\x88", 4};
+    assert(!is_ack_null(&ack1));
+
+    return 0;
+}
+
 int main() {
     printf("%d test_ack_to_bin\n", test_ack_to_bin());
     printf("%d test_init_rule_from_ack\n", test_init_rule_from_ack());
@@ -292,6 +324,8 @@ int main() {
     printf("%d test_get_ack_nb_tuples\n", test_get_ack_nb_tuples());
     printf("%d test_get_ack_tuples\n", test_get_ack_tuples());
     printf("%d test_generate_receiver_abort\n", test_generate_receiver_abort());
+    printf("%d test_generate_null_ack\n", test_generate_null_ack());
+    printf("%d test_is_ack_null\n", test_is_ack_null());
 
     return 0;
 }

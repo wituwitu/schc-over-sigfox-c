@@ -61,6 +61,16 @@ int test_get_fragment_w() {
     return 0;
 }
 
+int test_get_fragment_window() {
+    Fragment frg1 = {"\x15\x88\x88\x88", 4};
+    Rule rule;
+    init_rule_from_frg(&rule, &frg1);
+
+    assert(get_frg_window(&rule, &frg1) == 2);
+
+    return 0;
+}
+
 int test_get_fragment_fcn() {
     Fragment fragment = {"\x15\x88\x88\x88", 4};
     Rule rule;
@@ -408,10 +418,10 @@ int test_generate_null_fragment() {
     init_rule(&rule, "000");
     generate_null_frg(&frg);
 
-    char empty[UPLINK_MTU_BYTES + 1];
-    memset(empty, '\0', UPLINK_MTU_BYTES + 1);
-    assert(memcmp(frg.message, empty, UPLINK_MTU_BYTES + 1) == 0);
-    assert(frg.byte_size == 0);
+    char empty[UPLINK_MTU_BYTES];
+    memset(empty, '\0', UPLINK_MTU_BYTES);
+    assert(memcmp(frg.message, empty, UPLINK_MTU_BYTES) == 0);
+    assert(frg.byte_size == -1);
 
     return 0;
 }
@@ -423,11 +433,12 @@ int test_is_fragment_null() {
     init_rule(&rule, "000");
     generate_null_frg(&frg);
     assert(is_frg_null(&frg));
+    assert(!is_frg_all_0(&rule, &frg));
+    assert(!is_frg_all_1(&rule, &frg));
+    assert(!is_frg_sender_abort(&rule, &frg));
 
     // Normal fragment
     Fragment fragment = {"\x15\x88\x88\x88", 4};
-    char as_bin[UPLINK_MTU_BITS + 1];
-    frg_to_bin(&fragment, as_bin);
     assert(!is_frg_null(&fragment));
 
     // All-0 fragment of window 0 with 0-payload
@@ -479,12 +490,32 @@ int test_get_frg_idx() {
     return 0;
 }
 
+int test_frg_equal() {
+
+    Fragment frg1 = {"\x15\x88\x88\x88", 4};
+    Fragment frg2 = {"\x15\x88\x88\x88", 4};
+    Fragment frg3 = {"\x32\x88\x88\x88", 4};
+    Fragment frg4;
+    generate_null_frg(&frg4);
+
+    assert(frg_equal(&frg1, &frg1) == 1);
+    assert(frg_equal(&frg2, &frg2) == 1);
+    assert(frg_equal(&frg3, &frg3) == 1);
+    assert(frg_equal(&frg4, &frg4) == 1);
+    assert(frg_equal(&frg1, &frg2) == 1);
+    assert(frg_equal(&frg1, &frg3) == 0);
+    assert(frg_equal(&frg1, &frg4) == 0);
+
+    return 0;
+}
+
 int main() {
     printf("%d test_fragment_to_bin\n", test_fragment_to_bin());
     printf("%d test_init_rule_from_fragment\n", test_init_rule_from_fragment());
     printf("%d test_get_fragment_rule_id\n", test_get_fragment_rule_id());
     printf("%d test_get_fragment_dtag\n", test_get_fragment_dtag());
     printf("%d test_get_fragment_w\n", test_get_fragment_w());
+    printf("%d test_get_fragment_window\n", test_get_fragment_window());
     printf("%d test_get_fragment_fcn\n", test_get_fragment_fcn());
     printf("%d test_is_fragment_all_0\n", test_is_fragment_all_0());
     printf("%d test_is_fragment_all_1\n", test_is_fragment_all_1());
@@ -503,6 +534,7 @@ int main() {
     printf("%d test_generate_null_fragment\n", test_generate_null_fragment());
     printf("%d test_is_fragment_null\n", test_is_fragment_null());
     printf("%d test_get_frg_idx\n", test_get_frg_idx());
+    printf("%d test_frg_equal\n", test_frg_equal());
 
     return 0;
 }

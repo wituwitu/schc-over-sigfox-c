@@ -61,3 +61,31 @@ int session_already_received(SCHCSession *s, Fragment *frg) {
 
     return 0;
 }
+
+int session_expects_fragment(SCHCSession *s, Fragment *frg) {
+    if (!is_frg_all_1(&s->rule, frg) && session_already_received(s, frg))
+        return 0;
+
+    if (is_frg_null(&s->last_fragment)
+        || is_frg_sender_abort(&s->rule, &s->last_fragment))
+        return 1;
+
+    if (is_frg_all_1(&s->rule, &s->last_fragment))
+        return is_ack_complete(&s->rule, &s->last_ack);
+
+    if (session_requested_fragment(s, frg)) return 1;
+
+    int frg_window = get_frg_window(&s->rule, frg);
+    int last_frg_window = get_frg_window(&s->rule, &s->last_fragment);
+
+    if (frg_window > last_frg_window) return 1;
+    if (frg_window == last_frg_window) {
+        int frg_idx = get_frg_idx(&s->rule, frg);
+        int last_frg_idx = get_frg_idx(&s->rule, &s->last_fragment);
+
+        if (frg_idx > last_frg_idx) return 1;
+        if (frg_idx == last_frg_idx) return is_frg_all_1(&s->rule, frg);
+    }
+
+    return 0;
+}

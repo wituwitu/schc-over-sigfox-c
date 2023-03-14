@@ -99,6 +99,8 @@ void get_ack_tuples(Rule *rule, CompoundACK *ack, int nb_tuples,
 }
 
 int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
+    if (is_ack_null(ack)) return 0;
+
     char w[rule->m + 1], c[2];
     get_ack_w(rule, ack, w);
     get_ack_c(rule, ack, c);
@@ -139,6 +141,8 @@ int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
 }
 
 int is_ack_compound(Rule *rule, CompoundACK *ack) {
+    if (is_ack_null(ack)) return 0;
+
     char as_bin[DOWNLINK_MTU_BITS + 1];
     ack_to_bin(ack, as_bin);
     char *padding = as_bin + rule->ack_header_length;
@@ -147,6 +151,8 @@ int is_ack_compound(Rule *rule, CompoundACK *ack) {
 }
 
 int is_ack_complete(Rule *rule, CompoundACK *ack) {
+    if (is_ack_null(ack)) return 0;
+
     char c[2];
     get_ack_c(rule, ack, c);
 
@@ -185,4 +191,20 @@ void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest) {
     memset(dest, '\0', sizeof(CompoundACK));
     int byte_size = bin_to_bytes(dest->message, ra_bin, DOWNLINK_MTU_BITS);
     dest->byte_size = byte_size;
+}
+
+void generate_null_ack(CompoundACK *dest) {
+    char message[DOWNLINK_MTU_BYTES];
+    memset(message, '\0', DOWNLINK_MTU_BYTES);
+
+    memcpy(dest->message, message, DOWNLINK_MTU_BYTES);
+    dest->byte_size = -1;
+}
+
+int is_ack_null(CompoundACK *ack) {
+    char empty[DOWNLINK_MTU_BYTES];
+    memset(empty, '\0', DOWNLINK_MTU_BYTES);
+
+    return memcmp(ack->message, empty, DOWNLINK_MTU_BYTES) == 0
+           && ack->byte_size == -1;
 }

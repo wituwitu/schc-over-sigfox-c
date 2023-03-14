@@ -153,3 +153,22 @@ int is_ack_complete(Rule *rule, CompoundACK *ack);
  *  dest: Fragment where to store the Sender-Abort information.
  */
 void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest);
+
+/*
+ * Function:  generate_null_ack
+ * --------------------
+ * Generates a null SCHC Compound ACK, used to decide whether a CompoundACK
+ * object has valid data or not.
+ *
+ *  dest: CompoundACK structure where to store the null ACK.
+ */
+void generate_null_ack(CompoundACK *dest);
+
+/*
+ * Function:  is_ack_null
+ * --------------------
+ * Checks whether an ACK is null.
+ *
+ *  ack: CompoundACK structure to check.
+ */
+int is_ack_null(CompoundACK *ack);
