@@ -32,7 +32,7 @@ int test_init_rule() {
 
     Rule rule_two_byte_op_1;
     init_rule(&rule_two_byte_op_1, "111010");
-    assert(rule_two_byte_op_1.id == 58);
+    assert(rule_two_byte_op_1.id == 8);
     assert(rule_two_byte_op_1.rule_id_size == 6);
     assert(rule_two_byte_op_1.t == 0);
     assert(rule_two_byte_op_1.m == 2);
@@ -59,7 +59,7 @@ int test_init_rule() {
 
     Rule rule_two_byte_op_2;
     init_rule(&rule_two_byte_op_2, "11111110");
-    assert(rule_two_byte_op_2.id == 254);
+    assert(rule_two_byte_op_2.id == 16);
     assert(rule_two_byte_op_2.rule_id_size == 8);
     assert(rule_two_byte_op_2.t == 0);
     assert(rule_two_byte_op_2.m == 3);

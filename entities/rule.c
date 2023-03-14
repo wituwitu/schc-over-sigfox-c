@@ -15,7 +15,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
     memcpy(single_byte_header, rule_id_binary, 3);
     single_byte_header[3] = '\0';
 
-    if (strcmp(single_byte_header, "111") != 0) {
+    if (memcmp(single_byte_header, "111", 3) != 0) {
         id = bin_to_int(single_byte_header);
         rule_id_size = 3;
         t = 0;
@@ -26,10 +26,10 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
         max_schc_packet_byte_size = 300;
     } else {
         char double_byte_header[7] = {};
-        strncpy(double_byte_header, rule_id_binary, 6);
+        memcpy(double_byte_header, rule_id_binary, 6);
         double_byte_header[6] = '\0';
-        if (strcmp(double_byte_header, "111111") != 0) {
-            id = bin_to_int(double_byte_header);
+        if (memcmp(double_byte_header, "111111", 6) != 0) {
+            id = bin_to_int(double_byte_header) & 7 + 6;
             rule_id_size = 6;
             t = 0;
             m = 2;
@@ -38,7 +38,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             u = 4;
             max_schc_packet_byte_size = 480;
         } else {
-            id = bin_to_int(rule_id_binary);
+            id = bin_to_int(rule_id_binary) & 3 + 14;
             rule_id_size = 8;
             t = 0;
             m = 3;
