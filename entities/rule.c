@@ -112,3 +112,6 @@ void parse_rule_from_bytes(Rule *rule, const char *byt) {
 
     init_rule(rule, first_byte);
 }
+
+// TODO: Implement
+void get_rule_id_bin(char *dest, Rule *rule) {}

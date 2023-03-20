@@ -251,7 +251,7 @@ int test_update_queues() {
         }
 
         Fragment *ptr = (Fragment *) rd;
-        int idx = get_frg_idx(&rule, ptr);
+        int idx = get_frg_nb(&rule, ptr);
 
         Fragment lost = fragments[idx];
 
@@ -286,7 +286,7 @@ int test_update_queues() {
         }
 
         Fragment *ptr = (Fragment *) rd;
-        int idx = get_frg_idx(&rule, ptr);
+        int idx = get_frg_nb(&rule, ptr);
 
         Fragment lost = fragments[idx];
 

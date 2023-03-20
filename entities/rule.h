@@ -59,3 +59,6 @@ void init_rule(Rule *rule, const char rule_id_binary[]);
  *  byte: char array to use in Rule identification.
  */
 void parse_rule_from_bytes(Rule *rule, const char *byt);
+
+// TODO: Documentation
+void get_rule_id_bin(char *dest, Rule *rule);

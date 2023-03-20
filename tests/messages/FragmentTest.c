@@ -477,15 +477,15 @@ int test_get_frg_idx() {
 
     // Normal fragment
     Fragment fragment = {"\x15\x88\x88\x88", 4};
-    assert(get_frg_idx(&rule, &fragment) == 15);
+    assert(get_frg_nb(&rule, &fragment) == 15);
 
     // All-0 fragment
     Fragment all0 = {"\x00\x00\x00\x00", 4};
-    assert(get_frg_idx(&rule, &all0) == 6);
+    assert(get_frg_nb(&rule, &all0) == 6);
 
     // All-1 fragment
     Fragment all1 = {"\027\200DD", 4};
-    assert(get_frg_idx(&rule, &all1) == 17);
+    assert(get_frg_nb(&rule, &all1) == 17);
 
     return 0;
 }

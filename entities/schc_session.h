@@ -9,13 +9,15 @@ typedef struct {
     Rule rule;
     Fragment *fragments;
     CompoundACK ack;
-    char *bitmap;
-    char *requested_fragments;
-    Fragment last_fragment;
-    CompoundACK last_ack;
-    CompoundACK receiver_abort;
-    int aborted;
-    int timestamp;
+    struct {
+        char *bitmap;
+        char *requested_fragments;
+        Fragment last_fragment;
+        CompoundACK last_ack;
+        CompoundACK receiver_abort;
+        int aborted;
+        int timestamp;
+    } state;
 } SCHCSession;
 
 int session_construct(SCHCSession *s, Rule rule);
@@ -28,18 +30,22 @@ void session_update_timestamp(SCHCSession *s, time_t timestamp);
 
 int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp);
 
-int session_requested_fragment(SCHCSession *s, Fragment *frg);
+int session_check_requested_fragment(SCHCSession *s, Fragment *frg);
 
 int session_already_received(SCHCSession *s, Fragment *frg);
 
 int session_expects_fragment(SCHCSession *s, Fragment *frg);
 
-int session_get_pending_ack(SCHCSession *s, Fragment *frg);
+void start_new_session(SCHCSession *s, int retain_last_data);
 
-int session_update_bitmap(SCHCSession *s, Fragment *frg);
+int session_check_pending_ack(SCHCSession *s, Fragment *frg);
 
-int session_update_requested(SCHCSession *s);
+void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]);
 
-int session_generate_ack(SCHCSession *s);
+void session_update_bitmap(SCHCSession *s, Fragment *frg);
+
+int session_update_requested(SCHCSession *s, CompoundACK *ack);
+
+void session_generate_ack(SCHCSession *s, Fragment *frg);
 
 int schc_recv(SCHCSession *s);
