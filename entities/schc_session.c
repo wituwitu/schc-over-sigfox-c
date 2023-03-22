@@ -234,14 +234,15 @@ void session_generate_ack(SCHCSession *s, Fragment *frg) {
     char bitmaps[s->rule.max_window_number][s->rule.window_size + 1];
 
     int lost = session_get_tuples(s, frg, windows, bitmaps);
+    int wdw = get_frg_window(&s->rule, frg);
 
     if (lost) {
-        generate_ack(&s->ack, &s->rule, '0', windows, bitmaps);
+        generate_ack(&s->ack, &s->rule, wdw, '0', windows, bitmaps);
     } else {
         if (is_frg_all_1(&s->rule, frg)) {
             get_frg_w(&s->rule, frg, windows[0]);
             memset(bitmaps[0], '0', s->rule.window_size);
-            generate_ack(&s->ack, &s->rule, '1', windows, bitmaps);
+            generate_ack(&s->ack, &s->rule, wdw, '1', windows, bitmaps);
             memcpy(&s->state.last_ack, &s->ack, sizeof(CompoundACK));
         }
     }

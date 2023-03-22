@@ -236,6 +236,66 @@ int test_get_ack_tuples() {
     return 0;
 }
 
+int test_generate_ack() {
+    Rule rule;
+    init_rule(&rule, "000");
+
+    CompoundACK ack;
+
+    char windows[rule.max_window_number][rule.m + 1];
+    strncpy(windows[0], "00", rule.m);
+    strncpy(windows[1], "01", rule.m);
+    strncpy(windows[2], "10", rule.m);
+    strncpy(windows[3], "11", rule.m);
+    char bitmaps[rule.max_window_number][rule.window_size + 1];
+    strncpy(bitmaps[0], "1110101", rule.window_size);
+    strncpy(bitmaps[1], "1111111", rule.window_size);
+    strncpy(bitmaps[2], "1110001", rule.window_size);
+    strncpy(bitmaps[3], "0000000", rule.window_size);
+
+    generate_ack(&ack, &rule, 2, '0', windows, bitmaps);
+
+    char ack_rule_id[rule.rule_id_size + 1];
+    char ack_dtag[rule.t + 1];
+    char ack_w[rule.m + 1];
+    char ack_c[2];
+    char ack_bitmap[rule.window_size + 1];
+
+    get_ack_rule_id(&rule, &ack, ack_rule_id);
+    get_ack_dtag(&rule, &ack, ack_dtag);
+    get_ack_w(&rule, &ack, ack_w);
+    get_ack_c(&rule, &ack, ack_c);
+    get_ack_bitmap(&rule, &ack, ack_bitmap);
+
+    assert(strcmp(ack_rule_id, "000") == 0);
+    assert(strcmp(ack_dtag, "") == 0);
+    assert(strcmp(ack_w, "00") == 0);
+    assert(strcmp(ack_c, "0") == 0);
+    assert(strcmp(ack_bitmap, "1110101") == 0);
+
+    int nb_tuples = get_ack_nb_tuples(&rule, &ack);
+    assert(nb_tuples == 2);
+
+    char tp_windows[nb_tuples][rule.m + 1];
+    char tp_bitmaps[nb_tuples][rule.window_size + 1];
+
+    get_ack_tuples(&rule, &ack, nb_tuples, tp_windows, tp_bitmaps);
+
+    assert(strcmp(tp_windows[0], "00") == 0);
+    assert(strcmp(tp_windows[1], "10") == 0);
+    assert(strcmp(tp_bitmaps[0], "1110101") == 0);
+    assert(strcmp(tp_bitmaps[1], "1110001") == 0);
+
+    assert(!is_ack_receiver_abort(&rule, &ack));
+    assert(is_ack_compound(&rule, &ack));
+    assert(!is_ack_complete(&rule, &ack));
+
+    // TODO: Encapsulate test routine and test for other ACKs (complete and
+    //  incomplete for 2byte header op1 and 2byte header op2)
+
+    return 0;
+}
+
 int test_generate_receiver_abort() {
 
     // Generate Receiver-Abort
@@ -323,6 +383,7 @@ int main() {
     printf("%d test_is_ack_complete\n", test_is_ack_complete());
     printf("%d test_get_ack_nb_tuples\n", test_get_ack_nb_tuples());
     printf("%d test_get_ack_tuples\n", test_get_ack_tuples());
+    printf("%d test_generate_ack\n", test_generate_ack());
     printf("%d test_generate_receiver_abort\n", test_generate_receiver_abort());
     printf("%d test_generate_null_ack\n", test_generate_null_ack());
     printf("%d test_is_ack_null\n", test_is_ack_null());
