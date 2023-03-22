@@ -180,7 +180,6 @@ void generate_sender_abort(Rule *rule, Fragment *src, Fragment *dest) {
     dest->byte_size = byte_size;
 }
 
-// TODO: Re-test
 int generate_frg(Rule *rule, Fragment *dest, const char payload[],
                  int payload_byte_length, int nb_frag, int all_1) {
     int header_length;
@@ -201,7 +200,7 @@ int generate_frg(Rule *rule, Fragment *dest, const char payload[],
         return -1;
     }
 
-    get_rule_id_bin(rule_id, rule);
+    get_rule_id_bin(rule, rule_id);
     dtag[0] = '\0';
     window_id = nb_frag / rule->window_size;
     int_to_bin(w, window_id, rule->m);
@@ -259,7 +258,6 @@ int is_frg_null(Fragment *frg) {
            && frg->byte_size == -1;
 }
 
-// TODO: Untested
 int get_frg_idx(Rule *rule, Fragment *frg) {
     if (is_frg_all_1(rule, frg)) {
         char rcs[rule->u + 1];
@@ -273,7 +271,6 @@ int get_frg_idx(Rule *rule, Fragment *frg) {
 }
 
 int get_frg_nb(Rule *rule, Fragment *frg) {
-    char fcn[rule->n + 1];
     int frg_wdw = get_frg_window(rule, frg);
     int frg_idx = get_frg_idx(rule, frg);
     return rule->window_size * frg_wdw + frg_idx;

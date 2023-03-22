@@ -4,6 +4,29 @@
 #include <assert.h>
 #include <stdio.h>
 
+void test_routine_fragment(Rule rule, Fragment frg,
+                           char expected_rule_id[],
+                           char expected_dtag[],
+                           char expected_w[],
+                           char expected_fcn[],
+                           char expected_rcs[]) {
+    char frg_rule_id[rule.rule_id_size + 1];
+    char frg_dtag[rule.t + 1];
+    char frg_w[rule.m + 1];
+    char frg_fcn[rule.n + 1];
+    char frg_rcs[rule.u + 1];
+    get_frg_rule_id(&rule, &frg, frg_rule_id);
+    get_frg_dtag(&rule, &frg, frg_dtag);
+    get_frg_w(&rule, &frg, frg_w);
+    get_frg_fcn(&rule, &frg, frg_fcn);
+    get_frg_rcs(&rule, &frg, frg_rcs);
+    assert(strcmp(frg_rule_id, expected_rule_id) == 0);
+    assert(strcmp(frg_dtag, expected_dtag) == 0);
+    assert(strcmp(frg_w, expected_w) == 0);
+    assert(strcmp(frg_fcn, expected_fcn) == 0);
+    assert(strcmp(frg_rcs, expected_rcs) == 0);
+}
+
 int test_fragment_to_bin() {
     Fragment fragment = {"\x15\x88\x88\x88", 4};
     char as_bin[UPLINK_MTU_BITS + 1];
@@ -325,6 +348,8 @@ int test_generate_sender_abort() {
 
 int test_generate_fragment() {
 
+    // ====== 1 BYTE HEADER ======
+
     // Regular fragment
     int nb_frag = 0;
     Fragment frg;
@@ -333,46 +358,24 @@ int test_generate_fragment() {
     char payload[] = "\xde\xad\xca\xfe";
     assert(generate_frg(&rule, &frg, payload, 4, nb_frag, 0) == 0);
 
-    char frg_rule_id[rule.rule_id_size + 1];
-    char frg_dtag[rule.t + 1];
-    char frg_w[rule.m + 1];
-    char frg_fcn[rule.n + 1];
-    char frg_rcs[rule.u + 1];
-
-    get_frg_rule_id(&rule, &frg, frg_rule_id);
-    get_frg_dtag(&rule, &frg, frg_dtag);
-    get_frg_w(&rule, &frg, frg_w);
-    get_frg_fcn(&rule, &frg, frg_fcn);
-    get_frg_rcs(&rule, &frg, frg_rcs);
-
-    assert(strcmp(frg_rule_id, "000") == 0);
-    assert(strcmp(frg_dtag, "") == 0);
-    assert(strcmp(frg_w, "00") == 0);
-    assert(strcmp(frg_fcn, "110") == 0);
-    assert(strcmp(frg_rcs, "") == 0);
+    test_routine_fragment(rule, frg,
+                          "000",
+                          "",
+                          "00",
+                          "110",
+                          "");
 
     // All-0
     int nb_frag_all0 = 6;
     Fragment all0;
     assert(generate_frg(&rule, &all0, payload, 4, nb_frag_all0, 0) == 0);
 
-    char all0_rule_id[rule.rule_id_size + 1];
-    char all0_dtag[rule.t + 1];
-    char all0_w[rule.m + 1];
-    char all0_fcn[rule.n + 1];
-    char all0_rcs[rule.u + 1];
-
-    get_frg_rule_id(&rule, &all0, all0_rule_id);
-    get_frg_dtag(&rule, &all0, all0_dtag);
-    get_frg_w(&rule, &all0, all0_w);
-    get_frg_fcn(&rule, &all0, all0_fcn);
-    get_frg_rcs(&rule, &all0, all0_rcs);
-
-    assert(strcmp(all0_rule_id, "000") == 0);
-    assert(strcmp(all0_dtag, "") == 0);
-    assert(strcmp(all0_w, "00") == 0);
-    assert(strcmp(all0_fcn, "000") == 0);
-    assert(strcmp(all0_rcs, "") == 0);
+    test_routine_fragment(rule, all0,
+                          "000",
+                          "",
+                          "00",
+                          "000",
+                          "");
     assert(is_frg_all_0(&rule, &all0));
 
     // All-1
@@ -380,33 +383,108 @@ int test_generate_fragment() {
     Fragment all1;
     assert(generate_frg(&rule, &all1, payload, 4, nb_frag_all1, 1) == 0);
 
-    char all1_rule_id[rule.rule_id_size + 1];
-    char all1_dtag[rule.t + 1];
-    char all1_w[rule.m + 1];
-    char all1_fcn[rule.n + 1];
-    char all1_rcs[rule.u + 1];
-
-    get_frg_rule_id(&rule, &all1, all1_rule_id);
-    get_frg_dtag(&rule, &all1, all1_dtag);
-    get_frg_w(&rule, &all1, all1_w);
-    get_frg_fcn(&rule, &all1, all1_fcn);
-    get_frg_rcs(&rule, &all1, all1_rcs);
-
-    assert(strcmp(all1_rule_id, "000") == 0);
-    assert(strcmp(all1_dtag, "") == 0);
-    assert(strcmp(all1_w, "01") == 0);
-    assert(strcmp(all1_fcn, "111") == 0);
-    assert(strcmp(all1_rcs, "010") == 0);
+    test_routine_fragment(rule, all1,
+                          "000",
+                          "",
+                          "01",
+                          "111",
+                          "010");
     assert(is_frg_all_1(&rule, &all1));
 
     // All-1 with payload of length multiple of eleven
     char eleven[12];
     memset(eleven, '\x11', 11);
     eleven[11] = '\0';
-
     int nb_frag_invalid = 8;
     Fragment invalid;
     assert(generate_frg(&rule, &invalid, eleven, 11, nb_frag_invalid, 1) ==
+           -1);
+
+    // ====== 2 BYTE HEADER OP.1 ======
+
+    // Regular fragment
+    Rule rule_2b1;
+    init_rule(&rule_2b1, "111010");
+    Fragment frg_2b1;
+    assert(generate_frg(&rule_2b1, &frg_2b1, payload, 4, nb_frag, 0) == 0);
+    test_routine_fragment(rule_2b1, frg_2b1,
+                          "111010",
+                          "",
+                          "00",
+                          "1011",
+                          "");
+
+    // All-0 fragment
+    Fragment frg_2b1_all0;
+    assert(generate_frg(&rule_2b1, &frg_2b1_all0, payload, 4, 11, 0) == 0);
+    test_routine_fragment(rule_2b1, frg_2b1_all0,
+                          "111010",
+                          "",
+                          "00",
+                          "0000",
+                          "");
+    assert(is_frg_all_0(&rule_2b1, &frg_2b1_all0));
+
+    // All-1 fragment
+    Fragment frg_2b1_all1;
+    assert(generate_frg(&rule_2b1, &frg_2b1_all1, payload, 4, 13, 1) == 0);
+    test_routine_fragment(rule_2b1, frg_2b1_all1,
+                          "111010",
+                          "",
+                          "01",
+                          "1111",
+                          "0010");
+    assert(is_frg_all_1(&rule_2b1, &frg_2b1_all1));
+
+    // All-1 with payload of length multiple of ten
+    char ten[11];
+    memset(ten, '\x11', 10);
+    ten[10] = '\0';
+    int nb_frag_2b1_10 = 8;
+    Fragment frag_2b1_10;
+    assert(generate_frg(&rule_2b1, &frag_2b1_10, ten, 10, nb_frag_2b1_10, 1) ==
+           0);
+
+    // ====== 2 BYTE HEADER OP.2 ======
+
+    // Regular fragment
+    Rule rule_2b2;
+    init_rule(&rule_2b2, "11111101");
+    Fragment frg_2b2;
+    assert(generate_frg(&rule_2b2, &frg_2b2, payload, 4, nb_frag, 0) == 0);
+    test_routine_fragment(rule_2b2, frg_2b2,
+                          "11111101",
+                          "",
+                          "000",
+                          "11110",
+                          "");
+
+    // All-0 fragment
+    Fragment frg_2b2_all0;
+    assert(generate_frg(&rule_2b2, &frg_2b2_all0, payload, 4, 30, 0) == 0);
+    test_routine_fragment(rule_2b2, frg_2b2_all0,
+                          "11111101",
+                          "",
+                          "000",
+                          "00000",
+                          "");
+    assert(is_frg_all_0(&rule_2b2, &frg_2b2_all0));
+
+    // All-1 fragment
+    Fragment frg_2b2_all1;
+    assert(generate_frg(&rule_2b2, &frg_2b2_all1, payload, 4, 32, 1) == 0);
+    test_routine_fragment(rule_2b2, frg_2b2_all1,
+                          "11111101",
+                          "",
+                          "001",
+                          "11111",
+                          "00010");
+    assert(is_frg_all_1(&rule_2b2, &frg_2b2_all1));
+
+    // All-1 with payload of length multiple of ten
+    int nb_frag_2b2_10 = 8;
+    Fragment frag_2b2_10;
+    assert(generate_frg(&rule_2b2, &frag_2b2_10, ten, 10, nb_frag_2b2_10, 1) ==
            -1);
 
     return 0;
@@ -477,6 +555,26 @@ int test_get_frg_idx() {
 
     // Normal fragment
     Fragment fragment = {"\x15\x88\x88\x88", 4};
+    assert(get_frg_idx(&rule, &fragment) == 1);
+
+    // All-0 fragment
+    Fragment all0 = {"\x00\x00\x00\x00", 4};
+    assert(get_frg_idx(&rule, &all0) == 6);
+
+    // All-1 fragment
+    Fragment all1 = {"\027\200DD", 4};
+    assert(get_frg_idx(&rule, &all1) == 3);
+
+    return 0;
+}
+
+int test_get_frg_nb() {
+
+    Rule rule;
+    init_rule(&rule, "000");
+
+    // Normal fragment
+    Fragment fragment = {"\x15\x88\x88\x88", 4};
     assert(get_frg_nb(&rule, &fragment) == 15);
 
     // All-0 fragment
@@ -534,6 +632,7 @@ int main() {
     printf("%d test_generate_null_fragment\n", test_generate_null_fragment());
     printf("%d test_is_fragment_null\n", test_is_fragment_null());
     printf("%d test_get_frg_idx\n", test_get_frg_idx());
+    printf("%d test_get_frg_nb\n", test_get_frg_nb());
     printf("%d test_frg_equal\n", test_frg_equal());
 
     return 0;
