@@ -2,8 +2,8 @@
 #include <string.h>
 #include "misc.h"
 
-long bin_to_int(const char *bits) {
-    return strtol(bits, NULL, 2);
+int bin_to_int(const char *bits) {
+    return (int) strtol(bits, NULL, 2);
 }
 
 void int_to_bin(char dest[], signed int src, int dest_size) {

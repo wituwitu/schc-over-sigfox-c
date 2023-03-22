@@ -60,5 +60,14 @@ void init_rule(Rule *rule, const char rule_id_binary[]);
  */
 void parse_rule_from_bytes(Rule *rule, const char *byt);
 
-// TODO: Documentation
-void get_rule_id_bin(char *dest, Rule *rule);
+/*
+ * Function:  get_rule_id_bin
+ * --------------------
+ * Obtains the full binary representation of a Rule ID, including initial bits
+ * used to identify the operational mode (single-byte, double-byte op.1 or
+ * double-byte op.2).
+ *
+ *  rule: pointer to the Rule struct.
+ *  dest: char array where to store the result.
+ */
+void get_rule_id_bin(Rule *rule, char dest[rule->rule_id_size + 1]);

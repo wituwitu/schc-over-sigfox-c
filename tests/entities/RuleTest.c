@@ -59,7 +59,7 @@ int test_init_rule() {
 
     Rule rule_two_byte_op_2;
     init_rule(&rule_two_byte_op_2, "11111110");
-    assert(rule_two_byte_op_2.id == 16);
+    assert(rule_two_byte_op_2.id == 17);
     assert(rule_two_byte_op_2.rule_id_size == 8);
     assert(rule_two_byte_op_2.t == 0);
     assert(rule_two_byte_op_2.m == 3);
@@ -96,10 +96,36 @@ int test_parse_rule_from_bytes() {
     return 0;
 }
 
+int test_get_rule_id_bin() {
+    Rule rule_single_byte;
+    init_rule(&rule_single_byte, "010");
+    char rule_id_bin_1b[rule_single_byte.rule_id_size + 1];
+    get_rule_id_bin(&rule_single_byte, rule_id_bin_1b);
+    assert(rule_single_byte.id == 2);
+    assert(strcmp(rule_id_bin_1b, "010") == 0);
+
+    Rule rule_two_byte_op_1;
+    init_rule(&rule_two_byte_op_1, "111010");
+    char rule_id_bin_2bo1[rule_two_byte_op_1.rule_id_size + 1];
+    get_rule_id_bin(&rule_two_byte_op_1, rule_id_bin_2bo1);
+    assert(rule_two_byte_op_1.id == 8);
+    assert(strcmp(rule_id_bin_2bo1, "111010") == 0);
+
+    Rule rule_two_byte_op_2;
+    init_rule(&rule_two_byte_op_2, "11111110");
+    char rule_id_bin_2bo2[rule_two_byte_op_2.rule_id_size + 1];
+    get_rule_id_bin(&rule_two_byte_op_2, rule_id_bin_2bo2);
+    assert(rule_two_byte_op_2.id == 17);
+    assert(strcmp(rule_id_bin_2bo2, "11111110") == 0);
+
+    return 0;
+}
+
 
 int main() {
     printf("%d test_init_rule\n", test_init_rule());
     printf("%d test_parse_rule_from_bytes\n", test_parse_rule_from_bytes());
+    printf("%d test_get_rule_id_bin \n", test_get_rule_id_bin());
 
     return 0;
 }

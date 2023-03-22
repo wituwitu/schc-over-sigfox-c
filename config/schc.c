@@ -1,7 +1,3 @@
-//
-// Created by witu on 1/30/23.
-//
-
 #include "schc.h"
 
 char FR_MODE[] = "ACK ON ERROR";

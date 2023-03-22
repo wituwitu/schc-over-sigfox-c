@@ -29,7 +29,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
         memcpy(double_byte_header, rule_id_binary, 6);
         double_byte_header[6] = '\0';
         if (memcmp(double_byte_header, "111111", 6) != 0) {
-            id = bin_to_int(double_byte_header) & 7 + 6;
+            id = (bin_to_int(double_byte_header) & 7) + 6;
             rule_id_size = 6;
             t = 0;
             m = 2;
@@ -38,7 +38,7 @@ void init_rule(Rule *rule, const char rule_id_binary[]) {
             u = 4;
             max_schc_packet_byte_size = 480;
         } else {
-            id = bin_to_int(rule_id_binary) & 3 + 14;
+            id = (bin_to_int(rule_id_binary) & 3) + 15;
             rule_id_size = 8;
             t = 0;
             m = 3;
@@ -105,7 +105,7 @@ void parse_rule_from_bytes(Rule *rule, const char *byt) {
     size_t bin_length = strlen(byt) * 8;
     char as_bin[bin_length + 1];
     memset(as_bin, '\0', bin_length + 1);
-    bytes_to_bin(as_bin, byt, strlen(byt));
+    bytes_to_bin(as_bin, byt, (int) strlen(byt));
     char first_byte[9];
     strncpy(first_byte, as_bin, 8);
     first_byte[8] = '\0';
@@ -113,5 +113,15 @@ void parse_rule_from_bytes(Rule *rule, const char *byt) {
     init_rule(rule, first_byte);
 }
 
-// TODO: Implement
-void get_rule_id_bin(char *dest, Rule *rule) {}
+void get_rule_id_bin(Rule *rule, char dest[rule->rule_id_size + 1]) {
+    int rule_id_full;
+
+    if (rule->rule_id_size == 3) {
+        rule_id_full = rule->id;
+    } else if (rule->rule_id_size == 6) {
+        rule_id_full = (rule->id - 6) | 56;
+    } else {
+        rule_id_full = (rule->id - 3) | 252;
+    }
+    int_to_bin(dest, rule_id_full, rule->rule_id_size);
+}

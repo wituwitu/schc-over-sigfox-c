@@ -5,20 +5,11 @@
 #include "misc.h"
 
 int bin_to_int_test(void) {
-    char bin[] = "11010010";
-    int expected = 210;
-    int actual = bin_to_int(bin);
 
-    assert(actual == expected);
-
-    char bin_second[] = "000011010010";
-    int actual_second = bin_to_int(bin_second);
-    assert(actual_second == expected);
-
-    char bin_third[] = "111111111111";
-    int expected_third = 4095;
-    int actual_third = bin_to_int(bin_third);
-    assert(actual_third == expected_third);
+    assert(bin_to_int("11010010") == 210);
+    assert(bin_to_int("000011010010") == 210);
+    assert(bin_to_int("111111111111") == 4095);
+    assert(bin_to_int("111000") == 56);
 
     return 0;
 }
