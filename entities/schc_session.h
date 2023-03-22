@@ -40,12 +40,21 @@ void start_new_session(SCHCSession *s, int retain_last_data);
 
 int session_check_pending_ack(SCHCSession *s, Fragment *frg);
 
+void session_store_frg(SCHCSession *s, Fragment *frg);
+
 void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]);
 
 void session_update_bitmap(SCHCSession *s, Fragment *frg);
 
 int session_update_requested(SCHCSession *s, CompoundACK *ack);
 
+int session_get_tuples(
+        SCHCSession *s,
+        Fragment *frg,
+        char windows[s->rule.max_window_number][s->rule.m + 1],
+        char bitmaps[s->rule.max_window_number][s->rule.window_size + 1]
+);
+
 void session_generate_ack(SCHCSession *s, Fragment *frg);
 
-int schc_recv(SCHCSession *s);
+int schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp);

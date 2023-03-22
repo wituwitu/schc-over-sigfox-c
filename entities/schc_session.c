@@ -142,6 +142,13 @@ int session_check_pending_ack(SCHCSession *s, Fragment *frg) {
     return is_frg_all_1(&s->rule, &s->state.last_fragment);
 }
 
+void session_store_frg(SCHCSession *s, Fragment *frg) {
+    if (session_already_received(s, frg)) return;
+
+    int frg_nb = get_frg_nb(&s->rule, frg);
+    memcpy(&s->fragments[frg_nb], frg, sizeof(Fragment));
+}
+
 void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]) {
     int frg_window = get_frg_window(&s->rule, frg);
     int bm_start_idx = frg_window * s->rule.window_size;
@@ -178,12 +185,14 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
     return 0;
 }
 
-void session_generate_ack(SCHCSession *s, Fragment *frg) {
+int session_get_tuples(
+        SCHCSession *s,
+        Fragment *frg,
+        char windows[s->rule.max_window_number][s->rule.m + 1],
+        char bitmaps[s->rule.max_window_number][s->rule.window_size + 1]
+) {
     int curr_window = get_frg_window(&s->rule, frg);
     int nb_tuples = 0;
-
-    char windows[s->rule.max_window_number][s->rule.m + 1];
-    char bitmaps[s->rule.max_window_number][s->rule.window_size + 1];
 
     for (int i = 0; i < s->rule.max_window_number; i++) {
         memset(windows[i], '\0', s->rule.m + 1);
@@ -217,15 +226,56 @@ void session_generate_ack(SCHCSession *s, Fragment *frg) {
         }
     }
 
-    if (nb_tuples > 0) {
+    return nb_tuples > 0;
+}
+
+void session_generate_ack(SCHCSession *s, Fragment *frg) {
+    char windows[s->rule.max_window_number][s->rule.m + 1];
+    char bitmaps[s->rule.max_window_number][s->rule.window_size + 1];
+
+    int lost = session_get_tuples(s, frg, windows, bitmaps);
+
+    if (lost) {
         generate_ack(&s->ack, &s->rule, '0', windows, bitmaps);
     } else {
         if (is_frg_all_1(&s->rule, frg)) {
             get_frg_w(&s->rule, frg, windows[0]);
             memset(bitmaps[0], '0', s->rule.window_size);
-
             generate_ack(&s->ack, &s->rule, '1', windows, bitmaps);
             memcpy(&s->state.last_ack, &s->ack, sizeof(CompoundACK));
         }
     }
+}
+
+int schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
+
+    if (session_was_aborted(s)) return SCHC_RECEIVER_ABORTED;
+
+    if (session_expired_inactivity_timeout(s, timestamp)) {
+        s->state.timestamp = -1;
+        generate_receiver_abort(&s->rule, frg, &s->ack);
+        return SCHC_RECEIVER_ABORTED;
+    }
+
+    session_update_timestamp(s, timestamp);
+
+    if (is_frg_sender_abort(&s->rule, frg)) return SCHC_SENDER_ABORTED;
+
+    if (!session_expects_fragment(s, frg))
+        start_new_session(s, 0);
+
+    session_store_frg(s, frg);
+    session_update_bitmap(s, frg);
+
+    if (session_check_pending_ack(s, frg)) {
+        memcpy(&s->ack, &s->state.last_ack, sizeof(CompoundACK));
+        return 1;
+    }
+
+    if (!frg_expects_ack(&s->rule, frg)
+        || session_check_requested_fragment(s, frg))
+        return 0;
+
+    session_generate_ack(s, frg);
+    return 1;
 }
