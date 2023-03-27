@@ -48,10 +48,9 @@ void session_update_bitmap(SCHCSession *s, Fragment *frg);
 
 int session_update_requested(SCHCSession *s, CompoundACK *ack);
 
-int session_get_tuples(
+int session_check_bitmaps(
         SCHCSession *s,
         Fragment *frg,
-        char windows[s->rule.max_window_number][s->rule.m + 1],
         char bitmaps[s->rule.max_window_number][s->rule.window_size + 1]
 );
 

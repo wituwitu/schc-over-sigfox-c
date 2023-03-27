@@ -185,17 +185,15 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
     return 0;
 }
 
-int session_get_tuples(
+int session_check_bitmaps(
         SCHCSession *s,
         Fragment *frg,
-        char windows[s->rule.max_window_number][s->rule.m + 1],
         char bitmaps[s->rule.max_window_number][s->rule.window_size + 1]
 ) {
     int curr_window = get_frg_window(&s->rule, frg);
     int nb_tuples = 0;
 
     for (int i = 0; i < s->rule.max_window_number; i++) {
-        memset(windows[i], '\0', s->rule.m + 1);
         memset(bitmaps[i], '\0', s->rule.window_size + 1);
     }
 
@@ -221,7 +219,6 @@ int session_get_tuples(
 
         if (lost) {
             nb_tuples++;
-            int_to_bin(windows[i], i, s->rule.m);
             memcpy(bitmaps[i], bitmap, s->rule.window_size + 1);
         }
     }
@@ -229,24 +226,15 @@ int session_get_tuples(
     return nb_tuples > 0;
 }
 
-// TODO: update implementation considering generate_ack()
 void session_generate_ack(SCHCSession *s, Fragment *frg) {
-    char windows[s->rule.max_window_number][s->rule.m + 1];
     char bitmaps[s->rule.max_window_number][s->rule.window_size + 1];
 
-    int lost = session_get_tuples(s, frg, windows, bitmaps);
+    int lost = session_check_bitmaps(s, frg, bitmaps);
     int wdw = get_frg_window(&s->rule, frg);
 
-    if (lost) {
-        generate_ack(&s->rule, &s->ack, wdw, '0', bitmaps);
-    } else {
-        if (is_frg_all_1(&s->rule, frg)) {
-            get_frg_w(&s->rule, frg, windows[0]);
-            memset(bitmaps[0], '0', s->rule.window_size);
-            generate_ack(&s->rule, &s->ack, wdw, '1', bitmaps);
-            memcpy(&s->state.last_ack, &s->ack, sizeof(CompoundACK));
-        }
-    }
+    char c = lost ? '0' : '1';
+
+    generate_ack(&s->rule, &s->ack, wdw, c, bitmaps);
 }
 
 int schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
