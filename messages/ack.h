@@ -146,7 +146,6 @@ int is_ack_complete(Rule *rule, CompoundACK *ack);
 // TODO: Documentation
 void generate_ack(CompoundACK *dest, Rule *rule,
                   int wdw, char c,
-                  char windows[rule->max_window_number][rule->m + 1],
                   char bitmaps[rule->max_window_number][rule->window_size +
                                                         1]);
 
