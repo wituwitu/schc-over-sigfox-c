@@ -1,4 +1,5 @@
 #include "ack.h"
+#include <time.h>
 
 #ifndef SCHC_OVER_SIGFOX_C_SCHC_SESSION_H
 #define SCHC_OVER_SIGFOX_C_SCHC_SESSION_H

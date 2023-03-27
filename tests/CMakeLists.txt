@@ -26,6 +26,9 @@ add_executable(
         SCHCSenderTestRecv entities/SCHCSenderTestRecv.c
 )
 add_executable(
+        SCHCSessionTest entities/SCHCSessionTest.c
+)
+add_executable(
         FragmentTest messages/FragmentTest.c
 )
 add_executable(
@@ -41,6 +44,7 @@ target_link_libraries(FRProcedureTest entities)
 target_link_libraries(FIFOQueuesTest entities)
 target_link_libraries(SCHCSenderTest entities)
 target_link_libraries(SCHCSenderTestRecv entities)
+target_link_libraries(SCHCSessionTest entities)
 target_link_libraries(FragmentTest messages)
 target_link_libraries(CompoundACKTest messages)
 

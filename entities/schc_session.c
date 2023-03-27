@@ -237,7 +237,7 @@ void session_generate_ack(SCHCSession *s, Fragment *frg) {
     generate_ack(&s->rule, &s->ack, wdw, c, bitmaps);
 }
 
-int schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
+int session_schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
 
     if (session_was_aborted(s)) return SCHC_RECEIVER_ABORTED;
 
