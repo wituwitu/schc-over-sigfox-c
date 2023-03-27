@@ -118,7 +118,7 @@ int main() {
     Rule rule;
     init_rule_from_frg(&rule, &recv);
     CompoundACK ra;
-    generate_receiver_abort(&rule, &recv, &ra);
+    generate_receiver_abort(&rule, &ra);
     assert(sgfx_server_send(&server, ra.message) == 8);
     printf("Sent Receiver-Abort (response to All-0)\n");
 
