@@ -159,11 +159,10 @@ int is_ack_complete(Rule *rule, CompoundACK *ack) {
     return !is_ack_receiver_abort(rule, ack) && strcmp(c, "1") == 0;
 }
 
-// TODO: Testing
 int generate_ack(CompoundACK *dest, Rule *rule,
                  int wdw, char c,
-                 char bitmaps[rule->max_window_number][rule->window_size +
-                                                       1]) {
+                 char bitmaps[rule->max_window_number][rule->window_size + 1]) {
+
     char rule_id[rule->rule_id_size + 1];
     char dtag[rule->t + 1];
     char as_bin[DOWNLINK_MTU_BITS + 1];
@@ -191,7 +190,8 @@ int generate_ack(CompoundACK *dest, Rule *rule,
         int curr_len = 0;
 
         for (int i = 0;
-             i <= wdw && curr_len + tuple_size <= DOWNLINK_MTU_BITS; i++) {
+             i <= wdw && curr_len + tuple_size <= DOWNLINK_MTU_BITS;
+             i++) {
             if (bitmaps[i][0] == '\0' || is_monochar(bitmaps[i], '1')) continue;
 
             char window[rule->m + 1];

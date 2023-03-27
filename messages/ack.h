@@ -143,11 +143,20 @@ int is_ack_compound(Rule *rule, CompoundACK *ack);
  */
 int is_ack_complete(Rule *rule, CompoundACK *ack);
 
-// TODO: Documentation
+/*
+ * Function:  generate_ack
+ * --------------------
+ * Generates a Complete ACK using information from the SCHC state,
+ *
+ *  dest: Where to store the resulting Compound ACK information.
+ *  rule: Rule used to process and create the ACK.
+ *  wdw: Window number of the fragment that requested the ACK.
+ *  c: Whether the ACK is complete or not.
+ *  bitmaps: Array of all bitmaps of the SCHC session.
+ */
 int generate_ack(CompoundACK *dest, Rule *rule,
                  int wdw, char c,
-                 char bitmaps[rule->max_window_number][rule->window_size +
-                                                       1]);
+                 char bitmaps[rule->max_window_number][rule->window_size + 1]);
 
 /*
  * Function:  generate_receiver_abort
