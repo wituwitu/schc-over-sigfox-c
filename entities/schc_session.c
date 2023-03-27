@@ -229,6 +229,7 @@ int session_get_tuples(
     return nb_tuples > 0;
 }
 
+// TODO: update implementation considering generate_ack()
 void session_generate_ack(SCHCSession *s, Fragment *frg) {
     char windows[s->rule.max_window_number][s->rule.m + 1];
     char bitmaps[s->rule.max_window_number][s->rule.window_size + 1];

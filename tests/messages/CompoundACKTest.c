@@ -297,8 +297,6 @@ int test_generate_ack() {
 
     CompoundACK ack;
 
-    // TODO: window array is not necessary since it always contain all windows
-
     char bitmaps[rule.max_window_number][rule.window_size + 1];
     strncpy(bitmaps[0], "1110101\0", rule.window_size + 1);
     strncpy(bitmaps[1], "1111111\0", rule.window_size + 1);
