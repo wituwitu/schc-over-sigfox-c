@@ -287,6 +287,9 @@ void test_routine_ack(Rule rule,
 }
 
 int test_generate_ack() {
+
+    // ====== 1 BYTE HEADER ======
+
     Rule rule;
     init_rule(&rule, "000");
 
@@ -337,6 +340,15 @@ int test_generate_ack() {
                      "1", "0000000", 1,
                      expected_windows_complete, expected_bitmaps_complete,
                      0, 1);
+
+    CompoundACK ack_invalid;
+    char bitmaps_invalid[rule.max_window_number][rule.window_size + 1];
+    strncpy(bitmaps_invalid[0], "0000000\0", rule.window_size + 1);
+    strncpy(bitmaps_invalid[1], "0001000\0", rule.window_size + 1);
+    strncpy(bitmaps_invalid[2], "0000000\0", rule.window_size + 1);
+    strncpy(bitmaps_invalid[3], "0000000\0", rule.window_size + 1);
+
+    assert(generate_ack(&ack_invalid, &rule, 3, '1', bitmaps_invalid) == -1);
 
 
     // TODO: Encapsulate test routine and test for other ACKs (complete and
