@@ -432,11 +432,132 @@ int test_generate_ack() {
 
     // ====== 2 BYTE HEADER OP.2 ======
 
+    // Normal ACK
+
     Rule rule_2b2;
     init_rule(&rule_2b2, "11111101");
 
-    // TODO: Encapsulate test routine and test for other ACKs (complete and
-    //  incomplete for 2byte header op1 and 2byte header op2)
+    CompoundACK ack_2b2;
+
+    char bitmaps_2b2[rule_2b2.max_window_number][rule_2b2.window_size + 1];
+    strncpy(bitmaps_2b2[0], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[1], "1110101100101000101110010010011\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[2], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[3], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[4], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[5], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[6], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2[7], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+
+    assert(generate_ack(&ack_2b2, &rule_2b2, 2, '0', bitmaps_2b2) == 0);
+
+    int expected_tuples_2b2 = 1;
+    char expected_windows_2b2[expected_tuples_2b2][rule_2b2.m + 1];
+    char expected_bitmaps_2b2[expected_tuples_2b2][rule_2b2.window_size + 1];
+    strncpy(expected_windows_2b2[0], "001\0", rule_2b2.m + 1);
+    strncpy(expected_bitmaps_2b2[0], "1110101100101000101110010010011\0",
+            rule_2b2.window_size + 1);
+
+    test_routine_ack(rule_2b2, ack_2b2,
+                     "11111101", "", "001",
+                     "0", "1110101100101000101110010010011",
+                     expected_tuples_2b2,
+                     expected_windows_2b2,
+                     expected_bitmaps_2b2,
+                     1, 0);
+
+    // Normal ACK, larger than downlink MTU
+
+    CompoundACK ack_2b2_larger;
+
+    char bitmaps_2b2_larger[rule_2b2.max_window_number][
+            rule_2b2.window_size + 1];
+    strncpy(bitmaps_2b2_larger[0], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[1], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[2], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[3], "1000110110111010111010100010101\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[4], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[5], "0000000000000111111100000000000\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[6], "1011010000101011011010101000011\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_larger[7], "0000000000000000000000000000000\0",
+            rule_2b2.window_size + 1);
+
+    assert(generate_ack(&ack_2b2_larger, &rule_2b2, 6, '0',
+                        bitmaps_2b2_larger) == 0);
+
+    int expected_tuples_2b2_larger = 1;
+    char expected_windows_2b2_larger[expected_tuples_2b2][rule_2b2.m + 1];
+    char expected_bitmaps_2b2_larger[expected_tuples_2b2][
+            rule_2b2.window_size + 1];
+    strncpy(expected_windows_2b2_larger[0], "011\0", rule_2b2.m + 1);
+    strncpy(expected_bitmaps_2b2_larger[0], "1000110110111010111010100010101\0",
+            rule_2b2.window_size + 1);
+
+    test_routine_ack(rule_2b2, ack_2b2_larger,
+                     "11111101", "", "011",
+                     "0", "1000110110111010111010100010101",
+                     expected_tuples_2b2_larger,
+                     expected_windows_2b2_larger,
+                     expected_bitmaps_2b2_larger,
+                     1, 0);
+
+    // Complete ACK
+
+    CompoundACK ack_2b2_complete;
+
+    char bitmaps_2b2_complete[rule_2b2.max_window_number][
+            rule_2b2.window_size + 1];
+    strncpy(bitmaps_2b2_complete[0], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[1], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[2], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[3], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[4], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[5], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[6], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+    strncpy(bitmaps_2b2_complete[7], "1111111111111111111111111111111\0",
+            rule_2b2.window_size + 1);
+
+    assert(generate_ack(&ack_2b2_complete, &rule_2b2, 7, '1',
+                        bitmaps_2b2_complete) == 0);
+
+    int expected_tuples_2b2_complete = 1;
+    char expected_windows_2b2_complete[expected_tuples_2b2_complete][
+            rule_2b2.m + 1];
+    char expected_bitmaps_2b2_complete[expected_tuples_2b2_complete][
+            rule_2b2.window_size + 1];
+    strncpy(expected_windows_2b2_complete[0], "111\0", rule_2b2.m + 1);
+    strncpy(expected_bitmaps_2b2_complete[0],
+            "0000000000000000000000000000000\0", rule_2b2.window_size + 1);
+
+    test_routine_ack(rule_2b2, ack_2b2_complete,
+                     "11111101", "", "111",
+                     "1", "0000000000000000000000000000000",
+                     expected_tuples_2b2_complete,
+                     expected_windows_2b2_complete,
+                     expected_bitmaps_2b2_complete,
+                     0, 1);
 
     return 0;
 }

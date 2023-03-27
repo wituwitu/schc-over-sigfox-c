@@ -188,8 +188,10 @@ int generate_ack(CompoundACK *dest, Rule *rule,
     } else {
         int tuple_size = rule->m + rule->window_size;
         int tuple_nb = 0;
+        int curr_len = 0;
 
-        for (int i = 0; i <= wdw; i++) {
+        for (int i = 0;
+             i <= wdw && curr_len + tuple_size <= DOWNLINK_MTU_BITS; i++) {
             if (bitmaps[i][0] == '\0' || is_monochar(bitmaps[i], '1')) continue;
 
             char window[rule->m + 1];
@@ -199,6 +201,7 @@ int generate_ack(CompoundACK *dest, Rule *rule,
                 strncpy(as_bin + rule->ack_indices.w_idx, window, rule->m);
                 strncpy(as_bin + rule->ack_indices.bitmap_idx, bitmaps[i],
                         rule->window_size);
+                curr_len = rule->ack_indices.tuple_idx;
             } else {
                 int tuple_idx =
                         rule->ack_indices.tuple_idx +
@@ -206,6 +209,7 @@ int generate_ack(CompoundACK *dest, Rule *rule,
                 strncpy(as_bin + tuple_idx, window, rule->m);
                 strncpy(as_bin + tuple_idx + rule->m, bitmaps[i],
                         rule->window_size);
+                curr_len += tuple_size;
             }
             tuple_nb++;
         }
