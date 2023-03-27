@@ -305,7 +305,7 @@ int test_generate_ack() {
     strncpy(bitmaps[2], "1110001\0", rule.window_size + 1);
     strncpy(bitmaps[3], "0000000\0", rule.window_size + 1);
 
-    assert(generate_ack(&ack, &rule, 2, '0', bitmaps) == 0);
+    assert(generate_ack(&rule, &ack, 2, '0', bitmaps) == 0);
 
     int expected_tuples = 2;
     char expected_windows[expected_tuples][rule.m + 1];
@@ -332,7 +332,7 @@ int test_generate_ack() {
     strncpy(bitmaps_complete[2], "1111111\0", rule.window_size + 1);
     strncpy(bitmaps_complete[3], "1111111\0", rule.window_size + 1);
 
-    assert(generate_ack(&ack_complete, &rule, 3, '1', bitmaps_complete) == 0);
+    assert(generate_ack(&rule, &ack_complete, 3, '1', bitmaps_complete) == 0);
 
     int expected_tuples_complete = 1;
     char expected_windows_complete[expected_tuples_complete][rule.m + 1];
@@ -358,7 +358,7 @@ int test_generate_ack() {
     strncpy(bitmaps_invalid[2], "0000000\0", rule.window_size + 1);
     strncpy(bitmaps_invalid[3], "0000000\0", rule.window_size + 1);
 
-    assert(generate_ack(&ack_invalid, &rule, 3, '1', bitmaps_invalid) == -1);
+    assert(generate_ack(&rule, &ack_invalid, 3, '1', bitmaps_invalid) == -1);
 
     // ====== 2 BYTE HEADER OP.1 ======
 
@@ -375,7 +375,7 @@ int test_generate_ack() {
     strncpy(bitmaps_2b1[2], "111000101111\0", rule_2b1.window_size + 1);
     strncpy(bitmaps_2b1[3], "000000000000\0", rule_2b1.window_size + 1);
 
-    assert(generate_ack(&ack_2b1, &rule_2b1, 2, '0', bitmaps_2b1) == 0);
+    assert(generate_ack(&rule_2b1, &ack_2b1, 2, '0', bitmaps_2b1) == 0);
 
     int expected_tuples_2b1 = 2;
     char expected_windows_2b1[expected_tuples_2b1][rule_2b1.m + 1];
@@ -410,7 +410,7 @@ int test_generate_ack() {
     strncpy(bitmaps_2b1_complete[3], "111111111111\0",
             rule_2b1.window_size + 1);
 
-    assert(generate_ack(&ack_2b1_complete, &rule_2b1, 3, '1',
+    assert(generate_ack(&rule_2b1, &ack_2b1_complete, 3, '1',
                         bitmaps_2b1_complete) == 0);
 
     int expected_tuples_2b1_complete = 1;
@@ -457,7 +457,7 @@ int test_generate_ack() {
     strncpy(bitmaps_2b2[7], "0000000000000000000000000000000\0",
             rule_2b2.window_size + 1);
 
-    assert(generate_ack(&ack_2b2, &rule_2b2, 2, '0', bitmaps_2b2) == 0);
+    assert(generate_ack(&rule_2b2, &ack_2b2, 2, '0', bitmaps_2b2) == 0);
 
     int expected_tuples_2b2 = 1;
     char expected_windows_2b2[expected_tuples_2b2][rule_2b2.m + 1];
@@ -497,7 +497,7 @@ int test_generate_ack() {
     strncpy(bitmaps_2b2_larger[7], "0000000000000000000000000000000\0",
             rule_2b2.window_size + 1);
 
-    assert(generate_ack(&ack_2b2_larger, &rule_2b2, 6, '0',
+    assert(generate_ack(&rule_2b2, &ack_2b2_larger, 6, '0',
                         bitmaps_2b2_larger) == 0);
 
     int expected_tuples_2b2_larger = 1;
@@ -539,7 +539,7 @@ int test_generate_ack() {
     strncpy(bitmaps_2b2_complete[7], "1111111111111111111111111111111\0",
             rule_2b2.window_size + 1);
 
-    assert(generate_ack(&ack_2b2_complete, &rule_2b2, 7, '1',
+    assert(generate_ack(&rule_2b2, &ack_2b2_complete, 7, '1',
                         bitmaps_2b2_complete) == 0);
 
     int expected_tuples_2b2_complete = 1;
@@ -569,7 +569,7 @@ int test_generate_receiver_abort() {
     Rule rule;
     init_rule_from_frg(&rule, &fragment);
     CompoundACK receiver_abort;
-    generate_receiver_abort(&rule, &fragment, &receiver_abort);
+    generate_receiver_abort(&rule, &receiver_abort);
 
     // Check fields
     char w[rule.m + 1];

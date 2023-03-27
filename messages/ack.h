@@ -146,28 +146,28 @@ int is_ack_complete(Rule *rule, CompoundACK *ack);
 /*
  * Function:  generate_ack
  * --------------------
- * Generates a Complete ACK using information from the SCHC state,
+ * Generates a Complete ACK using information from the SCHC state.
+ * Returns -1 on failures.
  *
- *  dest: Where to store the resulting Compound ACK information.
  *  rule: Rule used to process and create the ACK.
+ *  dest: Where to store the resulting Compound ACK information.
  *  wdw: Window number of the fragment that requested the ACK.
  *  c: Whether the ACK is complete or not.
  *  bitmaps: Array of all bitmaps of the SCHC session.
  */
-int generate_ack(CompoundACK *dest, Rule *rule,
+int generate_ack(Rule *rule, CompoundACK *dest,
                  int wdw, char c,
                  char bitmaps[rule->max_window_number][rule->window_size + 1]);
 
 /*
  * Function:  generate_receiver_abort
  * --------------------
- * Generates a Receiver-Abort using the information of a Rule and a Fragment.
+ * Generates a Receiver-Abort using the information of a Rule.
  *
  *  rule: the Rule struct used to process the Fragment.
- *  src: the Fragment to be used as a reference.
- *  dest: Fragment where to store the Sender-Abort information.
+ *  dest: Compound ACK where to store the Receiver-Abort information.
  */
-void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest);
+void generate_receiver_abort(Rule *rule, CompoundACK *dest);
 
 /*
  * Function:  generate_null_ack

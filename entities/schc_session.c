@@ -254,7 +254,7 @@ int schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
 
     if (session_expired_inactivity_timeout(s, timestamp)) {
         s->state.timestamp = -1;
-        generate_receiver_abort(&s->rule, frg, &s->ack);
+        generate_receiver_abort(&s->rule, &s->ack);
         return SCHC_RECEIVER_ABORTED;
     }
 

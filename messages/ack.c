@@ -159,7 +159,7 @@ int is_ack_complete(Rule *rule, CompoundACK *ack) {
     return !is_ack_receiver_abort(rule, ack) && strcmp(c, "1") == 0;
 }
 
-int generate_ack(CompoundACK *dest, Rule *rule,
+int generate_ack(Rule *rule, CompoundACK *dest,
                  int wdw, char c,
                  char bitmaps[rule->max_window_number][rule->window_size + 1]) {
 
@@ -220,14 +220,14 @@ int generate_ack(CompoundACK *dest, Rule *rule,
     return 0;
 }
 
-void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest) {
+void generate_receiver_abort(Rule *rule, CompoundACK *dest) {
     char rule_id[rule->rule_id_size + 1];
     char dtag[rule->t + 1];
     char w[rule->m + 1];
     char c[] = "1";
 
-    get_frg_rule_id(rule, src, rule_id);
-    get_frg_dtag(rule, src, dtag);
+    get_rule_id_bin(rule, rule_id);
+    dtag[0] = '\0';
     memset(w, '1', rule->m);
 
     int header_remainder = rule->ack_header_length % L2_WORD_SIZE;
