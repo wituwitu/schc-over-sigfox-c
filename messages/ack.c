@@ -178,14 +178,13 @@ int generate_ack(CompoundACK *dest, Rule *rule,
 
     if (c == '1') {
         for (int i = 0; i <= wdw; i++) {
-            if (!is_monochar(bitmaps[i], '0')) return -1;
+            if (!is_monochar(bitmaps[i], '1')) return -1;
         }
 
         char window[rule->m + 1];
         int_to_bin(window, wdw, rule->m);
         strncpy(as_bin + rule->ack_indices.w_idx, window, rule->m);
-        strncpy(as_bin + rule->ack_indices.bitmap_idx, bitmaps[0],
-                rule->window_size);
+        memset(as_bin + rule->ack_indices.bitmap_idx, '0', rule->window_size);
     } else {
         int tuple_size = rule->m + rule->window_size;
         int tuple_nb = 0;
