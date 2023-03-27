@@ -160,10 +160,10 @@ int is_ack_complete(Rule *rule, CompoundACK *ack) {
 }
 
 // TODO: Testing
-void generate_ack(CompoundACK *dest, Rule *rule,
-                  int wdw, char c,
-                  char bitmaps[rule->max_window_number][rule->window_size +
-                                                        1]) {
+int generate_ack(CompoundACK *dest, Rule *rule,
+                 int wdw, char c,
+                 char bitmaps[rule->max_window_number][rule->window_size +
+                                                       1]) {
     char rule_id[rule->rule_id_size + 1];
     char dtag[rule->t + 1];
     char as_bin[DOWNLINK_MTU_BITS + 1];
@@ -176,30 +176,45 @@ void generate_ack(CompoundACK *dest, Rule *rule,
     strncpy(as_bin + rule->ack_indices.dtag_idx, dtag, rule->t);
     as_bin[rule->ack_indices.c_idx] = c;
 
-    int tuple_size = rule->m + rule->window_size;
-    int tuple_nb = 0;
-    for (int i = 0; i <= wdw; i++) {
-        if (bitmaps[i][0] == '\0' || is_monochar(bitmaps[i], '1')) continue;
+    if (c == '1') {
+        for (int i = 0; i <= wdw; i++) {
+            if (!is_monochar(bitmaps[i], '0')) return -1;
+        }
 
         char window[rule->m + 1];
-        int_to_bin(window, i, rule->m);
+        int_to_bin(window, wdw, rule->m);
+        strncpy(as_bin + rule->ack_indices.w_idx, window, rule->m);
+        strncpy(as_bin + rule->ack_indices.bitmap_idx, bitmaps[0],
+                rule->window_size);
+    } else {
+        int tuple_size = rule->m + rule->window_size;
+        int tuple_nb = 0;
 
-        if (tuple_nb == 0) {
-            strncpy(as_bin + rule->ack_indices.w_idx, window, rule->m);
-            strncpy(as_bin + rule->ack_indices.bitmap_idx, bitmaps[i],
-                    rule->window_size);
-        } else {
-            int tuple_idx =
-                    rule->ack_indices.tuple_idx + (tuple_nb - 1) * tuple_size;
-            strncpy(as_bin + tuple_idx, window, rule->m);
-            strncpy(as_bin + tuple_idx + rule->m, bitmaps[i],
-                    rule->window_size);
+        for (int i = 0; i <= wdw; i++) {
+            if (bitmaps[i][0] == '\0' || is_monochar(bitmaps[i], '1')) continue;
+
+            char window[rule->m + 1];
+            int_to_bin(window, i, rule->m);
+
+            if (tuple_nb == 0) {
+                strncpy(as_bin + rule->ack_indices.w_idx, window, rule->m);
+                strncpy(as_bin + rule->ack_indices.bitmap_idx, bitmaps[i],
+                        rule->window_size);
+            } else {
+                int tuple_idx =
+                        rule->ack_indices.tuple_idx +
+                        (tuple_nb - 1) * tuple_size;
+                strncpy(as_bin + tuple_idx, window, rule->m);
+                strncpy(as_bin + tuple_idx + rule->m, bitmaps[i],
+                        rule->window_size);
+            }
+            tuple_nb++;
         }
-        tuple_nb++;
     }
 
     bin_to_bytes(dest->message, as_bin, DOWNLINK_MTU_BITS);
     dest->byte_size = DOWNLINK_MTU_BYTES;
+    return 0;
 }
 
 void generate_receiver_abort(Rule *rule, Fragment *src, CompoundACK *dest) {

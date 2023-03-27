@@ -300,7 +300,7 @@ int test_generate_ack() {
     strncpy(bitmaps[2], "1110001\0", rule.window_size + 1);
     strncpy(bitmaps[3], "0000000\0", rule.window_size + 1);
 
-    generate_ack(&ack, &rule, 2, '0', bitmaps);
+    assert(generate_ack(&ack, &rule, 2, '0', bitmaps) == 0);
 
     int expected_tuples = 2;
     char expected_windows[expected_tuples][rule.m + 1];
@@ -315,6 +315,29 @@ int test_generate_ack() {
                      "0", "1110101", 2,
                      expected_windows, expected_bitmaps,
                      1, 0);
+
+    CompoundACK ack_complete;
+    char bitmaps_complete[rule.max_window_number][rule.window_size + 1];
+    strncpy(bitmaps_complete[0], "0000000\0", rule.window_size + 1);
+    strncpy(bitmaps_complete[1], "0000000\0", rule.window_size + 1);
+    strncpy(bitmaps_complete[2], "0000000\0", rule.window_size + 1);
+    strncpy(bitmaps_complete[3], "0000000\0", rule.window_size + 1);
+
+    assert(generate_ack(&ack_complete, &rule, 3, '1', bitmaps_complete) == 0);
+
+    int expected_tuples_complete = 1;
+    char expected_windows_complete[expected_tuples_complete][rule.m + 1];
+    char expected_bitmaps_complete[expected_tuples_complete][
+            rule.window_size + 1];
+    strncpy(expected_windows_complete[0], "11\0", rule.m + 1);
+    strncpy(expected_bitmaps_complete[0], "0000000\0", rule.window_size + 1);
+
+    test_routine_ack(rule, ack_complete,
+                     "000", "", "11",
+                     "1", "0000000", 1,
+                     expected_windows_complete, expected_bitmaps_complete,
+                     0, 1);
+
 
     // TODO: Encapsulate test routine and test for other ACKs (complete and
     //  incomplete for 2byte header op1 and 2byte header op2)
