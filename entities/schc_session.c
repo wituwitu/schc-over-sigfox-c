@@ -5,40 +5,55 @@
 #include "misc.h"
 #include "casting.h"
 
+int state_construct(State *state, Rule rule) {
+    generate_null_frg(&state->last_fragment);
+    generate_null_ack(&state->last_ack);
+    generate_null_ack(&state->receiver_abort);
+    state->aborted = 0;
+    state->timestamp = -1;
+    state->bitmap = calloc(rule.max_fragment_number, sizeof(char));
+    memset(state->bitmap, '0', rule.max_fragment_number);
+    state->bitmap[rule.max_fragment_number] = '\0';
+    state->requested_frg = calloc(rule.max_fragment_number, sizeof(char));
+    memset(state->requested_frg, '0', rule.max_fragment_number);
+    state->requested_frg[rule.max_fragment_number] = '\0';
+
+    return 0;
+}
+
+int state_destroy(State *state) {
+    free(state->bitmap);
+    free(state->requested_frg);
+
+    return 0;
+}
+
 int session_construct(SCHCSession *s, Rule rule) {
+
+    State state;
+    state_construct(&state, rule);
+
     s->rule = rule;
-    s->fragments = malloc(sizeof(Fragment) * rule.max_fragment_number + 1);
+    generate_null_ack(&s->ack);
+    s->state = &state;
+    s->fragments = calloc(rule.max_fragment_number + 1, sizeof(Fragment));
 
     for (int i = 0; i <= rule.max_fragment_number; i++) {
         generate_null_frg(&s->fragments[i]);
     }
 
-    generate_null_ack(&s->ack);
-
-    s->state.bitmap = malloc(rule.max_fragment_number);
-    memset(s->state.bitmap, 0, rule.max_fragment_number);
-    s->state.bitmap[rule.max_fragment_number] = '\0';
-
-    s->state.requested_fragments = malloc(rule.max_fragment_number);
-    memset(s->state.requested_fragments, 0, rule.max_fragment_number);
-    s->state.requested_fragments[rule.max_fragment_number] = '\0';
-
-    generate_null_frg(&s->state.last_fragment);
-    generate_null_ack(&s->state.last_ack);
-    generate_null_ack(&s->state.receiver_abort);
-    s->state.aborted = 0;
-    s->state.timestamp = -1;
-
     return 0;
 }
 
+/*
 void session_destroy(SCHCSession *s) {
+    free(&s);
     free(s->fragments);
     s->fragments = 0;
-    free(s->state.bitmap);
+    free(s->state->bitmap);
     s->state.bitmap = 0;
-    free(s->state.requested_fragments);
-    s->state.requested_fragments = 0;
+    free(s->state.requested_frg);
+    s->state.requested_frg = 0;
 }
 
 int session_was_aborted(SCHCSession *s) {
@@ -58,7 +73,7 @@ int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp) {
 int session_check_requested_fragment(SCHCSession *s, Fragment *frg) {
     int idx = get_frg_nb(&s->rule, frg);
 
-    return s->state.requested_fragments[idx] == 1;
+    return s->state.requested_frg[idx] == 1;
 }
 
 int session_already_received(SCHCSession *s, Fragment *frg) {
@@ -70,7 +85,7 @@ int session_already_received(SCHCSession *s, Fragment *frg) {
                && is_ack_complete(&s->rule, &s->state.last_ack)
                && frg_equal(&s->state.last_fragment, frg);
     }
-
+rule.max_fragment_number
     return 0;
 }
 
@@ -117,8 +132,8 @@ void start_new_session(SCHCSession *s, int retain_last_data) {
     memset(s->state.bitmap, 0, s->rule.max_fragment_number);
     s->state.bitmap[s->rule.max_fragment_number] = '\0';
 
-    memset(s->state.requested_fragments, 0, s->rule.max_fragment_number);
-    s->state.requested_fragments[s->rule.max_fragment_number] = '\0';
+    memset(s->state.requested_frg, 0, s->rule.max_fragment_number);
+    s->state.requested_frg[s->rule.max_fragment_number] = '\0';
 
     generate_null_ack(&s->state.receiver_abort);
     s->state.aborted = 0;
@@ -175,7 +190,7 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
 
         for (int j = 0; j < s->rule.window_size; j++) {
             if (bitmaps[i][j] == '1') {
-                replace_char(s->state.requested_fragments,
+                replace_char(s->state.requested_frg,
                              bm_idx + j,
                              '1');
             }
@@ -269,3 +284,4 @@ int session_schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
     session_generate_ack(s, frg);
     return 1;
 }
+*/

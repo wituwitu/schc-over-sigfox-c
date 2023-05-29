@@ -1,15 +1,33 @@
 #include <assert.h>
 #include <stdio.h>
+#include <malloc.h>
 #include "schc_session.h"
 
 int test_session_construct() {
     SCHCSession s;
     Rule rule;
     init_rule(&rule, "000");
-
     session_construct(&s, rule);
 
-    return -1;
+    assert(s.rule.id == rule.id);
+    assert(is_ack_null(&s.ack));
+    assert(is_frg_null(&s.state->last_fragment));
+    assert(is_ack_null(&s.state->last_ack));
+    assert(is_ack_null(&s.state->receiver_abort));
+    assert(s.state->aborted == 0);
+    assert(s.state->timestamp == -1);
+    assert(strcmp(s.state->bitmap, "0000000000000000000000000000") == 0);
+    assert(strcmp(s.state->requested_frg, "0000000000000000000000000000") == 0);
+
+    for (int i = 0; i <= rule.max_fragment_number; i++) {
+        assert(is_frg_null(&s.fragments[i]));
+    }
+
+    free(s.state->bitmap);
+    free(s.state->requested_frg);
+    free(s.fragments);
+
+    return 0;
 }
 
 int test_session_destroy() {

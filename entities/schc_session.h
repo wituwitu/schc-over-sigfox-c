@@ -7,18 +7,20 @@
 #endif //SCHC_OVER_SIGFOX_C_SCHC_SESSION_H
 
 typedef struct {
+    Fragment last_fragment;
+    CompoundACK last_ack;
+    CompoundACK receiver_abort;
+    int aborted;
+    int timestamp;
+    char *bitmap;
+    char *requested_frg;
+} State;
+
+typedef struct {
     Rule rule;
-    Fragment *fragments;
     CompoundACK ack;
-    struct {
-        char *bitmap;
-        char *requested_fragments;
-        Fragment last_fragment;
-        CompoundACK last_ack;
-        CompoundACK receiver_abort;
-        int aborted;
-        int timestamp;
-    } state;
+    State *state;
+    Fragment *fragments;
 } SCHCSession;
 
 int session_construct(SCHCSession *s, Rule rule);
