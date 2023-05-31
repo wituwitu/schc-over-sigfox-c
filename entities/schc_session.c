@@ -6,15 +6,27 @@
 #include "casting.h"
 
 int state_construct(State *state, Rule rule) {
-    generate_null_frg(&state->last_fragment);
-    generate_null_ack(&state->last_ack);
-    generate_null_ack(&state->receiver_abort);
+
+    Fragment last_fragment;
+    CompoundACK last_ack;
+    CompoundACK receiver_abort;
+
+    generate_null_frg(&last_fragment);
+    generate_null_ack(&last_ack);
+    generate_null_ack(&receiver_abort);
+
+    memcpy(&state->last_fragment, &last_fragment, sizeof(Fragment));
+    memcpy(&state->last_ack, &last_ack, sizeof(CompoundACK));
+    memcpy(&state->receiver_abort, &receiver_abort, sizeof(CompoundACK));
+
     state->aborted = 0;
     state->timestamp = -1;
-    state->bitmap = calloc(rule.max_fragment_number, sizeof(char));
+
+    state->bitmap = calloc(rule.max_fragment_number + 1, sizeof(char));
     memset(state->bitmap, '0', rule.max_fragment_number);
     state->bitmap[rule.max_fragment_number] = '\0';
-    state->requested_frg = calloc(rule.max_fragment_number, sizeof(char));
+
+    state->requested_frg = calloc(rule.max_fragment_number + 1, sizeof(char));
     memset(state->requested_frg, '0', rule.max_fragment_number);
     state->requested_frg[rule.max_fragment_number] = '\0';
 
@@ -22,48 +34,67 @@ int state_construct(State *state, Rule rule) {
 }
 
 int state_destroy(State *state) {
-    free(state->bitmap);
     free(state->requested_frg);
+    free(state->bitmap);
+    state = NULL;
 
     return 0;
 }
 
 int session_construct(SCHCSession *s, Rule rule) {
-
     State state;
     state_construct(&state, rule);
-
     s->rule = rule;
-    generate_null_ack(&s->ack);
-    s->state = &state;
-    s->fragments = calloc(rule.max_fragment_number + 1, sizeof(Fragment));
 
+    CompoundACK ack;
+    generate_null_ack(&ack);
+    memcpy(&s->ack, &ack, sizeof(CompoundACK));
+
+    memcpy(&s->state, &state, sizeof(State));
+
+    s->fragments = calloc(rule.max_fragment_number + 1, sizeof(Fragment));
     for (int i = 0; i <= rule.max_fragment_number; i++) {
-        generate_null_frg(&s->fragments[i]);
+        Fragment frg;
+        generate_null_frg(&frg);
+        memcpy(&s->fragments[i], &frg, sizeof(Fragment));
     }
 
     return 0;
 }
 
-/*
-void session_destroy(SCHCSession *s) {
-    free(&s);
+int session_destroy(SCHCSession *s) {
     free(s->fragments);
-    s->fragments = 0;
-    free(s->state->bitmap);
-    s->state.bitmap = 0;
-    free(s->state.requested_frg);
-    s->state.requested_frg = 0;
+    state_destroy(&s->state);
+    s = NULL;
+
+    return 0;
+}
+
+int session_sender_abort(SCHCSession *s) {
+    s->state.timestamp = -1;
+    s->state.aborted = 1;
+    return 0;
+}
+
+int session_receiver_abort(SCHCSession *s) {
+    s->state.timestamp = -1;
+    s->state.aborted = 1;
+    CompoundACK ra;
+    generate_receiver_abort(&s->rule, &ra);
+    memcpy(&s->ack, &ra, sizeof(CompoundACK));
+    memcpy(&s->state.receiver_abort, &ra, sizeof(CompoundACK));
+    return 0;
 }
 
 int session_was_aborted(SCHCSession *s) {
-    return s->state.aborted == 1 || s->state.receiver_abort.byte_size > 0;
+    return s->state.aborted == 1;
 }
 
 void session_update_timestamp(SCHCSession *s, time_t timestamp) {
     s->state.timestamp = (int) timestamp;
 }
 
+/*
 int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp) {
     if (DISABLE_INACTIVITY_TIMEOUT || s->state.timestamp < 0) return 0;
 
@@ -257,14 +288,16 @@ int session_schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
     if (session_was_aborted(s)) return SCHC_RECEIVER_ABORTED;
 
     if (session_expired_inactivity_timeout(s, timestamp)) {
-        s->state.timestamp = -1;
-        generate_receiver_abort(&s->rule, &s->ack);
+        session_receiver_abort(&s);
         return SCHC_RECEIVER_ABORTED;
     }
 
     session_update_timestamp(s, timestamp);
 
-    if (is_frg_sender_abort(&s->rule, frg)) return SCHC_SENDER_ABORTED;
+    if (is_frg_sender_abort(&s->rule, frg)) {
+        session_sender_abort(&s);
+        return SCHC_SENDER_ABORTED;
+    }
 
     if (!session_expects_fragment(s, frg))
         start_new_session(s, 0);

@@ -19,13 +19,21 @@ typedef struct {
 typedef struct {
     Rule rule;
     CompoundACK ack;
-    State *state;
     Fragment *fragments;
+    State state;
 } SCHCSession;
+
+int state_construct(State *state, Rule rule);
+
+int state_destroy(State *state);
 
 int session_construct(SCHCSession *s, Rule rule);
 
-void session_destroy(SCHCSession *s);
+int session_destroy(SCHCSession *s);
+
+int session_sender_abort(SCHCSession *s);
+
+int session_receiver_abort(SCHCSession *s);
 
 int session_was_aborted(SCHCSession *s);
 
