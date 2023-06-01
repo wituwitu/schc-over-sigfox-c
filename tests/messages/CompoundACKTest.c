@@ -179,6 +179,15 @@ int test_is_ack_complete() {
     init_rule_from_ack(&rule, &ack);
     assert(is_ack_complete(&rule, &ack));
 
+
+    CompoundACK complete_ack = {"\x1C\x00\x00\x00\x00\x00\x00\x00",
+                                8};
+    assert(is_ack_complete(&rule, &complete_ack));
+
+    CompoundACK incomplete_ack = {"\x15\x88\x88\x88\x88\x88\x88\x88",
+                                  4};
+    assert(!is_ack_complete(&rule, &incomplete_ack));
+
     return 0;
 }
 

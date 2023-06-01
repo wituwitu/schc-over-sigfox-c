@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "ack.h"
 #include "casting.h"
 #include "misc.h"
@@ -65,7 +66,7 @@ int get_ack_nb_tuples(Rule *rule, CompoundACK *ack) {
     int nb_tuples = 1;
     strncpy(window, p, rule->m);
     while (strcmp(window, first_window) != 0 &&
-           p < (as_bin + DOWNLINK_MTU_BITS - rule->ack_indices.tuple_idx)) {
+            p < (as_bin + DOWNLINK_MTU_BITS - rule->ack_indices.tuple_idx)) {
         nb_tuples++;
         p += rule->m + rule->window_size;
         strncpy(window, p, rule->m);
@@ -128,11 +129,11 @@ int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
         padding_end[L2_WORD_SIZE] = '\0';
 
         if (is_monochar(padding_end, '1') &&
-            strlen(padding_end) == L2_WORD_SIZE) {
+                strlen(padding_end) == L2_WORD_SIZE) {
             if (strcmp(padding_start, "") != 0 &&
-                header_length % L2_WORD_SIZE != 0) {
+                    header_length % L2_WORD_SIZE != 0) {
                 return is_monochar(padding_start, '1') &&
-                       (header_length + padding_start_size) % L2_WORD_SIZE == 0;
+                        (header_length + padding_start_size) % L2_WORD_SIZE == 0;
             }
             return header_length % L2_WORD_SIZE == 0;
         }
@@ -155,8 +156,13 @@ int is_ack_complete(Rule *rule, CompoundACK *ack) {
 
     char c[2];
     get_ack_c(rule, ack, c);
+    char as_bin[DOWNLINK_MTU_BITS + 1];
+    ack_to_bin(ack, as_bin);
+    char *padding = as_bin + rule->ack_header_length;
 
-    return !is_ack_receiver_abort(rule, ack) && strcmp(c, "1") == 0;
+    return !is_ack_receiver_abort(rule, ack)
+           && strcmp(c, "1") == 0
+           && is_monochar(padding, '0');
 }
 
 int generate_ack(Rule *rule, CompoundACK *dest,

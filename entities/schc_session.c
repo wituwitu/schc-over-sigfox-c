@@ -94,7 +94,6 @@ void session_update_timestamp(SCHCSession *s, time_t timestamp) {
     s->state.timestamp = (int) timestamp;
 }
 
-/*
 int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp) {
     if (DISABLE_INACTIVITY_TIMEOUT || s->state.timestamp < 0) return 0;
 
@@ -103,23 +102,23 @@ int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp) {
 
 int session_check_requested_fragment(SCHCSession *s, Fragment *frg) {
     int idx = get_frg_nb(&s->rule, frg);
-
-    return s->state.requested_frg[idx] == 1;
+    return s->state.requested_frg[idx] == '1';
 }
 
 int session_already_received(SCHCSession *s, Fragment *frg) {
     int idx = get_frg_nb(&s->rule, frg);
-    if (s->state.bitmap[idx] == 1) return 1;
+    if (s->state.bitmap[idx] == '1') return 1;
 
     if (is_frg_all_1(&s->rule, frg)) {
         return s->state.last_ack.byte_size != 0
                && is_ack_complete(&s->rule, &s->state.last_ack)
                && frg_equal(&s->state.last_fragment, frg);
     }
-rule.max_fragment_number
+
     return 0;
 }
 
+/*
 int session_expects_fragment(SCHCSession *s, Fragment *frg) {
     if (!is_frg_all_1(&s->rule, frg) && session_already_received(s, frg))
         return 0;

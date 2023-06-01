@@ -144,54 +144,216 @@ int test_session_update_timestamp() {
 }
 
 int test_session_expired_inactivity_timeout() {
-    return -1;
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+    time_t now = time(0);
+    assert(!session_expired_inactivity_timeout(&s, now));
+
+    session_update_timestamp(&s, now);
+    time_t not_exp = now + 50;
+    time_t exp = now + 501;
+    assert(!session_expired_inactivity_timeout(&s, not_exp));
+    assert(session_expired_inactivity_timeout(&s, exp));
+
+    session_destroy(&s);
+    return 0;
 }
 
 int test_session_check_requested_fragment() {
-    return -1;
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+    strncpy(
+            s.state.requested_frg,
+            "0000000000000001111100001000",
+            rule.max_fragment_number
+    );
+
+    Fragment frg1 = {"\x15\x88\x88\x88", 4};
+    assert(get_frg_nb(&rule, &frg1) == 15);
+    assert(session_check_requested_fragment(&s, &frg1));
+
+
+    Fragment frg2 = {"\x00\x00\x00\x00", 4};
+    assert(get_frg_nb(&rule, &frg2) == 6);
+    assert(!session_check_requested_fragment(&s, &frg2));
+
+    session_destroy(&s);
+    return 0;
 }
 
 int test_session_already_received() {
-    return -1;
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+    strncpy(
+            s.state.bitmap,
+            "1111111111111110000011110111",
+            rule.max_fragment_number
+    );
+
+    Fragment frg1 = {"\x15\x88\x88\x88", 4};
+    assert(get_frg_nb(&rule, &frg1) == 15);
+    assert(!session_already_received(&s, &frg1));
+
+    Fragment frg2 = {"\x00\x00\x00\x00", 4};
+    assert(get_frg_nb(&rule, &frg2) == 6);
+    assert(session_already_received(&s, &frg2));
+
+    strncpy(
+            s.state.bitmap,
+            "0000000000000000000000000000",
+            rule.max_fragment_number
+    );
+
+    // Previous session ended but ACK was lost
+    // => new session started + repeated all-1 of previous session
+    Fragment all_1 = {"\027\200DD", 4};
+    assert(is_frg_all_1(&rule, &all_1));
+
+    // last ack is empty
+    assert(!session_already_received(&s, &all_1));
+
+    // last ack is not complete
+    CompoundACK incomplete_ack = {"\x15\x88\x88\x88\x88\x88\x88\x88",
+                                  8};
+    assert(!is_ack_complete(&rule, &incomplete_ack));
+    memcpy(&s.state.last_ack, &incomplete_ack, sizeof(CompoundACK));
+    assert(!session_already_received(&s, &all_1));
+
+    // last fragment is not equal
+    CompoundACK complete_ack = {"\x1C\x00\x00\x00\x00\x00\x00\x00",
+                                8};
+    assert(is_ack_complete(&rule, &complete_ack));
+    memcpy(&s.state.last_ack, &complete_ack, sizeof(CompoundACK));
+
+    Fragment another_all_1 = {"\027\200EE", 4};
+    assert(is_frg_all_1(&rule, &another_all_1));
+    memcpy(&s.state.last_fragment, &another_all_1, sizeof(Fragment));
+    assert(!session_already_received(&s, &all_1));
+
+    // last ack byte size != 0 && last ack is complete && last fragment is equal
+    memcpy(&s.state.last_fragment, &all_1, sizeof(Fragment));
+    assert(session_already_received(&s, &all_1));
+
+    session_destroy(&s);
+    return 0;
 }
 
 int test_session_expects_fragment() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_start_new_session() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_check_pending_ack() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_store_frg() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_get_bitmap() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_update_bitmap() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_update_requested() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_check_bitmaps() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_generate_ack() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
 int test_session_schc_recv() {
+    SCHCSession s;
+    Rule rule;
+    init_rule(&rule, "000");
+    session_construct(&s, rule);
+
+
+    session_destroy(&s);
     return -1;
 }
 
