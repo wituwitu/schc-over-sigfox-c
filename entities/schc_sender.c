@@ -25,6 +25,8 @@ sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size) {
     s->ul_loss_rate = UPLINK_LOSS_RATE;
     s->dl_loss_rate = DOWNLINK_LOSS_RATE;
 
+    generate_null_frg(&s->sender_abort);
+
     return 0;
 }
 
@@ -105,9 +107,8 @@ update_queues(SCHCSender *s, Rule *rule, Fragment *frg, CompoundACK *ack) {
                                                  bitmap_to_retransmit);
         if (bitmap_sz < 0) {
             printf("Compound ACK reported no missing Fragment.\n");
-            Fragment sender_abort;
-            generate_sender_abort(rule, frg, &sender_abort);
-            fq_put(&s->transmission_q, &sender_abort);
+            generate_sender_abort(rule, frg, &s->sender_abort);
+            fq_put(&s->transmission_q, &s->sender_abort);
             return 0;
         }
 

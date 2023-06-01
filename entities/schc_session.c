@@ -96,7 +96,8 @@ void session_update_timestamp(SCHCSession *s, time_t timestamp) {
 int session_expired_inactivity_timeout(SCHCSession *s, time_t timestamp) {
     if (DISABLE_INACTIVITY_TIMEOUT || s->state.timestamp < 0) return 0;
 
-    return abs((int) timestamp - s->state.timestamp) > INACTIVITY_TIMEOUT;
+    return (float) abs((int) timestamp - s->state.timestamp) >
+           INACTIVITY_TIMEOUT;
 }
 
 int session_check_requested_fragment(SCHCSession *s, Fragment *frg) {

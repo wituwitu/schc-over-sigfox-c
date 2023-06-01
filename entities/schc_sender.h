@@ -18,6 +18,7 @@ typedef struct {
     int rt;
     int ul_loss_rate;
     int dl_loss_rate;
+    Fragment sender_abort;
 } SCHCSender;
 
 /*
