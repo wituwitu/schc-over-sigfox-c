@@ -277,6 +277,8 @@ int get_frg_nb(Rule *rule, Fragment *frg) {
 }
 
 int frg_equal(Fragment *frg1, Fragment *frg2) {
+    if (is_frg_null(frg1) && is_frg_null(frg2)) return 1;
+
     return frg1->byte_size == frg2->byte_size
            && memcmp(frg1->message,
                      frg2->message,
