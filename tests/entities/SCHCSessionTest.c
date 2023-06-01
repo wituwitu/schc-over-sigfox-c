@@ -253,9 +253,100 @@ int test_session_expects_fragment() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    // not all1, already received -> 0
+    strncpy(
+            s.state.bitmap,
+            "1111111111111110000011110111",
+            rule.max_fragment_number
+    );
+    Fragment frg = {"\x00\x00\x00\x00\x00\x00\x00\x00", 8};
+    assert(session_already_received(&s, &frg));
+    assert(!session_expects_fragment(&s, &frg));
+
+    // last frg is null -> 1
+    strncpy(
+            s.state.bitmap,
+            "0000000000000000000000000000",
+            rule.max_fragment_number
+    );
+    Fragment null;
+    generate_null_frg(&null);
+    memcpy(&s.state.last_fragment, &null, sizeof(Fragment));
+    assert(session_expects_fragment(&s, &frg));
+
+    // frg is sender-abort -> 1
+    Fragment sa;
+    generate_sender_abort(&rule, &frg, &sa);
+    memcpy(&s.state.last_fragment, &sa, sizeof(Fragment));
+    assert(session_expects_fragment(&s, &frg));
+
+    // last frg is all 1, ack is not complete -> 0
+    Fragment all_1 = {"\027\200DD", 4};
+    memcpy(&s.state.last_fragment, &all_1, sizeof(Fragment));
+    CompoundACK incomplete_ack = {"\x15\x88\x88\x88\x88\x88\x88\x88",
+                                  8};
+    memcpy(&s.state.last_ack, &incomplete_ack, sizeof(CompoundACK));
+    assert(!session_expects_fragment(&s, &frg));
+
+    // last frg is all 1, ack is complete -> 1
+    CompoundACK complete_ack = {"\x1C\x00\x00\x00\x00\x00\x00\x00",
+                                8};
+    memcpy(&s.state.last_ack, &complete_ack, sizeof(CompoundACK));
+    assert(session_expects_fragment(&s, &frg));
+
+    // last frg not all-1, not already received, fragment is requested -> 1
+    Fragment frg0 = {"\x01\x01\x88\x88\x88\x88\x88\x88", 8};
+    memcpy(&s.state.last_fragment, &frg0, sizeof(Fragment));
+    strncpy(
+            s.state.bitmap,
+            "1111000000000000000011110111",
+            rule.max_fragment_number
+    );
+    strncpy(
+            s.state.requested_frg,
+            "0000111111111111111100001000",
+            rule.max_fragment_number
+    );
+    assert(session_expects_fragment(&s, &frg));
+
+    // (not requested) (not already received) smaller window -> 0
+    strncpy(
+            s.state.bitmap,
+            "0000000000000000000000000000",
+            rule.max_fragment_number
+    );
+    strncpy(
+            s.state.requested_frg,
+            "0000000000000000000000001000",
+            rule.max_fragment_number
+    );
+    Fragment frg2 = {"\x15\x88\x88\x88\x88\x88\x88\x88", 8};
+    memcpy(&s.state.last_fragment, &frg2, sizeof(Fragment));
+    assert(!session_expects_fragment(&s, &frg));
+
+    //  greater window -> 1
+    Fragment frg3 = {"\x1D\x88\x88\x88\x88\x88\x88\x88", 8};
+    assert(session_expects_fragment(&s, &frg3));
+
+    // same window && smaller nb -> 0
+    Fragment frg4 = {"\x16\x88\x88\x88\x88\x88\x88\x88", 8};
+    assert(!session_expects_fragment(&s, &frg4));
+
+    // same window && greater nb -> 1
+    Fragment frg5 = {"\x11\x88\x88\x88\x88\x88\x88\x88", 8};
+    assert(session_expects_fragment(&s, &frg5));
+
+    // same window && same nb && is not all-1 -> 0
+    Fragment frg6 = {"\x15\x88\x88\x88\x88\x88\x88\x88", 8};
+    assert(!session_expects_fragment(&s, &frg6));
+
+    // same window && same nb && is all-1 -> 1
+    memcpy(&s.state.last_fragment, &all_1, sizeof(Fragment));
+    Fragment frg7 = {"\027\200DD", 4};
+    assert(session_expects_fragment(&s, &frg7));
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_start_new_session() {

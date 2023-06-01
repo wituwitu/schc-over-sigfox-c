@@ -118,7 +118,6 @@ int session_already_received(SCHCSession *s, Fragment *frg) {
     return 0;
 }
 
-/*
 int session_expects_fragment(SCHCSession *s, Fragment *frg) {
     if (!is_frg_all_1(&s->rule, frg) && session_already_received(s, frg))
         return 0;
@@ -147,6 +146,7 @@ int session_expects_fragment(SCHCSession *s, Fragment *frg) {
     return 0;
 }
 
+/*
 void start_new_session(SCHCSession *s, int retain_last_data) {
     if (!retain_last_data) {
         generate_null_frg(&s->state.last_fragment);
