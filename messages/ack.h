@@ -187,3 +187,13 @@ void generate_null_ack(CompoundACK *dest);
  *  ack: CompoundACK structure to check.
  */
 int is_ack_null(CompoundACK *ack);
+
+/*
+ * Function:  ack_equal
+ * --------------------
+ * Checks whether the message and the byte size of two ACKs are identical.
+ *
+ *  ack1: first ACK.
+ *  ack2: second ACK.
+ */
+int ack_equal(CompoundACK *ack1, CompoundACK *ack2);

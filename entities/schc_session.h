@@ -47,7 +47,7 @@ int session_already_received(SCHCSession *s, Fragment *frg);
 
 int session_expects_fragment(SCHCSession *s, Fragment *frg);
 
-void start_new_session(SCHCSession *s, int retain_last_data);
+int start_new_session(SCHCSession *s, int retain_last_data);
 
 int session_check_pending_ack(SCHCSession *s, Fragment *frg);
 

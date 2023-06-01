@@ -275,3 +275,10 @@ int is_ack_null(CompoundACK *ack) {
     return memcmp(ack->message, empty, DOWNLINK_MTU_BYTES) == 0
            && ack->byte_size == -1;
 }
+
+int ack_equal(CompoundACK *ack1, CompoundACK *ack2) {
+    return ack1->byte_size == ack2->byte_size
+           && memcmp(ack1->message,
+                     ack2->message,
+                     ack1->byte_size) == 0;
+}

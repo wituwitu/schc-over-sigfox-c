@@ -355,9 +355,66 @@ int test_start_new_session() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    // fill session
+    CompoundACK ack = {"\x15\x88\x88\x88\x88\x88\x88\x88", 8};
+    memcpy(&s.ack, &ack, sizeof(CompoundACK));
+    Fragment frg = {"\x00\x00\x00\x00\x00\x00\x00\x00", 8};
+    memcpy(&s.fragments[0], &frg, sizeof(Fragment));
+    // fill session->state
+    memcpy(&s.state.last_fragment, &frg, sizeof(Fragment));
+    memcpy(&s.state.last_ack, &ack, sizeof(Fragment));
+    session_update_timestamp(&s, time(0));
+    strncpy(
+            s.state.bitmap,
+            "1111000000000000000011110111",
+            rule.max_fragment_number
+    );
+    strncpy(
+            s.state.requested_frg,
+            "1000111111111111111100001000",
+            rule.max_fragment_number
+    );
+
+    // check that session has data
+    assert(!is_ack_null(&s.ack));
+    assert(!is_frg_null(&s.fragments[0]));
+    assert(!is_frg_null(&s.state.last_fragment));
+    assert(!is_ack_null(&s.state.last_ack));
+    assert(is_ack_null(&s.state.receiver_abort));
+    assert(&s.state.timestamp > 0);
+    assert(strncmp(&s.state.bitmap[0], "1", 1) == 0);
+    assert(strncmp(&s.state.requested_frg[0], "1", 1) == 0);
+
+    // start new, retaining
+    assert(start_new_session(&s, 1) == 0);
+    assert(is_ack_null(&s.ack));
+    assert(is_ack_null(&s.state.receiver_abort));
+    assert(s.state.aborted == 0);
+    assert(s.state.timestamp == -1);
+    assert(strncmp(
+            s.state.bitmap,
+            "0000000000000000000000000000",
+            rule.max_fragment_number
+    ) == 0);
+    assert(strncmp(
+            s.state.requested_frg,
+            "0000000000000000000000000000",
+            rule.max_fragment_number
+    ) == 0);
+    for (int i = 0; i <= rule.max_fragment_number; i++) {
+        assert(is_frg_null(&s.fragments[i]));
+    }
+
+    assert(frg_equal(&s.state.last_fragment, &frg));
+    assert(ack_equal(&s.state.last_ack, &ack));
+
+    // start new, not retaining
+    assert(start_new_session(&s, 0) == 0);
+    assert(is_frg_null(&s.state.last_fragment));
+    assert(is_ack_null(&s.state.last_ack));
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_check_pending_ack() {

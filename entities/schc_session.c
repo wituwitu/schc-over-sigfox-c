@@ -49,7 +49,6 @@ int session_construct(SCHCSession *s, Rule rule) {
     CompoundACK ack;
     generate_null_ack(&ack);
     memcpy(&s->ack, &ack, sizeof(CompoundACK));
-
     memcpy(&s->state, &state, sizeof(State));
 
     s->fragments = calloc(rule.max_fragment_number + 1, sizeof(Fragment));
@@ -146,30 +145,28 @@ int session_expects_fragment(SCHCSession *s, Fragment *frg) {
     return 0;
 }
 
-/*
-void start_new_session(SCHCSession *s, int retain_last_data) {
-    if (!retain_last_data) {
-        generate_null_frg(&s->state.last_fragment);
-        generate_null_ack(&s->state.last_ack);
+int start_new_session(SCHCSession *s, int retain_last_data) {
+    Fragment last_frg;
+    CompoundACK last_ack;
+
+    if (retain_last_data) {
+        memcpy(&last_frg, &s->state.last_fragment, sizeof(Fragment));
+        memcpy(&last_ack, &s->state.last_ack, sizeof(CompoundACK));
     }
 
-    for (int i = 0; i <= s->rule.max_fragment_number; i++) {
-        generate_null_frg(&s->fragments[i]);
+    free(s->fragments);
+    state_destroy(&s->state);
+    session_construct(s, s->rule);
+
+    if (retain_last_data) {
+        memcpy(&s->state.last_fragment, &last_frg, sizeof(Fragment));
+        memcpy(&s->state.last_ack, &last_ack, sizeof(CompoundACK));
     }
 
-    generate_null_ack(&s->ack);
-
-    memset(s->state.bitmap, 0, s->rule.max_fragment_number);
-    s->state.bitmap[s->rule.max_fragment_number] = '\0';
-
-    memset(s->state.requested_frg, 0, s->rule.max_fragment_number);
-    s->state.requested_frg[s->rule.max_fragment_number] = '\0';
-
-    generate_null_ack(&s->state.receiver_abort);
-    s->state.aborted = 0;
-    s->state.timestamp = -1;
+    return 0;
 }
 
+/*
 int session_check_pending_ack(SCHCSession *s, Fragment *frg) {
     if (is_ack_null(&s->state.last_ack)) return 0;
 

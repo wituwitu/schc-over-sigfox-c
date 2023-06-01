@@ -644,6 +644,24 @@ int test_is_ack_null() {
     return 0;
 }
 
+int test_is_ack_equal() {
+    CompoundACK ack1 = {"\x15\x88\x88\x88\x00\x00\x00\x00", 8};
+    CompoundACK ack2 = {"\x15\x88\x88\x88\x00\x00\x00\x00", 8};
+    CompoundACK ack3 = {"\x32\x88\x88\x88\x00\x00\x00\x00", 8};
+    CompoundACK ack4;
+    generate_null_ack(&ack4);
+
+    assert(ack_equal(&ack1, &ack1) == 1);
+    assert(ack_equal(&ack2, &ack2) == 1);
+    assert(ack_equal(&ack3, &ack3) == 1);
+    assert(ack_equal(&ack4, &ack4) == 1);
+    assert(ack_equal(&ack1, &ack2) == 1);
+    assert(ack_equal(&ack1, &ack3) == 0);
+    assert(ack_equal(&ack1, &ack4) == 0);
+
+    return 0;
+}
+
 int main() {
     printf("%d test_ack_to_bin\n", test_ack_to_bin());
     printf("%d test_init_rule_from_ack\n", test_init_rule_from_ack());
@@ -660,6 +678,7 @@ int main() {
     printf("%d test_generate_receiver_abort\n", test_generate_receiver_abort());
     printf("%d test_generate_null_ack\n", test_generate_null_ack());
     printf("%d test_is_ack_null\n", test_is_ack_null());
+    printf("%d test_is_ack_equal\n", test_is_ack_equal());
 
     return 0;
 }
