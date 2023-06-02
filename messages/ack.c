@@ -221,8 +221,16 @@ int generate_ack(Rule *rule, CompoundACK *dest,
         }
     }
 
-    bin_to_bytes(dest->message, as_bin, DOWNLINK_MTU_BITS);
-    dest->byte_size = DOWNLINK_MTU_BYTES;
+    char as_bytes[DOWNLINK_MTU_BYTES];
+    bin_to_bytes(as_bytes, as_bin, DOWNLINK_MTU_BITS);
+    CompoundACK generated;
+    memcpy(generated.message, as_bytes, DOWNLINK_MTU_BYTES);
+    generated.byte_size = DOWNLINK_MTU_BYTES;
+
+    memcpy(dest, &generated, sizeof(CompoundACK));
+
+    //bin_to_bytes(dest->message, as_bin, DOWNLINK_MTU_BITS);
+    //dest->byte_size = DOWNLINK_MTU_BYTES;
     return 0;
 }
 
@@ -277,6 +285,8 @@ int is_ack_null(CompoundACK *ack) {
 }
 
 int ack_equal(CompoundACK *ack1, CompoundACK *ack2) {
+    if (is_ack_null(ack1) && is_ack_null(ack2)) return 1;
+
     return ack1->byte_size == ack2->byte_size
            && memcmp(ack1->message,
                      ack2->message,
