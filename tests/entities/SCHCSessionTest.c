@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include "schc_session.h"
+#include "casting.h"
 
 int test_state_construct() {
     Rule rule;
@@ -550,9 +551,31 @@ int test_session_update_requested() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    char ack_bin[] =
+            "0000001110001101110011111111001000000000000000000000000000000000";
+    char ack_bytes[8] = "";
+    bin_to_bytes(ack_bytes, ack_bin, DOWNLINK_MTU_BITS);
+
+    CompoundACK ack;
+    memcpy(ack.message, ack_bytes, DOWNLINK_MTU_BYTES);
+    ack.byte_size = DOWNLINK_MTU_BYTES;
+
+    CompoundACK complete_ack = {"\x1C\x00\x00\x00\x00\x00\x00\x00", 8};
+
+    assert(strncmp(
+            s.state.requested_frg,
+            "0000000000000000000000000000",
+            rule.max_fragment_nb) == 0);
+
+    assert(session_update_requested(&s, &complete_ack) < 0);
+    assert(session_update_requested(&s, &ack) == 0);
+
+    assert(memcmp(s.state.requested_frg,
+                  "1110001000000011100111111001",
+                  rule.max_fragment_nb) == 0);
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_check_bitmaps() {

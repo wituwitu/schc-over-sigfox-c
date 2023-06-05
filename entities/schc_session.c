@@ -204,7 +204,6 @@ void session_update_bitmap(SCHCSession *s, Fragment *frg) {
     replace_char(s->state.bitmap, frg_nb, '1');
 }
 
-/*
 int session_update_requested(SCHCSession *s, CompoundACK *ack) {
     if (is_ack_complete(&s->rule, ack)) return -1;
 
@@ -229,6 +228,7 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
     return 0;
 }
 
+/*
 int session_check_bitmaps(
         SCHCSession *s,
         Fragment *frg,
