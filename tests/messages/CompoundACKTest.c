@@ -322,7 +322,7 @@ int test_generate_ack() {
     strncpy(expected_bitmaps[0], "1110101\0", rule.window_size + 1);
     strncpy(expected_bitmaps[1], "1110001\0", rule.window_size + 1);
 
-    test_routine_ack(rule, ack, // TODO: Valgrind check
+    test_routine_ack(rule, ack,
                      "000", "", "00",
                      "0", "1110101",
                      expected_tuples,

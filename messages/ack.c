@@ -176,6 +176,7 @@ int generate_ack(Rule *rule, CompoundACK *dest,
     dtag[0] = '\0';
 
     memset(as_bin, '0', DOWNLINK_MTU_BITS);
+    as_bin[DOWNLINK_MTU_BITS] = '\0';
     strncpy(as_bin + rule->ack_indices.rule_id_idx, rule_id,
             rule->rule_id_size);
     strncpy(as_bin + rule->ack_indices.dtag_idx, dtag, rule->t);
@@ -199,7 +200,6 @@ int generate_ack(Rule *rule, CompoundACK *dest,
              i <= wdw && curr_len + tuple_size <= DOWNLINK_MTU_BITS;
              i++) {
             if (bitmaps[i][0] == '\0' || is_monochar(bitmaps[i], '1')) continue;
-
             char window[rule->m + 1];
             int_to_bin(window, i, rule->m);
 
@@ -229,8 +229,6 @@ int generate_ack(Rule *rule, CompoundACK *dest,
 
     memcpy(dest, &generated, sizeof(CompoundACK));
 
-    //bin_to_bytes(dest->message, as_bin, DOWNLINK_MTU_BITS);
-    //dest->byte_size = DOWNLINK_MTU_BYTES;
     return 0;
 }
 

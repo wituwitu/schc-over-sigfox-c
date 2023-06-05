@@ -5,7 +5,7 @@ void fq_construct(FIFOQueue *q, size_t size) {
     q->head = 0;
     q->tail = 0;
     q->size = size;
-    q->objs = malloc(sizeof(void *) * size);
+    q->objs = calloc(size, sizeof(void *));
 }
 
 void fq_destroy(FIFOQueue *q) {

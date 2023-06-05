@@ -47,7 +47,6 @@ int bytes_to_bin(char *dest, const char *src, int src_size) {
 
 int bin_to_bytes(char *dest, char *src, int src_size) {
     int dest_size = src_size / 8;
-    memset(dest, '\0', dest_size + 1);
     char bytes[dest_size + 1];
     char *p = src;
     int i = 0;
