@@ -67,7 +67,7 @@ int is_frg_all_1(Rule *rule, Fragment *fragment) {
 
     if (!is_monochar(fcn, '1')) return 0;
 
-    int all_1_header_length = rule->all1_header_length;
+    int all_1_header_length = rule->all1_header_len;
     int payload_size = UPLINK_MTU_BITS - all_1_header_length;
     char frg_as_bin[UPLINK_MTU_BITS + 1];
     char payload[payload_size + 1];
@@ -105,7 +105,7 @@ int is_frg_sender_abort(Rule *rule, Fragment *fragment) {
     char fragment_as_bin[UPLINK_MTU_BITS + 1];
     frg_to_bin(fragment, fragment_as_bin);
 
-    return strlen(fragment_as_bin) < rule->all1_header_length;
+    return strlen(fragment_as_bin) < rule->all1_header_len;
 }
 
 void get_frg_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]) {
@@ -122,8 +122,8 @@ void get_frg_rcs(Rule *rule, Fragment *fragment, char dest[rule->u + 1]) {
 
 int get_frg_header_byte_size(Rule *rule, Fragment *fragment) {
     return is_frg_all_1(rule, fragment)
-           ? rule->all1_header_length / 8
-           : rule->header_length / 8;
+           ? rule->all1_header_len / 8
+           : rule->header_len / 8;
 }
 
 int get_frg_max_payload_byte_size(Rule *rule, Fragment *fragment) {
@@ -192,7 +192,7 @@ int generate_frg(Rule *rule, Fragment *dest, const char payload[],
 
     memset(dest, '\0', sizeof(Fragment));
 
-    header_length = all_1 ? rule->all1_header_length : rule->header_length;
+    header_length = all_1 ? rule->all1_header_len : rule->header_len;
     int payload_max_length = UPLINK_MTU_BITS - header_length;
     if (payload_byte_length * 8 > payload_max_length) {
         printf("Payload is larger than its maximum size (%d > %d).\n",

@@ -62,7 +62,7 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack);
 int session_check_bitmaps(
         SCHCSession *s,
         Fragment *frg,
-        char bitmaps[s->rule.max_window_number][s->rule.window_size + 1]
+        char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1]
 );
 
 void session_generate_ack(SCHCSession *s, Fragment *frg);

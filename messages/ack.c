@@ -110,7 +110,7 @@ int is_ack_receiver_abort(Rule *rule, CompoundACK *ack) {
         char as_bin[DOWNLINK_MTU_BITS + 1];
         ack_to_bin(ack, as_bin);
 
-        int header_length = rule->ack_header_length;
+        int header_length = rule->ack_header_len;
         char *padding_i = as_bin + header_length;
         char *padding_f = strrchr(as_bin, '1') + 1;
         if (padding_f <= padding_i) return 0;
@@ -146,7 +146,7 @@ int is_ack_compound(Rule *rule, CompoundACK *ack) {
 
     char as_bin[DOWNLINK_MTU_BITS + 1];
     ack_to_bin(ack, as_bin);
-    char *padding = as_bin + rule->ack_header_length;
+    char *padding = as_bin + rule->ack_header_len;
 
     return !is_ack_receiver_abort(rule, ack) && !is_monochar(padding, '0');
 }
@@ -158,7 +158,7 @@ int is_ack_complete(Rule *rule, CompoundACK *ack) {
     get_ack_c(rule, ack, c);
     char as_bin[DOWNLINK_MTU_BITS + 1];
     ack_to_bin(ack, as_bin);
-    char *padding = as_bin + rule->ack_header_length;
+    char *padding = as_bin + rule->ack_header_len;
 
     return !is_ack_receiver_abort(rule, ack)
            && strcmp(c, "1") == 0
@@ -167,7 +167,7 @@ int is_ack_complete(Rule *rule, CompoundACK *ack) {
 
 int generate_ack(Rule *rule, CompoundACK *dest,
                  int wdw, char c,
-                 char bitmaps[rule->max_window_number][rule->window_size + 1]) {
+                 char bitmaps[rule->max_window_nb][rule->window_size + 1]) {
 
     char rule_id[rule->rule_id_size + 1];
     char dtag[rule->t + 1];
@@ -242,7 +242,7 @@ void generate_receiver_abort(Rule *rule, CompoundACK *dest) {
     dtag[0] = '\0';
     memset(w, '1', rule->m);
 
-    int header_remainder = rule->ack_header_length % L2_WORD_SIZE;
+    int header_remainder = rule->ack_header_len % L2_WORD_SIZE;
     int padding_size = header_remainder == 0
                        ? L2_WORD_SIZE
                        : 2 * L2_WORD_SIZE - header_remainder;
@@ -259,7 +259,7 @@ void generate_receiver_abort(Rule *rule, CompoundACK *dest) {
     strncpy(ra_bin + rule->ack_indices.dtag_idx, dtag, rule->t);
     strncpy(ra_bin + rule->ack_indices.w_idx, w, rule->m);
     strncpy(ra_bin + rule->ack_indices.c_idx, c, 1);
-    strncpy(ra_bin + rule->ack_header_length, padding, padding_size);
+    strncpy(ra_bin + rule->ack_header_len, padding, padding_size);
 
     memset(dest, '\0', sizeof(CompoundACK));
     int byte_size = bin_to_bytes(dest->message, ra_bin, DOWNLINK_MTU_BITS);

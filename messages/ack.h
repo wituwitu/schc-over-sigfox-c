@@ -157,7 +157,7 @@ int is_ack_complete(Rule *rule, CompoundACK *ack);
  */
 int generate_ack(Rule *rule, CompoundACK *dest,
                  int wdw, char c,
-                 char bitmaps[rule->max_window_number][rule->window_size + 1]);
+                 char bitmaps[rule->max_window_nb][rule->window_size + 1]);
 
 /*
  * Function:  generate_receiver_abort

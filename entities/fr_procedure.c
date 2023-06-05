@@ -6,10 +6,10 @@
 
 int get_nb_fragments(Rule *rule, int byte_size) {
     int res;
-    int payload_byte_size = rule->regular_payload_length / 8;
+    int payload_byte_size = rule->regular_payload_len / 8;
     res = (int) -floor((double) byte_size / -payload_byte_size);
 
-    if (rule->header_length < rule->all1_header_length
+    if (rule->header_len < rule->all1_header_len
         && byte_size % payload_byte_size == 0) {
         res += 1;
     }
@@ -36,7 +36,7 @@ int fragment(Rule *rule, Fragment dest[],
         return -1;
     }
 
-    int reg_payload_byte_size = rule->regular_payload_length / 8;
+    int reg_payload_byte_size = rule->regular_payload_len / 8;
     int nb_fragments = get_nb_fragments(rule, byte_size);
 
     int all_1, payload_size;
@@ -44,7 +44,7 @@ int fragment(Rule *rule, Fragment dest[],
         all_1 = i == nb_fragments - 1;
 
         if (all_1) {
-            payload_size = rule->all1_header_length > rule->header_length &&
+            payload_size = rule->all1_header_len > rule->header_len &&
                            byte_size % reg_payload_byte_size == 0
                            ? 0
                            : (byte_size - 1) % reg_payload_byte_size + 1;
@@ -66,12 +66,12 @@ int fragment(Rule *rule, Fragment dest[],
 int get_packet_length_from_array(Rule *rule, Fragment *fragments) {
     int i = 0;
     while (!is_frg_null(&fragments[i])) {
-        if (i == rule->max_fragment_number) {
+        if (i == rule->max_fragment_nb) {
             printf("No null Fragment was found in the array.");
             return -1;
         }
         if (is_frg_all_1(rule, &fragments[i])) {
-            return (rule->regular_payload_length / 8) * i
+            return (rule->regular_payload_len / 8) * i
                    + get_frg_payload_byte_size(rule, &fragments[i]);
         }
         i++;
@@ -80,12 +80,12 @@ int get_packet_length_from_array(Rule *rule, Fragment *fragments) {
 
 int reassemble(Rule *rule, char dest[], Fragment fragments[]) {
     for (int i = 0; !is_frg_null(&fragments[i]); i++) {
-        if (i == rule->max_fragment_number) {
+        if (i == rule->max_fragment_nb) {
             printf("No null Fragment was found in the array.");
             return -1;
         }
         get_frg_payload(rule, &fragments[i],
-                        dest + i * (rule->regular_payload_length / 8));
+                        dest + i * (rule->regular_payload_len / 8));
     }
     return 0;
 }

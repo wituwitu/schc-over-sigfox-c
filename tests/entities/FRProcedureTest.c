@@ -38,7 +38,7 @@ void test_fragmentation(Rule rule, int byte_size) {
         get_frg_payload(
                 &rule,
                 &fragments[i],
-                reassembled + i * (rule.regular_payload_length / 8)
+                reassembled + i * (rule.regular_payload_len / 8)
         );
     }
 
@@ -52,7 +52,7 @@ void test_packet_length(Rule rule, int byte_size) {
     Fragment fragments[nb_fragments];
     assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
 
-    Fragment received[rule.max_fragment_number];
+    Fragment received[rule.max_fragment_nb];
     int i = 0;
     while (i < nb_fragments) {
         memcpy(&(received[i]), &(fragments[i]), sizeof(Fragment));
@@ -72,7 +72,7 @@ void test_reassembly(Rule rule, int byte_size) {
     Fragment fragments[nb_fragments];
     assert(fragment(&rule, fragments, schc_packet, byte_size) == 0);
 
-    Fragment received[rule.max_fragment_number];
+    Fragment received[rule.max_fragment_nb];
     int i = 0;
     while (i < nb_fragments) {
         memcpy(&(received[i]), &(fragments[i]), sizeof(Fragment));
@@ -112,7 +112,7 @@ int test_get_number_of_fragments() {
     byte_size = 300;
     assert(get_nb_fragments(&rule_single_header, byte_size) == 28);
     assert(get_nb_fragments(&rule_single_header, byte_size) ==
-           rule_single_header.max_fragment_number);
+           rule_single_header.max_fragment_nb);
 
     // Double byte header op. 1
     Rule rule_two_byte_op_1;
@@ -134,7 +134,7 @@ int test_get_number_of_fragments() {
     byte_size = 480;
     assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) == 48);
     assert(get_nb_fragments(&rule_two_byte_op_1, byte_size) ==
-           rule_two_byte_op_1.max_fragment_number);
+           rule_two_byte_op_1.max_fragment_nb);
 
     // Double byte header op. 2
     Rule rule_two_byte_op_2;
@@ -159,7 +159,7 @@ int test_get_number_of_fragments() {
     byte_size = 2400;
     assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) == 241);
     assert(get_nb_fragments(&rule_two_byte_op_2, byte_size) !=
-           rule_two_byte_op_2.max_fragment_number);
+           rule_two_byte_op_2.max_fragment_nb);
 
     return 0;
 }
@@ -184,7 +184,7 @@ int test_get_number_of_windows() {
     byte_size = 300;
     assert(get_nb_windows(&rule_single_header, byte_size) == 4);
     assert(get_nb_windows(&rule_single_header, byte_size) ==
-           rule_single_header.max_window_number);
+           rule_single_header.max_window_nb);
 
     // Double byte header op. 1
     Rule rule_two_byte_op_1;
@@ -206,7 +206,7 @@ int test_get_number_of_windows() {
     byte_size = 480;
     assert(get_nb_windows(&rule_two_byte_op_1, byte_size) == 4);
     assert(get_nb_windows(&rule_two_byte_op_1, byte_size) ==
-           rule_two_byte_op_1.max_window_number);
+           rule_two_byte_op_1.max_window_nb);
 
     // Double byte header op. 2
     Rule rule_two_byte_op_2;
@@ -231,7 +231,7 @@ int test_get_number_of_windows() {
     byte_size = 2400;
     assert(get_nb_windows(&rule_two_byte_op_2, byte_size) == 8);
     assert(get_nb_windows(&rule_two_byte_op_2, byte_size) ==
-           rule_two_byte_op_2.max_window_number);
+           rule_two_byte_op_2.max_window_nb);
 
     return 0;
 }

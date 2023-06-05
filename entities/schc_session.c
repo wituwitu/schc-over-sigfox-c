@@ -22,13 +22,13 @@ int state_construct(State *state, Rule rule) {
     state->aborted = 0;
     state->timestamp = -1;
 
-    state->bitmap = calloc(rule.max_fragment_number + 1, sizeof(char));
-    memset(state->bitmap, '0', rule.max_fragment_number);
-    state->bitmap[rule.max_fragment_number] = '\0';
+    state->bitmap = calloc(rule.max_fragment_nb + 1, sizeof(char));
+    memset(state->bitmap, '0', rule.max_fragment_nb);
+    state->bitmap[rule.max_fragment_nb] = '\0';
 
-    state->requested_frg = calloc(rule.max_fragment_number + 1, sizeof(char));
-    memset(state->requested_frg, '0', rule.max_fragment_number);
-    state->requested_frg[rule.max_fragment_number] = '\0';
+    state->requested_frg = calloc(rule.max_fragment_nb + 1, sizeof(char));
+    memset(state->requested_frg, '0', rule.max_fragment_nb);
+    state->requested_frg[rule.max_fragment_nb] = '\0';
 
     return 0;
 }
@@ -51,8 +51,8 @@ int session_construct(SCHCSession *s, Rule rule) {
     memcpy(&s->ack, &ack, sizeof(CompoundACK));
     memcpy(&s->state, &state, sizeof(State));
 
-    s->fragments = calloc(rule.max_fragment_number + 1, sizeof(Fragment));
-    for (int i = 0; i <= rule.max_fragment_number; i++) {
+    s->fragments = calloc(rule.max_fragment_nb + 1, sizeof(Fragment));
+    for (int i = 0; i <= rule.max_fragment_nb; i++) {
         Fragment frg;
         generate_null_frg(&frg);
         memcpy(&s->fragments[i], &frg, sizeof(Fragment));
@@ -192,12 +192,11 @@ int session_store_frg(SCHCSession *s, Fragment *frg) {
     return 1;
 }
 
-/*
 void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]) {
     int frg_window = get_frg_window(&s->rule, frg);
     int bm_start_idx = frg_window * s->rule.window_size;
-    memset(dest, '\0', s->rule.window_size + 1);
     memcpy(dest, s->state.bitmap + bm_start_idx, s->rule.window_size);
+    dest[s->rule.window_size] = '\0';
 }
 
 void session_update_bitmap(SCHCSession *s, Fragment *frg) {
@@ -205,6 +204,7 @@ void session_update_bitmap(SCHCSession *s, Fragment *frg) {
     replace_char(s->state.bitmap, frg_nb, '1');
 }
 
+/*
 int session_update_requested(SCHCSession *s, CompoundACK *ack) {
     if (is_ack_complete(&s->rule, ack)) return -1;
 
@@ -232,12 +232,12 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
 int session_check_bitmaps(
         SCHCSession *s,
         Fragment *frg,
-        char bitmaps[s->rule.max_window_number][s->rule.window_size + 1]
+        char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1]
 ) {
     int curr_window = get_frg_window(&s->rule, frg);
     int nb_tuples = 0;
 
-    for (int i = 0; i < s->rule.max_window_number; i++) {
+    for (int i = 0; i < s->rule.max_window_nb; i++) {
         memset(bitmaps[i], '\0', s->rule.window_size + 1);
     }
 
@@ -271,7 +271,7 @@ int session_check_bitmaps(
 }
 
 void session_generate_ack(SCHCSession *s, Fragment *frg) {
-    char bitmaps[s->rule.max_window_number][s->rule.window_size + 1];
+    char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1];
 
     int lost = session_check_bitmaps(s, frg, bitmaps);
     int wdw = get_frg_window(&s->rule, frg);

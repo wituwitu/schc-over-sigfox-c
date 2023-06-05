@@ -306,7 +306,7 @@ int test_generate_ack() {
 
     CompoundACK ack;
 
-    char bitmaps[rule.max_window_number][rule.window_size + 1];
+    char bitmaps[rule.max_window_nb][rule.window_size + 1];
     strncpy(bitmaps[0], "1110101\0", rule.window_size + 1);
     strncpy(bitmaps[1], "1111111\0", rule.window_size + 1);
     strncpy(bitmaps[2], "1110001\0", rule.window_size + 1);
@@ -333,7 +333,7 @@ int test_generate_ack() {
     // Complete ACK
 
     CompoundACK ack_complete;
-    char bitmaps_complete[rule.max_window_number][rule.window_size + 1];
+    char bitmaps_complete[rule.max_window_nb][rule.window_size + 1];
     strncpy(bitmaps_complete[0], "1111111\0", rule.window_size + 1);
     strncpy(bitmaps_complete[1], "1111111\0", rule.window_size + 1);
     strncpy(bitmaps_complete[2], "1111111\0", rule.window_size + 1);
@@ -359,7 +359,7 @@ int test_generate_ack() {
     // Invalid ACK
 
     CompoundACK ack_invalid;
-    char bitmaps_invalid[rule.max_window_number][rule.window_size + 1];
+    char bitmaps_invalid[rule.max_window_nb][rule.window_size + 1];
     strncpy(bitmaps_invalid[0], "0000000\0", rule.window_size + 1);
     strncpy(bitmaps_invalid[1], "0001000\0", rule.window_size + 1);
     strncpy(bitmaps_invalid[2], "0000000\0", rule.window_size + 1);
@@ -376,7 +376,7 @@ int test_generate_ack() {
 
     CompoundACK ack_2b1;
 
-    char bitmaps_2b1[rule_2b1.max_window_number][rule_2b1.window_size + 1];
+    char bitmaps_2b1[rule_2b1.max_window_nb][rule_2b1.window_size + 1];
     strncpy(bitmaps_2b1[0], "111111111111\0", rule_2b1.window_size + 1);
     strncpy(bitmaps_2b1[1], "111010110010\0", rule_2b1.window_size + 1);
     strncpy(bitmaps_2b1[2], "111000101111\0", rule_2b1.window_size + 1);
@@ -406,7 +406,7 @@ int test_generate_ack() {
 
     CompoundACK ack_2b1_complete;
 
-    char bitmaps_2b1_complete[rule_2b1.max_window_number][
+    char bitmaps_2b1_complete[rule_2b1.max_window_nb][
             rule_2b1.window_size + 1];
     strncpy(bitmaps_2b1_complete[0], "111111111111\0",
             rule_2b1.window_size + 1);
@@ -446,7 +446,7 @@ int test_generate_ack() {
 
     CompoundACK ack_2b2;
 
-    char bitmaps_2b2[rule_2b2.max_window_number][rule_2b2.window_size + 1];
+    char bitmaps_2b2[rule_2b2.max_window_nb][rule_2b2.window_size + 1];
     strncpy(bitmaps_2b2[0], "1111111111111111111111111111111\0",
             rule_2b2.window_size + 1);
     strncpy(bitmaps_2b2[1], "1110101100101000101110010010011\0",
@@ -485,7 +485,7 @@ int test_generate_ack() {
 
     CompoundACK ack_2b2_larger;
 
-    char bitmaps_2b2_larger[rule_2b2.max_window_number][
+    char bitmaps_2b2_larger[rule_2b2.max_window_nb][
             rule_2b2.window_size + 1];
     strncpy(bitmaps_2b2_larger[0], "1111111111111111111111111111111\0",
             rule_2b2.window_size + 1);
@@ -527,7 +527,7 @@ int test_generate_ack() {
 
     CompoundACK ack_2b2_complete;
 
-    char bitmaps_2b2_complete[rule_2b2.max_window_number][
+    char bitmaps_2b2_complete[rule_2b2.max_window_nb][
             rule_2b2.window_size + 1];
     strncpy(bitmaps_2b2_complete[0], "1111111111111111111111111111111\0",
             rule_2b2.window_size + 1);
@@ -581,13 +581,13 @@ int test_generate_receiver_abort() {
     // Check fields
     char w[rule.m + 1];
     char c[2];
-    int header_length = rule.ack_header_length;
+    int header_length = rule.ack_header_len;
     int header_remainder = header_length % L2_WORD_SIZE;
     int padding_size = header_remainder == 0
                        ? L2_WORD_SIZE
                        : 2 * L2_WORD_SIZE - header_remainder;
     int after_padding_size = DOWNLINK_MTU_BITS - header_length - padding_size;
-    int padding_idx = rule.ack_header_length;
+    int padding_idx = rule.ack_header_len;
     int after_padding_idx = padding_idx + padding_size;
     char padding[padding_size + 1];
     char after_padding[after_padding_size + 1];

@@ -17,12 +17,12 @@ int test_state_construct() {
     assert(strncmp(
             state.bitmap,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     ) == 0);
     assert(strncmp(
             state.requested_frg,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     ) == 0);
 
     free(state.bitmap);
@@ -57,14 +57,14 @@ int test_session_construct() {
     assert(strncmp(
             s.state.bitmap,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     ) == 0);
     assert(strncmp(
             s.state.requested_frg,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     ) == 0);
-    for (int i = 0; i <= rule.max_fragment_number; i++) {
+    for (int i = 0; i <= rule.max_fragment_nb; i++) {
         assert(is_frg_null(&s.fragments[i]));
     }
 
@@ -171,7 +171,7 @@ int test_session_check_requested_fragment() {
     strncpy(
             s.state.requested_frg,
             "0000000000000001111100001000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
 
     Fragment frg1 = {"\x15\x88\x88\x88", 4};
@@ -196,7 +196,7 @@ int test_session_already_received() {
     strncpy(
             s.state.bitmap,
             "1111111111111110000011110111",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
 
     Fragment frg1 = {"\x15\x88\x88\x88", 4};
@@ -210,7 +210,7 @@ int test_session_already_received() {
     strncpy(
             s.state.bitmap,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
 
     // Previous session ended but ACK was lost
@@ -257,7 +257,7 @@ int test_session_expects_fragment() {
     strncpy(
             s.state.bitmap,
             "1111111111111110000011110111",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     Fragment frg = {"\x00\x00\x00\x00\x00\x00\x00\x00", 8};
     assert(session_already_received(&s, &frg));
@@ -267,7 +267,7 @@ int test_session_expects_fragment() {
     strncpy(
             s.state.bitmap,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     Fragment null;
     generate_null_frg(&null);
@@ -300,12 +300,12 @@ int test_session_expects_fragment() {
     strncpy(
             s.state.bitmap,
             "1111000000000000000011110111",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     strncpy(
             s.state.requested_frg,
             "0000111111111111111100001000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     assert(session_expects_fragment(&s, &frg));
 
@@ -313,12 +313,12 @@ int test_session_expects_fragment() {
     strncpy(
             s.state.bitmap,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     strncpy(
             s.state.requested_frg,
             "0000000000000000000000001000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     Fragment frg2 = {"\x15\x88\x88\x88\x88\x88\x88\x88", 8};
     memcpy(&s.state.last_fragment, &frg2, sizeof(Fragment));
@@ -367,12 +367,12 @@ int test_start_new_session() {
     strncpy(
             s.state.bitmap,
             "1111000000000000000011110111",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
     strncpy(
             s.state.requested_frg,
             "1000111111111111111100001000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
 
     // check that session has data
@@ -394,14 +394,14 @@ int test_start_new_session() {
     assert(strncmp(
             s.state.bitmap,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     ) == 0);
     assert(strncmp(
             s.state.requested_frg,
             "0000000000000000000000000000",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     ) == 0);
-    for (int i = 0; i <= rule.max_fragment_number; i++) {
+    for (int i = 0; i <= rule.max_fragment_nb; i++) {
         assert(is_frg_null(&s.fragments[i]));
     }
 
@@ -458,7 +458,7 @@ int test_session_store_frg() {
     strncpy(
             s.state.bitmap,
             "1111111111111110000011110111",
-            rule.max_fragment_number
+            rule.max_fragment_nb
     );
 
     Fragment frg_ar = {"\x00\x00\x00\x00", 4};
@@ -479,9 +479,34 @@ int test_session_get_bitmap() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    strncpy(
+            s.state.bitmap,
+            "1111111110011110000011110111",
+            rule.max_fragment_nb
+    );
+
+    char bitmap_w0[rule.window_size + 1];
+    char bitmap_w1[rule.window_size + 1];
+    char bitmap_w2[rule.window_size + 1];
+    char bitmap_w3[rule.window_size + 1];
+
+    Fragment frg_w0 = {"\x05\x88\x88\x88", 4};
+    Fragment frg_w1 = {"\x0E\x88\x88\x88", 4};
+    Fragment frg_w2 = {"\x15\x88\x88\x88", 4};
+    Fragment frg_w3 = {"\x1E\x88\x88\x88", 4};
+
+    session_get_bitmap(&s, &frg_w0, bitmap_w0);
+    session_get_bitmap(&s, &frg_w1, bitmap_w1);
+    session_get_bitmap(&s, &frg_w2, bitmap_w2);
+    session_get_bitmap(&s, &frg_w3, bitmap_w3);
+
+    assert(memcmp(bitmap_w0, "1111111", rule.window_size) == 0);
+    assert(memcmp(bitmap_w1, "1100111", rule.window_size) == 0);
+    assert(memcmp(bitmap_w2, "1000001", rule.window_size) == 0);
+    assert(memcmp(bitmap_w3, "1110111", rule.window_size) == 0);
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_update_bitmap() {
@@ -490,9 +515,33 @@ int test_session_update_bitmap() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    strncpy(
+            s.state.bitmap,
+            "0000000000000000000000000000",
+            rule.max_fragment_nb
+    );
+
+    char bitmap_w0[rule.window_size + 1];
+    char bitmap_w1[rule.window_size + 1];
+    char bitmap_w2[rule.window_size + 1];
+    char bitmap_w3[rule.window_size + 1];
+
+    Fragment frg_w0 = {"\x05\x88\x88\x88", 4};
+    Fragment frg_w1 = {"\x0E\x88\x88\x88", 4};
+    Fragment frg_w2 = {"\x15\x88\x88\x88", 4};
+    Fragment frg_w3 = {"\x1E\x88\x88\x88", 4};
+
+    session_update_bitmap(&s, &frg_w0);
+    session_update_bitmap(&s, &frg_w1);
+    session_update_bitmap(&s, &frg_w2);
+    session_update_bitmap(&s, &frg_w3);
+
+    assert(memcmp(s.state.bitmap,
+                  "0100000100000001000001000000",
+                  rule.max_fragment_nb) == 0);
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_update_requested() {

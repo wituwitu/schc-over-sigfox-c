@@ -13,13 +13,13 @@ typedef struct {
     int n;
     int u;
     int window_size;
-    int header_length;
-    int all1_header_length;
-    int ack_header_length;
-    int max_window_number;
-    int max_fragment_number;
-    int regular_payload_length;
-    int max_all1_payload_length;
+    int header_len;
+    int all1_header_len;
+    int ack_header_len;
+    int max_window_nb;
+    int max_fragment_nb;
+    int regular_payload_len;
+    int max_all1_payload_len;
     int max_schc_packet_byte_size;
     struct {
         int rule_id_idx;
