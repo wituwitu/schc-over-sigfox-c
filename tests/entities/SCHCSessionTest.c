@@ -571,7 +571,7 @@ int test_session_update_requested() {
     assert(session_update_requested(&s, &ack) == 0);
 
     assert(memcmp(s.state.requested_frg,
-                  "1110001000000011100111111001",
+                  "0001110111111100011000000110",
                   rule.max_fragment_nb) == 0);
 
     session_destroy(&s);
@@ -583,7 +583,68 @@ int test_session_check_bitmaps() {
     Rule rule;
     init_rule(&rule, "000");
     session_construct(&s, rule);
+    strncpy(
+            s.state.bitmap,
+            "1111111110011110000011110001",
+            rule.max_fragment_nb
+    );
 
+    char bitmaps[s.rule.max_window_nb][s.rule.window_size + 1];
+
+    // normal fragment
+
+    Fragment frg = {"\x15\x88\x88\x88", 4};
+    assert(!frg_expects_ack(&rule, &frg));
+    assert(session_check_bitmaps(&s, &frg, bitmaps) < 0);
+
+    // all-0
+    Fragment all0 = {
+            "\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            12
+    };
+
+    assert(frg_expects_ack(&rule, &all0));
+    assert(session_check_bitmaps(&s, &all0, bitmaps) == 1);
+    assert(memcmp(bitmaps[0], "1111111", s.rule.window_size) == 0);
+    assert(memcmp(bitmaps[1], "1100111", s.rule.window_size) == 0);
+    assert(bitmaps[2][0] == '\0');
+    assert(bitmaps[3][0] == '\0');
+
+    // all-1, rcs match
+    Fragment all1 = {
+            "\x17\x80\x44\x44",
+            4
+    };
+    assert(frg_expects_ack(&rule, &all1));
+    assert(session_check_bitmaps(&s, &all1, bitmaps) == 1);
+    assert(memcmp(bitmaps[0], "1111111", s.rule.window_size) == 0);
+    assert(memcmp(bitmaps[1], "1100111", s.rule.window_size) == 0);
+    assert(memcmp(bitmaps[2], "1000001", s.rule.window_size) == 0);
+    assert(bitmaps[3][0] == '\0');
+
+    // all-1, rcs mismatch
+    Fragment all1_2 = {
+            "\x1F\xA0\x44\x44",
+            4
+    };
+    assert(frg_expects_ack(&rule, &all1_2));
+    assert(session_check_bitmaps(&s, &all1_2, bitmaps) == 1);
+    assert(memcmp(bitmaps[0], "1111111", s.rule.window_size) == 0);
+    assert(memcmp(bitmaps[1], "1100111", s.rule.window_size) == 0);
+    assert(memcmp(bitmaps[2], "1000001", s.rule.window_size) == 0);
+    assert(memcmp(bitmaps[3], "1110001", s.rule.window_size) == 0);
+
+    // all-1, full bitmap
+    strncpy(
+            s.state.bitmap,
+            "1111111111111111111111111111",
+            rule.max_fragment_nb
+    );
+    assert(session_check_bitmaps(&s, &all1_2, bitmaps) == 0);
+    assert(bitmaps[0][0] == '\0');
+    assert(bitmaps[1][0] == '\0');
+    assert(bitmaps[2][0] == '\0');
+    assert(bitmaps[3][0] == '\0');
 
     session_destroy(&s);
     return -1;

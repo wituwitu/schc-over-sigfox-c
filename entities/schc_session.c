@@ -217,7 +217,7 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
         int bm_idx = window_nb * s->rule.window_size;
 
         for (int j = 0; j < s->rule.window_size; j++) {
-            if (bitmaps[i][j] == '1') {
+            if (bitmaps[i][j] == '0') {
                 replace_char(s->state.requested_frg,
                              bm_idx + j,
                              '1');
@@ -228,12 +228,13 @@ int session_update_requested(SCHCSession *s, CompoundACK *ack) {
     return 0;
 }
 
-/*
 int session_check_bitmaps(
         SCHCSession *s,
         Fragment *frg,
         char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1]
 ) {
+    if (!frg_expects_ack(&s->rule, frg)) return -1;
+
     int curr_window = get_frg_window(&s->rule, frg);
     int nb_tuples = 0;
 
@@ -270,6 +271,7 @@ int session_check_bitmaps(
     return nb_tuples > 0;
 }
 
+/*
 void session_generate_ack(SCHCSession *s, Fragment *frg) {
     char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1];
 
