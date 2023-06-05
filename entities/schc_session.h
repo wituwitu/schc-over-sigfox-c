@@ -53,7 +53,7 @@ int session_has_pending_ack(SCHCSession *s, Fragment *frg);
 
 int session_store_frg(SCHCSession *s, Fragment *frg);
 
-void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]);
+void session_get_bitmap(SCHCSession *s, int frg_window, char dest[]);
 
 void session_update_bitmap(SCHCSession *s, Fragment *frg);
 
@@ -65,6 +65,6 @@ int session_check_bitmaps(
         char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1]
 );
 
-void session_generate_ack(SCHCSession *s, Fragment *frg);
+int session_generate_ack(SCHCSession *s, Fragment *frg);
 
 int schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp);

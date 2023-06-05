@@ -192,8 +192,7 @@ int session_store_frg(SCHCSession *s, Fragment *frg) {
     return 1;
 }
 
-void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]) {
-    int frg_window = get_frg_window(&s->rule, frg);
+void session_get_bitmap(SCHCSession *s, int frg_window, char dest[]) {
     int bm_start_idx = frg_window * s->rule.window_size;
     memcpy(dest, s->state.bitmap + bm_start_idx, s->rule.window_size);
     dest[s->rule.window_size] = '\0';
@@ -244,7 +243,7 @@ int session_check_bitmaps(
 
     for (int i = 0; i < curr_window + 1; i++) {
         char bitmap[s->rule.window_size + 1];
-        session_get_bitmap(s, frg, bitmap);
+        session_get_bitmap(s, i, bitmap);
         int lost = 0;
 
         if (is_frg_all_1(&s->rule, frg) && i == curr_window) {
@@ -256,8 +255,8 @@ int session_check_bitmaps(
             memset(expected_bitmap, '\0', s->rule.window_size + 1);
             memset(expected_bitmap, '1', frgs_in_last_window - 1);
             memset(expected_bitmap + frgs_in_last_window - 1, '0',
-                   s->rule.window_size - frgs_in_last_window);
-            expected_bitmap[s->rule.window_size] = '1';
+                   s->rule.window_size - frgs_in_last_window + 1);
+            expected_bitmap[s->rule.window_size - 1] = '1';
 
             if (strcmp(bitmap, expected_bitmap) != 0) lost = 1;
         } else if (!is_monochar(bitmap, '1')) lost = 1;
@@ -271,18 +270,17 @@ int session_check_bitmaps(
     return nb_tuples > 0;
 }
 
-/*
-void session_generate_ack(SCHCSession *s, Fragment *frg) {
+int session_generate_ack(SCHCSession *s, Fragment *frg) {
     char bitmaps[s->rule.max_window_nb][s->rule.window_size + 1];
 
     int lost = session_check_bitmaps(s, frg, bitmaps);
     int wdw = get_frg_window(&s->rule, frg);
-
     char c = lost ? '0' : '1';
 
-    generate_ack(&s->rule, &s->ack, wdw, c, bitmaps);
+    return generate_ack(&s->rule, &s->ack, wdw, c, bitmaps);
 }
 
+/*
 int session_schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
 
     if (session_was_aborted(s)) return SCHC_RECEIVER_ABORTED;

@@ -496,10 +496,10 @@ int test_session_get_bitmap() {
     Fragment frg_w2 = {"\x15\x88\x88\x88", 4};
     Fragment frg_w3 = {"\x1E\x88\x88\x88", 4};
 
-    session_get_bitmap(&s, &frg_w0, bitmap_w0);
-    session_get_bitmap(&s, &frg_w1, bitmap_w1);
-    session_get_bitmap(&s, &frg_w2, bitmap_w2);
-    session_get_bitmap(&s, &frg_w3, bitmap_w3);
+    session_get_bitmap(&s, get_frg_window(&rule, &frg_w0), bitmap_w0);
+    session_get_bitmap(&s, get_frg_window(&rule, &frg_w1), bitmap_w1);
+    session_get_bitmap(&s, get_frg_window(&rule, &frg_w2), bitmap_w2);
+    session_get_bitmap(&s, get_frg_window(&rule, &frg_w3), bitmap_w3);
 
     assert(memcmp(bitmap_w0, "1111111", rule.window_size) == 0);
     assert(memcmp(bitmap_w1, "1100111", rule.window_size) == 0);
@@ -521,11 +521,6 @@ int test_session_update_bitmap() {
             "0000000000000000000000000000",
             rule.max_fragment_nb
     );
-
-    char bitmap_w0[rule.window_size + 1];
-    char bitmap_w1[rule.window_size + 1];
-    char bitmap_w2[rule.window_size + 1];
-    char bitmap_w3[rule.window_size + 1];
 
     Fragment frg_w0 = {"\x05\x88\x88\x88", 4};
     Fragment frg_w1 = {"\x0E\x88\x88\x88", 4};
@@ -571,7 +566,7 @@ int test_session_update_requested() {
     assert(session_update_requested(&s, &ack) == 0);
 
     assert(memcmp(s.state.requested_frg,
-                  "0001110111111100011000000110",
+                  "0001110000000000011000000110",
                   rule.max_fragment_nb) == 0);
 
     session_destroy(&s);
@@ -592,7 +587,6 @@ int test_session_check_bitmaps() {
     char bitmaps[s.rule.max_window_nb][s.rule.window_size + 1];
 
     // normal fragment
-
     Fragment frg = {"\x15\x88\x88\x88", 4};
     assert(!frg_expects_ack(&rule, &frg));
     assert(session_check_bitmaps(&s, &frg, bitmaps) < 0);
@@ -605,7 +599,7 @@ int test_session_check_bitmaps() {
 
     assert(frg_expects_ack(&rule, &all0));
     assert(session_check_bitmaps(&s, &all0, bitmaps) == 1);
-    assert(memcmp(bitmaps[0], "1111111", s.rule.window_size) == 0);
+    assert(bitmaps[0][0] == '\0');
     assert(memcmp(bitmaps[1], "1100111", s.rule.window_size) == 0);
     assert(bitmaps[2][0] == '\0');
     assert(bitmaps[3][0] == '\0');
@@ -617,7 +611,7 @@ int test_session_check_bitmaps() {
     };
     assert(frg_expects_ack(&rule, &all1));
     assert(session_check_bitmaps(&s, &all1, bitmaps) == 1);
-    assert(memcmp(bitmaps[0], "1111111", s.rule.window_size) == 0);
+    assert(bitmaps[0][0] == '\0');
     assert(memcmp(bitmaps[1], "1100111", s.rule.window_size) == 0);
     assert(memcmp(bitmaps[2], "1000001", s.rule.window_size) == 0);
     assert(bitmaps[3][0] == '\0');
@@ -629,7 +623,7 @@ int test_session_check_bitmaps() {
     };
     assert(frg_expects_ack(&rule, &all1_2));
     assert(session_check_bitmaps(&s, &all1_2, bitmaps) == 1);
-    assert(memcmp(bitmaps[0], "1111111", s.rule.window_size) == 0);
+    assert(bitmaps[0][0] == '\0');
     assert(memcmp(bitmaps[1], "1100111", s.rule.window_size) == 0);
     assert(memcmp(bitmaps[2], "1000001", s.rule.window_size) == 0);
     assert(memcmp(bitmaps[3], "1110001", s.rule.window_size) == 0);
@@ -637,7 +631,7 @@ int test_session_check_bitmaps() {
     // all-1, full bitmap
     strncpy(
             s.state.bitmap,
-            "1111111111111111111111111111",
+            "1111111111111111111111111001",
             rule.max_fragment_nb
     );
     assert(session_check_bitmaps(&s, &all1_2, bitmaps) == 0);
@@ -647,7 +641,7 @@ int test_session_check_bitmaps() {
     assert(bitmaps[3][0] == '\0');
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_generate_ack() {
@@ -655,10 +649,46 @@ int test_session_generate_ack() {
     Rule rule;
     init_rule(&rule, "000");
     session_construct(&s, rule);
+    strncpy(
+            s.state.bitmap,
+            "1111111110011110000011110001",
+            rule.max_fragment_nb
+    );
 
+    // all-0
+    Fragment all0 = {
+            "\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            12
+    };
+    assert(session_generate_ack(&s, &all0) == 0);
+    assert(!is_ack_null(&s.ack));
+    int nb_tuples_0 = get_ack_nb_tuples(&rule, &s.ack);
+    assert(nb_tuples_0 == 1);
+    char windows_0[nb_tuples_0][rule.m + 1];
+    char bitmaps_0[nb_tuples_0][rule.window_size + 1];
+    get_ack_tuples(&rule, &s.ack, nb_tuples_0, windows_0, bitmaps_0);
+    assert(memcmp(windows_0[0], "01", rule.m) == 0);
+    assert(memcmp(bitmaps_0[0], "1100111", rule.window_size) == 0);
+
+    // all-1
+    Fragment all1 = {
+            "\x17\x80\x44\x44",
+            4
+    };
+    assert(session_generate_ack(&s, &all1) == 0);
+    assert(!is_ack_null(&s.ack));
+    int nb_tuples_1 = get_ack_nb_tuples(&rule, &s.ack);
+    assert(nb_tuples_1 == 2);
+    char windows_1[nb_tuples_1][rule.m + 1];
+    char bitmaps_1[nb_tuples_1][rule.window_size + 1];
+    get_ack_tuples(&rule, &s.ack, nb_tuples_1, windows_1, bitmaps_1);
+    assert(memcmp(windows_1[0], "01", rule.m) == 0);
+    assert(memcmp(bitmaps_1[0], "1100111", rule.window_size) == 0);
+    assert(memcmp(windows_1[1], "10", rule.m) == 0);
+    assert(memcmp(bitmaps_1[1], "1000001", rule.window_size) == 0);
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_schc_recv() {
