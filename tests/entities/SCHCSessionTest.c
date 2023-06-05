@@ -697,6 +697,23 @@ int test_session_schc_recv() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    // generate fragments
+
+    // no losses (no generated ACKs but the last one)
+
+    // losses (inc. all-0) (generated ACKs and the last one)
+
+    // new session has pending ack, received normal frg -> last_fragment and last_ack null
+
+    // new session has pending ack, received all-1 -> retrieve last ack
+
+    // unexpected fragment -> start new session
+
+    // sender abort -> abort & raise SENDER_ABORTED
+
+    // expired inactivity timer -> abort (create Receiver-Abort), raise RECEIVER_ABORTED
+
+    // abort flag set to 1 -> raise RECEIVER_ABORTED
 
     session_destroy(&s);
     return -1;
