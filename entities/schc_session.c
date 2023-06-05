@@ -167,8 +167,7 @@ int start_new_session(SCHCSession *s, int retain_last_data) {
     return 0;
 }
 
-/*
-int session_check_pending_ack(SCHCSession *s, Fragment *frg) {
+int session_has_pending_ack(SCHCSession *s, Fragment *frg) {
     if (is_ack_null(&s->state.last_ack)) return 0;
 
     if (!is_ack_complete(&s->rule, &s->state.last_ack)) {
@@ -185,13 +184,15 @@ int session_check_pending_ack(SCHCSession *s, Fragment *frg) {
     return is_frg_all_1(&s->rule, &s->state.last_fragment);
 }
 
-void session_store_frg(SCHCSession *s, Fragment *frg) {
-    if (session_already_received(s, frg)) return;
+int session_store_frg(SCHCSession *s, Fragment *frg) {
+    if (session_already_received(s, frg)) return 0;
 
     int frg_nb = get_frg_nb(&s->rule, frg);
     memcpy(&s->fragments[frg_nb], frg, sizeof(Fragment));
+    return 1;
 }
 
+/*
 void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]) {
     int frg_window = get_frg_window(&s->rule, frg);
     int bm_start_idx = frg_window * s->rule.window_size;
@@ -302,7 +303,7 @@ int session_schc_recv(SCHCSession *s, Fragment *frg, time_t timestamp) {
     session_store_frg(s, frg);
     session_update_bitmap(s, frg);
 
-    if (session_check_pending_ack(s, frg)) {
+    if (session_has_pending_ack(s, frg)) {
         memcpy(&s->ack, &s->state.last_ack, sizeof(CompoundACK));
         return 1;
     }

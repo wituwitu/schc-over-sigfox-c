@@ -10,7 +10,7 @@ sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size) {
 
     s->nb_fragments = get_nb_fragments(rule, byte_size);
     s->last_window = get_nb_windows(rule, byte_size) - 1;
-    s->fragments = malloc(sizeof(Fragment) * s->nb_fragments);
+    s->fragments = calloc(s->nb_fragments, sizeof(Fragment));
 
     if (fragment(rule, s->fragments, schc_packet, byte_size) < 0) {
         printf("Fragment procedure failed.\n");

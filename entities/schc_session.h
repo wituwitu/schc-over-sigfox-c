@@ -49,9 +49,9 @@ int session_expects_fragment(SCHCSession *s, Fragment *frg);
 
 int start_new_session(SCHCSession *s, int retain_last_data);
 
-int session_check_pending_ack(SCHCSession *s, Fragment *frg);
+int session_has_pending_ack(SCHCSession *s, Fragment *frg);
 
-void session_store_frg(SCHCSession *s, Fragment *frg);
+int session_store_frg(SCHCSession *s, Fragment *frg);
 
 void session_get_bitmap(SCHCSession *s, Fragment *frg, char dest[]);
 

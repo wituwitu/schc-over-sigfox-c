@@ -423,9 +423,30 @@ int test_session_check_pending_ack() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    Fragment frg = {"\x15\x88\x88\x88\x88\x88\x88\x88", 8};
+    Fragment all_1 = {"\027\200DD", 4};
+    CompoundACK incomplete_ack = {"\x15\x88\x88\x88\x88\x88\x88\x88", 8};
+    CompoundACK complete_ack = {"\x1C\x00\x00\x00\x00\x00\x00\x00", 8};
+    // ack is null
+    assert(!session_has_pending_ack(&s, &frg));
+
+    // ack is not complete
+    memcpy(&s.state.last_ack, &incomplete_ack, sizeof(CompoundACK));
+    assert(!session_has_pending_ack(&s, &frg));
+
+    // ack is complete, frg is not all1
+    memcpy(&s.state.last_fragment, &frg, sizeof(Fragment));
+    memcpy(&s.state.last_ack, &complete_ack, sizeof(CompoundACK));
+    assert(!session_has_pending_ack(&s, &frg));
+    assert(is_frg_null(&s.state.last_fragment));
+    assert(is_ack_null(&s.state.last_ack));
+
+    // ack is complete, frg is all1
+    memcpy(&s.state.last_ack, &complete_ack, sizeof(CompoundACK));
+    assert(!session_has_pending_ack(&s, &all_1));
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_store_frg() {
@@ -434,9 +455,22 @@ int test_session_store_frg() {
     init_rule(&rule, "000");
     session_construct(&s, rule);
 
+    strncpy(
+            s.state.bitmap,
+            "1111111111111110000011110111",
+            rule.max_fragment_number
+    );
+
+    Fragment frg_ar = {"\x00\x00\x00\x00", 4};
+    assert(session_store_frg(&s, &frg_ar) == 0);
+
+    Fragment frg = {"\x15\x88\x88\x88", 4};
+    assert(session_store_frg(&s, &frg) == 1);
+    int frg_nb = get_frg_nb(&rule, &frg);
+    assert(frg_equal(&frg, &s.fragments[frg_nb]));
 
     session_destroy(&s);
-    return -1;
+    return 0;
 }
 
 int test_session_get_bitmap() {
