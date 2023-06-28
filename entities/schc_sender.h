@@ -27,7 +27,10 @@ typedef struct {
  * Initializes the parameters of the SCHCSender structure.
  * Returns -1 on errors.
  *
- *  s: SCHCSender structure to be initialized.
+ *  s: Uninitialized SCHCSender structure.
+ *  rule: Rule parameters to initialize the SCHCSender with.
+ *  schc_packet: SCHC Packet to be processed by the F/R algorithm.
+ *  byte_size: Size in bytes of the SCHC Packet.
  */
 int
 sender_construct(SCHCSender *s, Rule *rule, char schc_packet[], int byte_size);
