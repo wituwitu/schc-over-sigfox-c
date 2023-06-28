@@ -38,12 +38,13 @@ changes, updating the test cases if needed.
 ## TODO
 
 * Implement the `schc_recv()` function of the `SCHCSession` structure, which executes the receiver algorithm of
-  SCHC-over-Sigfox.
+  SCHC-over-Sigfox. Use the `dev/schc_session` branch.
     * Reference:
       the [`SCHCReceiver.schc_recv()` method](https://github.com/schc-over-sigfox/schc-over-sigfox/blob/main/Entities/SCHCReceiver.py#L321).
     * Write test cases accordingly.
 * Implement the `schc_receiver` module, which should provide an interface for incoming SCHC Fragments and execute the
-  functions of the `schc_session` module to process a SCHC transmission at the receiver side.
+  functions of the `schc_session` module to process a SCHC transmission at the receiver side. Use
+  the `dev/schc_receiver` branch.
     * Reference:
       the [`schcfox_server.receive()` function](https://github.com/schc-over-sigfox/schc-over-sigfox/blob/main/schcfox_server.py#L22).
     * Write test cases accordingly.
